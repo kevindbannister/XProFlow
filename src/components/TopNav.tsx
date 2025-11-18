@@ -7,6 +7,7 @@ interface TopNavProps {
 }
 
 const navItems: { label: string; value: MainView }[] = [
+  { label: 'Overview', value: 'overview' },
   { label: 'Settings', value: 'settings' },
   { label: 'Billing', value: 'billing' },
   { label: 'Team', value: 'team' },
