@@ -1,0 +1,659 @@
+import { FC, useMemo, useState } from 'react';
+import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../mockData';
+import { connectEmailProvider, connectIntegration, disconnectIntegration, saveSettings } from '../services/api';
+import { Category, EmailRule, Integration, SettingsTab } from '../types';
+
+interface SettingsViewProps {
+  currentTab: SettingsTab;
+}
+
+const sectionClass = 'rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm';
+
+export const SettingsView: FC<SettingsViewProps> = ({ currentTab }) => {
+  const renderTab = useMemo(() => {
+    switch (currentTab) {
+      case 'preferences':
+        return <PreferencesTab />;
+      case 'emailRules':
+        return <EmailRulesTab />;
+      case 'draftReplies':
+        return <DraftRepliesTab />;
+      case 'followUps':
+        return <FollowUpsTab />;
+      case 'scheduling':
+        return <SchedulingTab />;
+      case 'meetingNotetaker':
+        return <MeetingNotetakerTab />;
+      case 'integrations':
+        return <IntegrationsTab />;
+      case 'faq':
+        return <FaqTab />;
+      default:
+        return null;
+    }
+  }, [currentTab]);
+
+  return <div className="space-y-6">{renderTab}</div>;
+};
+
+const PreferencesTab: FC = () => {
+  const [emailPreferences] = useState({ primary: 'kevin@firm.co.uk', status: 'Connected' });
+  const [toggles, setToggles] = useState({
+    categorisation: true,
+    drafts: true,
+    followUpTracking: false,
+  });
+
+  const handleToggle = (key: keyof typeof toggles) => {
+    setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleConnect = async (provider: 'gmail' | 'outlook') => {
+    await connectEmailProvider(provider);
+    // TODO: Replace alert with UI toast once backend integration exists.
+    alert(`Connected ${provider}`);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Connected email accounts</h3>
+            <p className="text-sm text-slate-500">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleConnect('gmail')}
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500"
+            >
+              Connect Gmail
+            </button>
+            <button
+              onClick={() => handleConnect('outlook')}
+              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500"
+            >
+              Connect Outlook
+            </button>
+          </div>
+        </div>
+        <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900">Primary email</p>
+              <p className="text-sm text-slate-500">{emailPreferences.primary}</p>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+              {emailPreferences.status}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className={sectionClass}>
+        <h3 className="text-lg font-semibold text-slate-900">General preferences</h3>
+        <div className="mt-4 space-y-4">
+          {[{
+            key: 'categorisation',
+            title: 'Enable email categorisation',
+            description: 'FlowMail AI will organise messages for downstream automations.',
+          },
+          {
+            key: 'drafts',
+            title: 'Enable AI draft replies',
+            description: 'FlowMail generates suggested responses for review.',
+          },
+          {
+            key: 'followUpTracking',
+            title: 'Enable follow-up tracking',
+            description: 'Get nudges when a reply is overdue.',
+          }].map((item) => (
+            <ToggleRow
+              key={item.key}
+              title={item.title}
+              description={item.description}
+              enabled={toggles[item.key as keyof typeof toggles]}
+              onToggle={() => handleToggle(item.key as keyof typeof toggles)}
+            />
+          ))}
+        </div>
+        <div className="mt-6 flex justify-end">
+          <PrimaryButton label="Save changes" onClick={saveSettings} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const EmailRulesTab: FC = () => {
+  const [categoryState, setCategoryState] = useState<Category[]>(defaultCategories);
+  const [rules, setRules] = useState<EmailRule[]>(initialEmailRules);
+
+  const toggleCategory = (id: string) => {
+    setCategoryState((prev) => prev.map((cat) => (cat.id === id ? { ...cat, active: !cat.active } : cat)));
+  };
+
+  const handleRuleChange = (id: string, field: keyof EmailRule, value: string) => {
+    setRules((prev) => prev.map((rule) => (rule.id === id ? { ...rule, [field]: value } : rule)));
+  };
+
+  const addRule = () => {
+    setRules((prev) => [...prev, { id: crypto.randomUUID(), value: '', categoryId: categoryState[0]?.id ?? '' }]);
+  };
+
+  const removeRule = (id: string) => {
+    setRules((prev) => prev.filter((rule) => rule.id !== id));
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <div className={sectionClass}>
+        <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
+        <p className="mt-1 text-sm text-slate-500">
+          FlowMail will organise your emails according to these categories in the backend.
+        </p>
+        <div className="mt-4 space-y-3">
+          {categoryState.map((category) => (
+            <div key={category.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={category.active}
+                  onChange={() => toggleCategory(category.id)}
+                  className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                />
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{category.name}</p>
+                  <p className="text-xs text-slate-500">{category.description}</p>
+                </div>
+              </div>
+              <span className={`h-3 w-3 rounded ${category.color}`} />
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className={sectionClass}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Email rules</h3>
+            <p className="text-sm text-slate-500">
+              Map senders, domains, or keywords to categories. FlowMail respects your filters.
+            </p>
+          </div>
+          <ToggleRow
+            title="Respect user-applied labels"
+            description="Avoid overriding labels already applied by you."
+            enabled
+            onToggle={() => null}
+            compact
+          />
+        </div>
+        <div className="mt-4 space-y-4">
+          {rules.map((rule) => (
+            <div key={rule.id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+              <label className="text-xs font-semibold uppercase text-slate-500">Email / domain / keyword</label>
+              <input
+                type="text"
+                value={rule.value}
+                onChange={(event) => handleRuleChange(rule.id, 'value', event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+              />
+              <div className="mt-3 flex items-center gap-3">
+                <label className="text-xs font-semibold uppercase text-slate-500">Category</label>
+                <select
+                  value={rule.categoryId}
+                  onChange={(event) => handleRuleChange(rule.id, 'categoryId', event.target.value)}
+                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                >
+                  {categoryState.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={() => removeRule(rule.id)} className="ml-auto text-sm text-rose-500">
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={addRule}
+            className="w-full rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-sm font-semibold text-emerald-600 hover:border-emerald-400"
+          >
+            + Add email or subject
+          </button>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <PrimaryButton label="Save changes" onClick={saveSettings} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const DraftRepliesTab: FC = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [prompt, setPrompt] = useState('Keep tone concise but warm. Prioritise clients with active projects.');
+  const [signature, setSignature] = useState('Best,\nKevin');
+  const [font, setFont] = useState('default');
+  const [fontSize, setFontSize] = useState(14);
+  const [fontColor, setFontColor] = useState('#111827');
+
+  return (
+    <div className="space-y-6">
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">AI draft replies</h3>
+            <p className="text-sm text-slate-500">Let FlowMail suggest responses for you to review.</p>
+          </div>
+          <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
+        </div>
+        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-800">
+          Threading must be enabled in Gmail/Outlook to maintain context. Follow the guides below.
+        </div>
+        <div className="mt-4 space-y-2">
+          {['How to enable threading in Gmail', 'How to enable threading in Outlook'].map((item) => (
+            <details key={item} className="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm">
+              <summary className="cursor-pointer font-semibold text-slate-800">{item}</summary>
+              <p className="mt-2 text-slate-600">
+                Placeholder instructions. TODO: Link to knowledge base article or embed steps.
+              </p>
+            </details>
+          ))}
+        </div>
+      </div>
+      <div className={sectionClass}>
+        <label className="text-sm font-semibold text-slate-900">Draft prompt</label>
+        <textarea
+          value={prompt}
+          maxLength={1000}
+          onChange={(event) => setPrompt(event.target.value)}
+          className="mt-2 h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+          placeholder="Give FlowMail AI guidance on tone, priorities, and decision rules."
+        />
+        <p className="mt-1 text-xs text-slate-500">{prompt.length}/1000</p>
+      </div>
+      <div className={sectionClass}>
+        <h3 className="text-lg font-semibold text-slate-900">Signature</h3>
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700">Email signature</label>
+            <textarea
+              value={signature}
+              onChange={(event) => setSignature(event.target.value)}
+              className="mt-2 h-24 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <label className="text-xs uppercase text-slate-500">Font</label>
+              <select
+                value={font}
+                onChange={(event) => setFont(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+              >
+                <option value="default">Email client default</option>
+                <option value="sans">Sans</option>
+                <option value="serif">Serif</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-xs uppercase text-slate-500">Font size</label>
+              <input
+                type="number"
+                value={fontSize}
+                onChange={(event) => setFontSize(Number(event.target.value))}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="text-xs uppercase text-slate-500">Font colour</label>
+              <input
+                type="text"
+                value={fontColor}
+                onChange={(event) => setFontColor(event.target.value)}
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+                placeholder="#000000"
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <PrimaryButton label="Save changes" onClick={saveSettings} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FollowUpsTab: FC = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [days, setDays] = useState(5);
+
+  return (
+    <div className={sectionClass}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Follow-ups</h3>
+          <p className="text-sm text-slate-500">FlowMail will draft reminders if someone hasn’t replied.</p>
+        </div>
+        <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
+      </div>
+      <div className="mt-6">
+        <label className="text-sm font-medium text-slate-700">Days before following up: {days}</label>
+        <input
+          type="range"
+          min={1}
+          max={30}
+          value={days}
+          onChange={(event) => setDays(Number(event.target.value))}
+          className="mt-3 w-full accent-emerald-500"
+        />
+        <p className="mt-2 text-sm text-slate-500">FlowMail will queue follow-ups {days} days after the original email.</p>
+      </div>
+      <div className="mt-6 flex justify-end">
+        <PrimaryButton label="Save changes" onClick={saveSettings} />
+      </div>
+    </div>
+  );
+};
+
+const SchedulingTab: FC = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [duration, setDuration] = useState(45);
+  const [link, setLink] = useState('https://flowmail.ai/kevin');
+  const [copied, setCopied] = useState(false);
+  const [includeInDrafts, setIncludeInDrafts] = useState(true);
+  const [timeZone, setTimeZone] = useState('Europe/London');
+  const [notifyPropose, setNotifyPropose] = useState(true);
+  const [notifyAccept, setNotifyAccept] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard?.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-2">
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900">Scheduling settings</h3>
+            <p className="text-sm text-slate-500">Share availability and let FlowMail coordinate.</p>
+          </div>
+          <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
+        </div>
+        <div className="mt-4 space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700">Default meeting duration (minutes)</label>
+            <input
+              type="number"
+              value={duration}
+              onChange={(event) => setDuration(Number(event.target.value))}
+              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700">Your scheduling link</label>
+            <div className="mt-1 flex gap-2">
+              <input
+                type="text"
+                value={link}
+                onChange={(event) => setLink(event.target.value)}
+                className="flex-1 rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+              />
+              <button onClick={handleCopy} className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                {copied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+          <ToggleRow
+            title="Include scheduling link in calendar drafts"
+            description="Automatically reference your link when drafting meeting emails."
+            enabled={includeInDrafts}
+            onToggle={() => setIncludeInDrafts((prev) => !prev)}
+          />
+          <div>
+            <label className="text-sm font-medium text-slate-700">Time zone</label>
+            <select
+              value={timeZone}
+              onChange={(event) => setTimeZone(event.target.value)}
+              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+            >
+              <option value="Europe/London">Europe/London (GMT)</option>
+              <option value="America/New_York">America/New_York (EST)</option>
+              <option value="Asia/Singapore">Asia/Singapore (SGT)</option>
+            </select>
+          </div>
+          <ToggleRow
+            title="Email me when proposing times"
+            description="Receive a summary email whenever FlowMail proposes times."
+            enabled={notifyPropose}
+            onToggle={() => setNotifyPropose((prev) => !prev)}
+          />
+          <ToggleRow
+            title="Email me when accepting times"
+            description="Confirmations land in your inbox immediately."
+            enabled={notifyAccept}
+            onToggle={() => setNotifyAccept((prev) => !prev)}
+          />
+        </div>
+        <div className="mt-6 flex justify-end">
+          <PrimaryButton label="Save changes" onClick={saveSettings} />
+        </div>
+      </div>
+      <div className={sectionClass}>
+        <h3 className="text-lg font-semibold text-slate-900">Meeting booking preview</h3>
+        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-slate-900">Kevin Brooks</p>
+          <p className="text-xs text-slate-500">{duration} minutes · {timeZone.replace('/', ' · ')}</p>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm sm:grid-cols-3">
+          {[...Array(9)].map((_, index) => (
+            <button
+              key={index}
+              className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm"
+            >
+              {`Day ${index + 1}`}
+              <span className="block text-xs text-slate-400">10:00 · 14:00</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MeetingNotetakerTab: FC = () => {
+  const [enabled, setEnabled] = useState(true);
+  const [meetingState, setMeetingState] = useState(meetings);
+
+  const toggleMeeting = (id: string) => {
+    setMeetingState((prev) => prev.map((meeting) => (meeting.id === id ? { ...meeting, sendToNotetaker: !meeting.sendToNotetaker } : meeting)));
+  };
+
+  return (
+    <div className={sectionClass}>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900">Meeting Notetaker</h3>
+          <p className="text-sm text-slate-500">Automatically join eligible meetings, summarise, and send a recap.</p>
+        </div>
+        <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        <table className="min-w-full text-sm">
+          <thead>
+            <tr className="text-left text-slate-500">
+              <th className="pb-2">Date & time</th>
+              <th className="pb-2">Title</th>
+              <th className="pb-2">Platform</th>
+              <th className="pb-2 text-center">Send</th>
+            </tr>
+          </thead>
+          <tbody>
+            {meetingState.map((meeting) => (
+              <tr key={meeting.id} className="border-t border-slate-100">
+                <td className="py-3 text-slate-700">{meeting.date}</td>
+                <td className="py-3 font-medium text-slate-900">{meeting.title}</td>
+                <td className="py-3 text-slate-500">{meeting.platform}</td>
+                <td className="py-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={meeting.sendToNotetaker}
+                    onChange={() => toggleMeeting(meeting.id)}
+                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-4 text-xs text-slate-500">
+        In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.
+      </p>
+    </div>
+  );
+};
+
+const IntegrationsTab: FC = () => {
+  const [integrationState, setIntegrationState] = useState<Integration[]>(defaultIntegrations);
+
+  const handleToggle = async (integration: Integration) => {
+    if (integration.connected) {
+      await disconnectIntegration(integration.id);
+    } else {
+      await connectIntegration(integration.id);
+    }
+    setIntegrationState((prev) =>
+      prev.map((item) => (item.id === integration.id ? { ...item, connected: !item.connected } : item))
+    );
+  };
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      {integrationState.map((integration) => (
+        <div key={integration.id} className={sectionClass}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-slate-900">{integration.name}</h3>
+              <p className="text-sm text-slate-500">{integration.description}</p>
+            </div>
+            <div className="h-10 w-10 rounded-2xl bg-slate-100" />
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              {integration.connected ? 'Connected' : 'Not connected'}
+            </span>
+            <button
+              onClick={() => handleToggle(integration)}
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                integration.connected
+                  ? 'border border-slate-200 text-slate-700'
+                  : 'bg-emerald-600 text-white shadow'
+              }`}
+            >
+              {integration.connected ? 'Manage' : 'Connect'}
+            </button>
+          </div>
+          <p className="mt-3 text-xs text-slate-400">
+            TODO: Trigger n8n integration call for {integration.name}.
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const FaqTab: FC = () => {
+  const faqs = [
+    {
+      question: 'What if I already have an email label system?',
+      answer: 'FlowMail respects your structure and layers automations without overwriting labels.',
+    },
+    {
+      question: 'Will FlowMail change my inbox permanently?',
+      answer: 'No. Settings let you pause or revert at any time. Changes run via automations in n8n.',
+    },
+    {
+      question: 'Can I disable FlowMail and go back to normal?',
+      answer: 'Yes, toggle features off and FlowMail steps back immediately.',
+    },
+    {
+      question: 'How does the scheduling feature work?',
+      answer: 'FlowMail reads your calendar availability and proposes times via the link provided.',
+    },
+    {
+      question: 'Is my data secure?',
+      answer: 'All data is processed via secure connections. TODO: link to compliance docs.',
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {faqs.map((faq) => (
+        <details key={faq.question} className={sectionClass}>
+          <summary className="cursor-pointer text-base font-semibold text-slate-900">{faq.question}</summary>
+          <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+        </details>
+      ))}
+    </div>
+  );
+};
+
+interface ToggleRowProps {
+  title: string;
+  description: string;
+  enabled: boolean;
+  onToggle: () => void;
+  compact?: boolean;
+}
+
+const ToggleRow: FC<ToggleRowProps> = ({ title, description, enabled, onToggle, compact }) => (
+  <div className={`flex items-start justify-between gap-4 ${compact ? 'py-0' : 'py-2'}`}>
+    <div>
+      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <p className="text-xs text-slate-500">{description}</p>
+    </div>
+    <ToggleSwitch enabled={enabled} onToggle={onToggle} />
+  </div>
+);
+
+interface ToggleSwitchProps {
+  enabled: boolean;
+  onToggle: () => void;
+}
+
+const ToggleSwitch: FC<ToggleSwitchProps> = ({ enabled, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+      enabled ? 'bg-emerald-500' : 'bg-slate-200'
+    }`}
+  >
+    <span
+      className={`inline-block h-4 w-4 rounded-full bg-white transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
+    />
+  </button>
+);
+
+interface PrimaryButtonProps {
+  label: string;
+  onClick: () => void | Promise<void>;
+}
+
+const PrimaryButton: FC<PrimaryButtonProps> = ({ label, onClick }) => (
+  <button
+    onClick={onClick}
+    className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500"
+  >
+    {label}
+  </button>
+);
