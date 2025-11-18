@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopNav } from './components/TopNav';
 import { BillingView } from './views/BillingView';
@@ -12,7 +12,22 @@ const App = () => {
   const [currentView, setCurrentView] = useState<MainView>('overview');
   const [currentSettingsTab, setCurrentSettingsTab] = useState<SettingsTab>('preferences');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+  });
   const isDashboard = currentView === 'overview';
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const content = useMemo(() => {
     switch (currentView) {
@@ -32,8 +47,17 @@ const App = () => {
   }, [currentSettingsTab, currentView]);
 
   return (
-    <div className={`min-h-screen ${isDashboard ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950' : 'bg-slate-100'}`}>
-      <TopNav currentView={currentView} onChangeView={(view) => setCurrentView(view)} />
+    <div
+      className={`min-h-screen transition-colors duration-300 ${
+        isDashboard ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950' : 'bg-slate-100 dark:bg-slate-950'
+      }`}
+    >
+      <TopNav
+        currentView={currentView}
+        onChangeView={(view) => setCurrentView(view)}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+      />
       {currentView === 'settings' ? (
         <div className="mx-auto flex w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
           <Sidebar
@@ -46,7 +70,7 @@ const App = () => {
             <div className="lg:hidden">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+                className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition dark:border-slate-700 dark:text-slate-200"
               >
                 ☰ Settings menu
               </button>

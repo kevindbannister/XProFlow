@@ -7,7 +7,8 @@ interface SettingsViewProps {
   currentTab: SettingsTab;
 }
 
-const sectionClass = 'rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm';
+const sectionClass =
+  'rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-xl dark:shadow-black/20';
 
 export const SettingsView: FC<SettingsViewProps> = ({ currentTab }) => {
   const renderTab = useMemo(() => {
@@ -58,29 +59,29 @@ const PreferencesTab: FC = () => {
       <div className={sectionClass}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Connected email accounts</h3>
-            <p className="text-sm text-slate-500">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Connected email accounts</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => handleConnect('gmail')}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500"
+              className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
             >
               Connect Gmail
             </button>
             <button
               onClick={() => handleConnect('outlook')}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500"
+              className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
             >
               Connect Outlook
             </button>
           </div>
         </div>
-        <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+        <div className="mt-6 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Primary email</p>
-              <p className="text-sm text-slate-500">{emailPreferences.primary}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Primary email</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{emailPreferences.primary}</p>
             </div>
             <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
               {emailPreferences.status}
@@ -89,7 +90,7 @@ const PreferencesTab: FC = () => {
         </div>
       </div>
       <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900">General preferences</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">General preferences</h3>
         <div className="mt-4 space-y-4">
           {[
             {
@@ -148,11 +149,14 @@ const EmailRulesTab: FC = () => {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
-        <p className="mt-1 text-sm text-slate-500">FlowMail will organise your emails according to these categories in the backend.</p>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Categories</h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">FlowMail will organise your emails according to these categories in the backend.</p>
         <div className="mt-4 space-y-3">
           {categoryState.map((category) => (
-            <div key={category.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
+            <div
+              key={category.id}
+              className="flex items-center justify-between rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-3"
+            >
               <div className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -161,8 +165,8 @@ const EmailRulesTab: FC = () => {
                   className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{category.name}</p>
-                  <p className="text-xs text-slate-500">{category.description}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{category.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{category.description}</p>
                 </div>
               </div>
               <span className={`h-3 w-3 rounded ${category.color}`} />
@@ -173,8 +177,8 @@ const EmailRulesTab: FC = () => {
       <div className={sectionClass}>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Email rules</h3>
-            <p className="text-sm text-slate-500">Map senders, domains, or keywords to categories. FlowMail respects your filters.</p>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Email rules</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Map senders, domains, or keywords to categories. FlowMail respects your filters.</p>
           </div>
           <ToggleRow
             title="Respect user-applied labels"
@@ -186,20 +190,20 @@ const EmailRulesTab: FC = () => {
         </div>
         <div className="mt-4 space-y-4">
           {rules.map((rule) => (
-            <div key={rule.id} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
-              <label className="text-xs font-semibold uppercase text-slate-500">Email / domain / keyword</label>
+            <div key={rule.id} className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/50 p-4">
+              <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Email / domain / keyword</label>
               <input
                 type="text"
                 value={rule.value}
                 onChange={(event) => handleRuleChange(rule.id, 'value', event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
               />
               <div className="mt-3 flex items-center gap-3">
-                <label className="text-xs font-semibold uppercase text-slate-500">Category</label>
+                <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Category</label>
                 <select
                   value={rule.categoryId}
                   onChange={(event) => handleRuleChange(rule.id, 'categoryId', event.target.value)}
-                  className="rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
                 >
                   {categoryState.map((category) => (
                     <option key={category.id} value={category.id}>
@@ -241,8 +245,8 @@ const DraftRepliesTab: FC = () => {
       <div className={sectionClass}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">AI draft replies</h3>
-            <p className="text-sm text-slate-500">Let FlowMail suggest responses for you to review.</p>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">AI draft replies</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Let FlowMail suggest responses for you to review.</p>
           </div>
           <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
         </div>
@@ -251,42 +255,42 @@ const DraftRepliesTab: FC = () => {
         </div>
         <div className="mt-4 space-y-2">
           {['How to enable threading in Gmail', 'How to enable threading in Outlook'].map((item) => (
-            <details key={item} className="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm">
-              <summary className="cursor-pointer font-semibold text-slate-800">{item}</summary>
-              <p className="mt-2 text-slate-600">Placeholder instructions. TODO: Link to knowledge base article or embed steps.</p>
+            <details key={item} className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-3 text-sm">
+              <summary className="cursor-pointer font-semibold text-slate-800 dark:text-slate-100">{item}</summary>
+              <p className="mt-2 text-slate-600 dark:text-slate-300">Placeholder instructions. TODO: Link to knowledge base article or embed steps.</p>
             </details>
           ))}
         </div>
       </div>
       <div className={sectionClass}>
-        <label className="text-sm font-semibold text-slate-900">Draft prompt</label>
+        <label className="text-sm font-semibold text-slate-900 dark:text-white">Draft prompt</label>
         <textarea
           value={prompt}
           maxLength={1000}
           onChange={(event) => setPrompt(event.target.value)}
-          className="mt-2 h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+          className="mt-2 h-32 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
           placeholder="Give FlowMail AI guidance on tone, priorities, and decision rules."
         />
-        <p className="mt-1 text-xs text-slate-500">{prompt.length}/1000</p>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{prompt.length}/1000</p>
       </div>
       <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900">Signature</h3>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Signature</h3>
         <div className="mt-4 space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700">Email signature</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Email signature</label>
             <textarea
               value={signature}
               onChange={(event) => setSignature(event.target.value)}
-              className="mt-2 h-24 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+              className="mt-2 h-24 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
             />
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
-              <label className="text-xs uppercase text-slate-500">Font</label>
+              <label className="text-xs uppercase text-slate-500 dark:text-slate-400">Font</label>
               <select
                 value={font}
                 onChange={(event) => setFont(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none"
               >
                 <option value="default">Email client default</option>
                 <option value="sans">Sans</option>
@@ -294,21 +298,21 @@ const DraftRepliesTab: FC = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs uppercase text-slate-500">Font size</label>
+              <label className="text-xs uppercase text-slate-500 dark:text-slate-400">Font size</label>
               <input
                 type="number"
                 value={fontSize}
                 onChange={(event) => setFontSize(Number(event.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="text-xs uppercase text-slate-500">Font colour</label>
+              <label className="text-xs uppercase text-slate-500 dark:text-slate-400">Font colour</label>
               <input
                 type="text"
                 value={fontColor}
                 onChange={(event) => setFontColor(event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 focus:border-emerald-500 focus:outline-none"
                 placeholder="#000000"
               />
             </div>
@@ -330,13 +334,13 @@ const FollowUpsTab: FC = () => {
     <div className={sectionClass}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Follow-ups</h3>
-          <p className="text-sm text-slate-500">FlowMail will draft reminders if someone hasn’t replied.</p>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Follow-ups</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">FlowMail will draft reminders if someone hasn’t replied.</p>
         </div>
         <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
       </div>
       <div className="mt-6">
-        <label className="text-sm font-medium text-slate-700">Days before following up: {days}</label>
+        <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Days before following up: {days}</label>
         <input
           type="range"
           min={1}
@@ -345,7 +349,7 @@ const FollowUpsTab: FC = () => {
           onChange={(event) => setDays(Number(event.target.value))}
           className="mt-3 w-full accent-emerald-500"
         />
-        <p className="mt-2 text-sm text-slate-500">FlowMail will queue follow-ups {days} days after the original email.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">FlowMail will queue follow-ups {days} days after the original email.</p>
       </div>
       <div className="mt-6 flex justify-end">
         <PrimaryButton label="Save changes" onClick={saveSettings} />
@@ -375,29 +379,29 @@ const SchedulingTab: FC = () => {
       <div className={sectionClass}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">Scheduling settings</h3>
-            <p className="text-sm text-slate-500">Share availability and let FlowMail coordinate.</p>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Scheduling settings</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Share availability and let FlowMail coordinate.</p>
           </div>
           <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
         </div>
         <div className="mt-4 space-y-4">
           <div>
-            <label className="text-sm font-medium text-slate-700">Default meeting duration (minutes)</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Default meeting duration (minutes)</label>
             <input
               type="number"
               value={duration}
               onChange={(event) => setDuration(Number(event.target.value))}
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-700">Your scheduling link</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Your scheduling link</label>
             <div className="mt-1 flex gap-2">
               <input
                 type="text"
                 value={link}
                 onChange={(event) => setLink(event.target.value)}
-                className="flex-1 rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                className="flex-1 rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
               />
               <button onClick={handleCopy} className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
                 {copied ? 'Copied!' : 'Copy'}
@@ -411,11 +415,11 @@ const SchedulingTab: FC = () => {
             onToggle={() => setIncludeInDrafts((prev) => !prev)}
           />
           <div>
-            <label className="text-sm font-medium text-slate-700">Time zone</label>
+            <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Time zone</label>
             <select
               value={timeZone}
               onChange={(event) => setTimeZone(event.target.value)}
-              className="mt-1 w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
             >
               <option value="Europe/London">Europe/London (GMT)</option>
               <option value="America/New_York">America/New_York (EST)</option>
@@ -440,16 +444,19 @@ const SchedulingTab: FC = () => {
         </div>
       </div>
       <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900">Meeting booking preview</h3>
-        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-          <p className="text-sm font-semibold text-slate-900">Kevin Brooks</p>
-          <p className="text-xs text-slate-500">{duration} minutes · {timeZone.replace('/', ' · ')}</p>
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting booking preview</h3>
+        <div className="mt-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
+          <p className="text-sm font-semibold text-slate-900 dark:text-white">Kevin Brooks</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{duration} minutes · {timeZone.replace('/', ' · ')}</p>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm sm:grid-cols-3">
           {[...Array(9)].map((_, index) => (
-            <button key={index} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm">
+            <button
+              key={index}
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-slate-700 dark:text-slate-200 shadow-sm"
+            >
               {`Day ${index + 1}`}
-              <span className="block text-xs text-slate-400">10:00 · 14:00</span>
+              <span className="block text-xs text-slate-400 dark:text-slate-500">10:00 · 14:00</span>
             </button>
           ))}
         </div>
@@ -470,15 +477,15 @@ const MeetingNotetakerTab: FC = () => {
     <div className={sectionClass}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">Meeting Notetaker</h3>
-          <p className="text-sm text-slate-500">Automatically join eligible meetings, summarise, and send a recap.</p>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting Notetaker</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Automatically join eligible meetings, summarise, and send a recap.</p>
         </div>
         <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
       </div>
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr className="text-left text-slate-500">
+            <tr className="text-left text-slate-500 dark:text-slate-400">
               <th className="pb-2">Date & time</th>
               <th className="pb-2">Title</th>
               <th className="pb-2">Platform</th>
@@ -487,10 +494,10 @@ const MeetingNotetakerTab: FC = () => {
           </thead>
           <tbody>
             {meetingState.map((meeting) => (
-              <tr key={meeting.id} className="border-t border-slate-100">
-                <td className="py-3 text-slate-700">{meeting.date}</td>
-                <td className="py-3 font-medium text-slate-900">{meeting.title}</td>
-                <td className="py-3 text-slate-500">{meeting.platform}</td>
+              <tr key={meeting.id} className="border-t border-slate-100 dark:border-slate-800">
+                <td className="py-3 text-slate-700 dark:text-slate-200">{meeting.date}</td>
+                <td className="py-3 font-medium text-slate-900 dark:text-white">{meeting.title}</td>
+                <td className="py-3 text-slate-500 dark:text-slate-400">{meeting.platform}</td>
                 <td className="py-3 text-center">
                   <input
                     type="checkbox"
@@ -504,7 +511,7 @@ const MeetingNotetakerTab: FC = () => {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-xs text-slate-500">In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.</p>
+      <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.</p>
     </div>
   );
 };
@@ -529,15 +536,15 @@ const IntegrationsTab: FC = () => {
         <div key={integration.id} className={sectionClass}>
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-semibold text-slate-900">{integration.name}</h3>
-              <p className="text-sm text-slate-500">{integration.description}</p>
+              <h3 className="text-base font-semibold text-slate-900 dark:text-white">{integration.name}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{integration.description}</p>
             </div>
-            <div className="h-10 w-10 rounded-2xl bg-slate-100" />
+            <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/40" />
           </div>
           <div className="mt-4 flex items-center justify-between">
             <span
               className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
+                integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
               }`}
             >
               {integration.connected ? 'Connected' : 'Not connected'}
@@ -545,13 +552,15 @@ const IntegrationsTab: FC = () => {
             <button
               onClick={() => handleToggle(integration)}
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                integration.connected ? 'border border-slate-200 text-slate-700' : 'bg-emerald-600 text-white shadow'
+                integration.connected
+                  ? 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                  : 'bg-emerald-600 text-white shadow'
               }`}
             >
               {integration.connected ? 'Manage' : 'Connect'}
             </button>
           </div>
-          <p className="mt-3 text-xs text-slate-400">TODO: Trigger n8n integration call for {integration.name}.</p>
+          <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">TODO: Trigger n8n integration call for {integration.name}.</p>
         </div>
       ))}
     </div>
@@ -586,8 +595,8 @@ const FaqTab: FC = () => {
     <div className="space-y-4">
       {faqs.map((faq) => (
         <details key={faq.question} className={sectionClass}>
-          <summary className="cursor-pointer text-base font-semibold text-slate-900">{faq.question}</summary>
-          <p className="mt-2 text-sm text-slate-600">{faq.answer}</p>
+          <summary className="cursor-pointer text-base font-semibold text-slate-900 dark:text-white">{faq.question}</summary>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{faq.answer}</p>
         </details>
       ))}
     </div>
@@ -605,8 +614,8 @@ interface ToggleRowProps {
 const ToggleRow: FC<ToggleRowProps> = ({ title, description, enabled, onToggle, compact }) => (
   <div className={`flex items-start justify-between gap-4 ${compact ? 'py-0' : 'py-2'}`}>
     <div>
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
-      <p className="text-xs text-slate-500">{description}</p>
+      <p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
     </div>
     <ToggleSwitch enabled={enabled} onToggle={onToggle} />
   </div>
@@ -621,10 +630,10 @@ const ToggleSwitch: FC<ToggleSwitchProps> = ({ enabled, onToggle }) => (
   <button
     onClick={onToggle}
     className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-      enabled ? 'bg-emerald-500' : 'bg-slate-200'
+      enabled ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'
     }`}
   >
-    <span className={`inline-block h-4 w-4 rounded-full bg-white transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
+    <span className={`inline-block h-4 w-4 rounded-full bg-white dark:bg-slate-950 transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
   </button>
 );
 
