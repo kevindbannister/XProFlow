@@ -25,9 +25,7 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView }) => {
     <header className="w-full border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">
-            ✉️⚡
-          </div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">✉️⚡</div>
           <div className="flex flex-col leading-none">
             <span className="text-lg font-semibold text-slate-900">FlowMail AI</span>
             <span className="text-xs text-slate-500">Automation assistant</span>
@@ -51,7 +49,9 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView }) => {
             <p className="text-sm font-semibold text-slate-900">Kevin Brooks</p>
             <p className="text-xs text-slate-500">kevin@firm.co.uk</p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">KB</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+            KB
+          </div>
         </div>
         <div className="flex items-center gap-3 md:hidden">
           <button
@@ -61,7 +61,9 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView }) => {
           >
             ☰
           </button>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">KB</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+            KB
+          </div>
         </div>
       </div>
       {mobileOpen && (

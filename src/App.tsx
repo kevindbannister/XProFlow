@@ -1,18 +1,3 @@
-// File structure outline
-// src/
-// ├── App.tsx (root layout + view switching)
-// ├── components/
-// │   ├── TopNav.tsx
-// │   └── Sidebar.tsx
-// ├── views/
-// │   ├── SettingsView.tsx (and tab sub-components)
-// │   ├── BillingView.tsx
-// │   ├── TeamView.tsx
-// │   └── AccountView.tsx
-// ├── mockData.ts (static mocked data)
-// ├── services/api.ts (stubbed async calls with TODOs for n8n)
-// └── types.ts (shared TypeScript types)
-
 import { useMemo, useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { TopNav } from './components/TopNav';

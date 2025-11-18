@@ -1,5 +1,5 @@
 import { FC, useMemo, useState } from 'react';
-import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../mockData';
+import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../data/mockData';
 import { connectEmailProvider, connectIntegration, disconnectIntegration, saveSettings } from '../services/api';
 import { Category, EmailRule, Integration, SettingsTab } from '../types';
 
@@ -50,7 +50,6 @@ const PreferencesTab: FC = () => {
 
   const handleConnect = async (provider: 'gmail' | 'outlook') => {
     await connectEmailProvider(provider);
-    // TODO: Replace alert with UI toast once backend integration exists.
     alert(`Connected ${provider}`);
   };
 
@@ -92,21 +91,23 @@ const PreferencesTab: FC = () => {
       <div className={sectionClass}>
         <h3 className="text-lg font-semibold text-slate-900">General preferences</h3>
         <div className="mt-4 space-y-4">
-          {[{
-            key: 'categorisation',
-            title: 'Enable email categorisation',
-            description: 'FlowMail AI will organise messages for downstream automations.',
-          },
-          {
-            key: 'drafts',
-            title: 'Enable AI draft replies',
-            description: 'FlowMail generates suggested responses for review.',
-          },
-          {
-            key: 'followUpTracking',
-            title: 'Enable follow-up tracking',
-            description: 'Get nudges when a reply is overdue.',
-          }].map((item) => (
+          {[
+            {
+              key: 'categorisation',
+              title: 'Enable email categorisation',
+              description: 'FlowMail AI will organise messages for downstream automations.',
+            },
+            {
+              key: 'drafts',
+              title: 'Enable AI draft replies',
+              description: 'FlowMail generates suggested responses for review.',
+            },
+            {
+              key: 'followUpTracking',
+              title: 'Enable follow-up tracking',
+              description: 'Get nudges when a reply is overdue.',
+            },
+          ].map((item) => (
             <ToggleRow
               key={item.key}
               title={item.title}
@@ -148,9 +149,7 @@ const EmailRulesTab: FC = () => {
     <div className="grid gap-6 lg:grid-cols-2">
       <div className={sectionClass}>
         <h3 className="text-lg font-semibold text-slate-900">Categories</h3>
-        <p className="mt-1 text-sm text-slate-500">
-          FlowMail will organise your emails according to these categories in the backend.
-        </p>
+        <p className="mt-1 text-sm text-slate-500">FlowMail will organise your emails according to these categories in the backend.</p>
         <div className="mt-4 space-y-3">
           {categoryState.map((category) => (
             <div key={category.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3">
@@ -175,9 +174,7 @@ const EmailRulesTab: FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Email rules</h3>
-            <p className="text-sm text-slate-500">
-              Map senders, domains, or keywords to categories. FlowMail respects your filters.
-            </p>
+            <p className="text-sm text-slate-500">Map senders, domains, or keywords to categories. FlowMail respects your filters.</p>
           </div>
           <ToggleRow
             title="Respect user-applied labels"
@@ -256,9 +253,7 @@ const DraftRepliesTab: FC = () => {
           {['How to enable threading in Gmail', 'How to enable threading in Outlook'].map((item) => (
             <details key={item} className="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm">
               <summary className="cursor-pointer font-semibold text-slate-800">{item}</summary>
-              <p className="mt-2 text-slate-600">
-                Placeholder instructions. TODO: Link to knowledge base article or embed steps.
-              </p>
+              <p className="mt-2 text-slate-600">Placeholder instructions. TODO: Link to knowledge base article or embed steps.</p>
             </details>
           ))}
         </div>
@@ -452,10 +447,7 @@ const SchedulingTab: FC = () => {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm sm:grid-cols-3">
           {[...Array(9)].map((_, index) => (
-            <button
-              key={index}
-              className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm"
-            >
+            <button key={index} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-slate-700 shadow-sm">
               {`Day ${index + 1}`}
               <span className="block text-xs text-slate-400">10:00 · 14:00</span>
             </button>
@@ -512,9 +504,7 @@ const MeetingNotetakerTab: FC = () => {
           </tbody>
         </table>
       </div>
-      <p className="mt-4 text-xs text-slate-500">
-        In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.
-      </p>
+      <p className="mt-4 text-xs text-slate-500">In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.</p>
     </div>
   );
 };
@@ -555,17 +545,13 @@ const IntegrationsTab: FC = () => {
             <button
               onClick={() => handleToggle(integration)}
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                integration.connected
-                  ? 'border border-slate-200 text-slate-700'
-                  : 'bg-emerald-600 text-white shadow'
+                integration.connected ? 'border border-slate-200 text-slate-700' : 'bg-emerald-600 text-white shadow'
               }`}
             >
               {integration.connected ? 'Manage' : 'Connect'}
             </button>
           </div>
-          <p className="mt-3 text-xs text-slate-400">
-            TODO: Trigger n8n integration call for {integration.name}.
-          </p>
+          <p className="mt-3 text-xs text-slate-400">TODO: Trigger n8n integration call for {integration.name}.</p>
         </div>
       ))}
     </div>
@@ -638,9 +624,7 @@ const ToggleSwitch: FC<ToggleSwitchProps> = ({ enabled, onToggle }) => (
       enabled ? 'bg-emerald-500' : 'bg-slate-200'
     }`}
   >
-    <span
-      className={`inline-block h-4 w-4 rounded-full bg-white transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`}
-    />
+    <span className={`inline-block h-4 w-4 rounded-full bg-white transition ${enabled ? 'translate-x-5' : 'translate-x-1'}`} />
   </button>
 );
 
@@ -650,10 +634,7 @@ interface PrimaryButtonProps {
 }
 
 const PrimaryButton: FC<PrimaryButtonProps> = ({ label, onClick }) => (
-  <button
-    onClick={onClick}
-    className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500"
-  >
+  <button onClick={onClick} className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500">
     {label}
   </button>
 );

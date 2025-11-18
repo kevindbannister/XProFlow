@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import './styles/patterns.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #0f172a;
+  background-color: #f1f5f9;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #f1f5f9;
+}
+
+.glass-panel {
+  @apply rounded-3xl border border-slate-200 bg-white/90 shadow-sm;
+}
+
+.card-shadow {
+  box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+}

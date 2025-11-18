@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { plan } from '../mockData';
+import { plan } from '../data/mockData';
 
 export const BillingView: FC = () => {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+    <div className="glass-panel">
       <h2 className="text-lg font-semibold text-slate-900">Billing overview</h2>
       <p className="mt-1 text-sm text-slate-500">Manage your subscription and seats.</p>
       <dl className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -23,9 +23,7 @@ export const BillingView: FC = () => {
         </div>
       </dl>
       <div className="mt-6">
-        <button className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow">
-          Manage subscription
-        </button>
+        <button className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow">Manage subscription</button>
       </div>
     </div>
   );

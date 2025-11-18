@@ -1,19 +1,18 @@
 import { FC, useState } from 'react';
-import { teamMembers } from '../mockData';
+import { teamMembers } from '../data/mockData';
 
 export const TeamView: FC = () => {
   const [members] = useState(teamMembers);
   const [inviteEmail, setInviteEmail] = useState('');
 
   const handleInvite = () => {
-    // TODO: Trigger invite workflow via n8n backend.
     alert(`Invite sent to ${inviteEmail || 'email TBD'}`);
     setInviteEmail('');
   };
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <div className="glass-panel">
         <h2 className="text-lg font-semibold text-slate-900">Team members</h2>
         <p className="mt-1 text-sm text-slate-500">Control who can access FlowMail AI.</p>
         <div className="mt-4 overflow-x-auto">
@@ -41,7 +40,7 @@ export const TeamView: FC = () => {
           </table>
         </div>
       </div>
-      <div className="rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-sm">
+      <div className="glass-panel">
         <h3 className="text-base font-semibold text-slate-900">Invite team member</h3>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row">
           <input
@@ -51,10 +50,7 @@ export const TeamView: FC = () => {
             placeholder="name@company.com"
             className="flex-1 rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
           />
-          <button
-            onClick={handleInvite}
-            className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow"
-          >
+          <button onClick={handleInvite} className="rounded-full bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow">
             Invite team member
           </button>
         </div>

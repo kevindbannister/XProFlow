@@ -1,4 +1,4 @@
-import { Category, EmailRule, Integration, Meeting, Plan, TeamMember, UserProfile } from './types';
+import { Category, EmailRule, Integration, Meeting, Plan, TeamMember, UserProfile } from '../types';
 
 export const categories: Category[] = [
   { id: 'respond', name: 'To respond', description: 'Needs an action soon', color: 'bg-emerald-500', active: true },
