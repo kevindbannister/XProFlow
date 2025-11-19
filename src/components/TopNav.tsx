@@ -1,5 +1,6 @@
 import { FC, useState } from 'react';
 import { MainView } from '../types';
+import flowEmailLogo from '../assets/flow-email-logo.svg';
 
 interface TopNavProps {
   currentView: MainView;
@@ -27,10 +28,15 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode,
   return (
     <header className="w-full border-b border-slate-200 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-slate-800 dark:bg-slate-950/80 dark:supports-[backdrop-filter]:bg-slate-950/60">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600">✉️⚡</div>
-          <div className="flex flex-col leading-none">
-            <span className="text-lg font-semibold text-slate-900 dark:text-white">FlowMail AI</span>
+        <div className="flex items-center gap-3">
+          <img
+            src={flowEmailLogo}
+            alt="Flow Email logo"
+            className="h-12 w-auto rounded-2xl border border-slate-100 bg-slate-950 p-1 shadow-[0_0_25px_rgba(59,130,246,0.35)] dark:border-slate-800"
+            loading="lazy"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-semibold uppercase tracking-wide text-slate-900 dark:text-white">Flow Email</span>
             <span className="text-xs text-slate-500 dark:text-slate-400">Automation assistant</span>
           </div>
         </div>
