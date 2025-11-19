@@ -516,8 +516,65 @@ const MeetingNotetakerTab: FC = () => {
   );
 };
 
+interface ComplianceService {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+}
+
+interface StorageConnection {
+  id: string;
+  name: string;
+  description: string;
+  connected: boolean;
+  helper?: string;
+}
+
 const IntegrationsTab: FC = () => {
   const [integrationState, setIntegrationState] = useState<Integration[]>(defaultIntegrations);
+  const [complianceServices, setComplianceServices] = useState<ComplianceService[]>([
+    {
+      id: 'accounts-prep',
+      name: 'Accounts preparation',
+      description: 'Route supporting documents to the accounts prep team.',
+      enabled: true,
+    },
+    {
+      id: 'business-tax-prep',
+      name: 'Business tax preparation',
+      description: 'Track deadlines for CT600 and business tax submissions.',
+      enabled: true,
+    },
+    {
+      id: 'personal-tax-prep',
+      name: 'Personal tax preparation',
+      description: 'Collect statements required for SA100 returns.',
+      enabled: false,
+    },
+    {
+      id: 'vat-company-secretarial',
+      name: 'VAT & company secretarial',
+      description: 'Coordinate VAT filings and company secretarial workflows.',
+      enabled: true,
+    },
+  ]);
+  const [storageConnections, setStorageConnections] = useState<StorageConnection[]>([
+    {
+      id: 'onedrive',
+      name: 'OneDrive / SharePoint',
+      description: 'Sync working papers and templates from Microsoft 365.',
+      connected: false,
+      helper: 'Use your practice tenant credentials to authorise.',
+    },
+    {
+      id: 'google-drive',
+      name: 'Google Drive',
+      description: 'Pull client folders and statements from Drive.',
+      connected: true,
+      helper: 'Connected via kevin@firm.co.uk',
+    },
+  ]);
 
   const handleToggle = async (integration: Integration) => {
     if (integration.connected) {
@@ -530,39 +587,127 @@ const IntegrationsTab: FC = () => {
     );
   };
 
+  const toggleComplianceService = (id: string) => {
+    setComplianceServices((prev) => prev.map((service) => (service.id === id ? { ...service, enabled: !service.enabled } : service)));
+  };
+
+  const handleStorageConnection = async (connection: StorageConnection) => {
+    if (connection.connected) {
+      await disconnectIntegration(connection.id);
+    } else {
+      await connectIntegration(connection.id);
+    }
+    setStorageConnections((prev) =>
+      prev.map((item) => (item.id === connection.id ? { ...item, connected: !item.connected } : item))
+    );
+  };
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {integrationState.map((integration) => (
-        <div key={integration.id} className={sectionClass}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base font-semibold text-slate-900 dark:text-white">{integration.name}</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{integration.description}</p>
-            </div>
-            <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/40" />
+    <div className="space-y-6">
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Compliance services</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Tell FlowMail which services your practice delivers so requests route correctly.</p>
           </div>
-          <div className="mt-4 flex items-center justify-between">
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
-              }`}
-            >
-              {integration.connected ? 'Connected' : 'Not connected'}
-            </span>
-            <button
-              onClick={() => handleToggle(integration)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                integration.connected
-                  ? 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
-                  : 'bg-emerald-600 text-white shadow'
-              }`}
-            >
-              {integration.connected ? 'Manage' : 'Connect'}
-            </button>
-          </div>
-          <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">TODO: Trigger n8n integration call for {integration.name}.</p>
+          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+            Beta
+          </span>
         </div>
-      ))}
+        <div className="mt-4 space-y-3">
+          {complianceServices.map((service) => (
+            <div
+              key={service.id}
+              className="flex items-start justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/40"
+            >
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">{service.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{service.description}</p>
+              </div>
+              <ToggleSwitch enabled={service.enabled} onToggle={() => toggleComplianceService(service.id)} />
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">These services determine which automations n8n should run for each incoming request.</p>
+      </div>
+
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Document storage</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Connect your drive so FlowMail can fetch statements, bank feeds, and working papers.</p>
+          </div>
+        </div>
+        <div className="mt-4 space-y-4">
+          {storageConnections.map((connection) => (
+            <div
+              key={connection.id}
+              className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white/60 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/40"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-base font-semibold text-slate-900 dark:text-white">{connection.name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{connection.description}</p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    connection.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
+                  }`}
+                >
+                  {connection.connected ? 'Connected' : 'Not connected'}
+                </span>
+              </div>
+              {connection.helper && <p className="text-xs text-slate-500 dark:text-slate-400">{connection.helper}</p>}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => handleStorageConnection(connection)}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                    connection.connected
+                      ? 'border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200'
+                      : 'bg-emerald-600 text-white shadow'
+                  }`}
+                >
+                  {connection.connected ? 'Manage connection' : 'Connect drive'}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {integrationState.map((integration) => (
+          <div key={integration.id} className={sectionClass}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white">{integration.name}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{integration.description}</p>
+              </div>
+              <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/40" />
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
+                }`}
+              >
+                {integration.connected ? 'Connected' : 'Not connected'}
+              </span>
+              <button
+                onClick={() => handleToggle(integration)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                  integration.connected
+                    ? 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                    : 'bg-emerald-600 text-white shadow'
+                }`}
+              >
+                {integration.connected ? 'Manage' : 'Connect'}
+              </button>
+            </div>
+            <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">TODO: Trigger n8n integration call for {integration.name}.</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
