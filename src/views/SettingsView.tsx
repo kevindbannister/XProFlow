@@ -10,6 +10,11 @@ interface SettingsViewProps {
 const sectionClass =
   'rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/90 p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-xl dark:shadow-black/20';
 
+const generateId = (): string =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `rule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
 export const SettingsView: FC<SettingsViewProps> = ({ currentTab }) => {
   const renderTab = useMemo(() => {
     switch (currentTab) {
@@ -139,7 +144,7 @@ const EmailRulesTab: FC = () => {
   };
 
   const addRule = () => {
-    setRules((prev) => [...prev, { id: crypto.randomUUID(), value: '', categoryId: categoryState[0]?.id ?? '' }]);
+    setRules((prev) => [...prev, { id: generateId(), value: '', categoryId: categoryState[0]?.id ?? '' }]);
   };
 
   const removeRule = (id: string) => {
