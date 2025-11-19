@@ -18,8 +18,6 @@ const App = () => {
     }
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
   });
-  const isDashboard = currentView === 'overview';
-
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -47,46 +45,44 @@ const App = () => {
   }, [currentSettingsTab, currentView]);
 
   return (
-    <div
-      className={`min-h-screen transition-colors duration-300 ${
-        isDashboard ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950' : 'bg-slate-100 dark:bg-slate-950'
-      }`}
-    >
-      <TopNav
-        currentView={currentView}
-        onChangeView={(view) => setCurrentView(view)}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
-      />
-      {currentView === 'settings' ? (
-        <div className="mx-auto flex w-full max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:px-8">
-          <Sidebar
-            currentTab={currentSettingsTab}
-            onSelectTab={(tab) => setCurrentSettingsTab(tab)}
-            mobileOpen={sidebarOpen}
-            setMobileOpen={setSidebarOpen}
-          />
-          <main className="flex-1">
-            <div className="lg:hidden">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition dark:border-slate-700 dark:text-slate-200"
-              >
-                ☰ Settings menu
-              </button>
+    <div className="min-h-screen px-4 py-6 transition-colors duration-300 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <TopNav
+          currentView={currentView}
+          onChangeView={(view) => setCurrentView(view)}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+        />
+        {currentView === 'settings' ? (
+          <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl sm:p-6">
+            <div className="flex flex-col gap-6 lg:flex-row">
+              <Sidebar
+                currentTab={currentSettingsTab}
+                onSelectTab={(tab) => setCurrentSettingsTab(tab)}
+                mobileOpen={sidebarOpen}
+                setMobileOpen={setSidebarOpen}
+              />
+              <main className="flex-1">
+                <div className="lg:hidden">
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
+                  >
+                    ☰ Settings menu
+                  </button>
+                </div>
+                {content}
+              </main>
             </div>
-            {content}
+          </div>
+        ) : (
+          <main className="w-full">
+            <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl sm:p-6">
+              {content}
+            </div>
           </main>
-        </div>
-      ) : (
-        <main className="w-full">
-          {isDashboard ? (
-            content
-          ) : (
-            <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{content}</div>
-          )}
-        </main>
-      )}
+        )}
+      </div>
     </div>
   );
 };
