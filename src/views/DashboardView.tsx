@@ -170,15 +170,23 @@ const loadLayout = () => {
 interface DashboardViewProps {
   visibility: Record<string, boolean>;
   isMaster: boolean;
+  isLayoutEditingEnabled: boolean;
+  onToggleLayoutEditing?: () => void;
 }
 
-export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) => {
+export const DashboardView: FC<DashboardViewProps> = ({
+  visibility,
+  isMaster,
+  isLayoutEditingEnabled,
+  onToggleLayoutEditing,
+}) => {
   const maxTrendValue = Math.max(...automationTrend.map((point) => point.value));
   const gridRef = useRef<HTMLDivElement | null>(null);
   const [layout, setLayout] = useState<LayoutItem[]>(() => loadLayout());
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
+  const canEditLayout = isMaster && isLayoutEditingEnabled;
 
   const visibleLayout = useMemo(() => layout.filter((item) => visibility[item.id]), [layout, visibility]);
 
@@ -224,7 +232,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   }, [resizeState]);
 
   const handleDragStart = (id: string) => (event: DragEvent<HTMLButtonElement>) => {
-    if (!isMaster) {
+    if (!canEditLayout) {
       return;
     }
     setDraggedId(id);
@@ -233,7 +241,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   };
 
   const handleDragOver = (id: string) => (event: DragEvent<HTMLDivElement>) => {
-    if (!isMaster) {
+    if (!canEditLayout) {
       return;
     }
     event.preventDefault();
@@ -245,7 +253,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   };
 
   const handleDrop = (id: string) => (event: DragEvent<HTMLDivElement>) => {
-    if (!isMaster) {
+    if (!canEditLayout) {
       return;
     }
     event.preventDefault();
@@ -271,7 +279,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   };
 
   const handleResizeStart = (id: string) => (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!isMaster || !gridRef.current) {
+    if (!canEditLayout || !gridRef.current) {
       return;
     }
     event.preventDefault();
@@ -409,8 +417,26 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   return (
     <div className="space-y-4 text-slate-800 dark:text-slate-200">
       {isMaster ? (
-        <div className="rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300">
-          Layout editing is enabled. Drag tiles by the handle and resize from the lower-right corner.
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300">
+          <span>
+            {canEditLayout
+              ? 'Layout editing is enabled. Drag tiles by the handle and resize from the lower-right corner.'
+              : 'Layout editing is disabled. Toggle it on to rearrange dashboard tiles.'}
+          </span>
+          {onToggleLayoutEditing ? (
+            <button
+              type="button"
+              onClick={onToggleLayoutEditing}
+              aria-pressed={isLayoutEditingEnabled}
+              className={`inline-flex min-w-[96px] items-center justify-center rounded-full px-3 py-1 text-xs font-semibold transition ${
+                isLayoutEditingEnabled
+                  ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
+                  : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-200'
+              }`}
+            >
+              {isLayoutEditingEnabled ? 'Enabled' : 'Disabled'}
+            </button>
+          ) : null}
         </div>
       ) : null}
       <div
@@ -425,12 +451,12 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
             onDragOver={handleDragOver(item.id)}
             onDrop={handleDrop(item.id)}
           >
-            {isMaster ? (
+            {canEditLayout ? (
               <div className="pointer-events-none absolute inset-0 rounded-[32px] border border-transparent transition group-hover:border-sky-200" />
             ) : null}
             <div className="relative h-full">
               {sectionContent[item.id]}
-              {isMaster ? (
+              {canEditLayout ? (
                 <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm backdrop-blur dark:bg-slate-900/80 dark:text-slate-300">
                   <span className="pointer-events-none">Move</span>
                   <button
@@ -445,7 +471,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
                   </button>
                 </div>
               ) : null}
-              {isMaster ? (
+              {canEditLayout ? (
                 <button
                   type="button"
                   onPointerDown={handleResizeStart(item.id)}
