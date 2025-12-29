@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useMemo, useRef, useState } from 'react';
 import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../data/mockData';
 import { connectEmailProvider, connectIntegration, disconnectIntegration, saveSettings } from '../services/api';
 import { Category, EmailRule, Integration, SettingsTab } from '../types';
@@ -249,10 +249,34 @@ const EmailRulesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility
 const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [enabled, setEnabled] = useState(true);
   const [prompt, setPrompt] = useState('Keep tone concise but warm. Prioritise clients with active projects.');
-  const [signature, setSignature] = useState('Best,\nKevin');
+  const [signature, setSignature] = useState('<p>Best,<br />Kevin</p>');
   const [font, setFont] = useState('default');
   const [fontSize, setFontSize] = useState(14);
   const [fontColor, setFontColor] = useState('#111827');
+  const signatureEditorRef = useRef<HTMLDivElement | null>(null);
+
+  const applySignatureCommand = (command: string, value?: string) => {
+    signatureEditorRef.current?.focus();
+    document.execCommand(command, false, value);
+    setSignature(signatureEditorRef.current?.innerHTML ?? '');
+  };
+
+  const handleInsertLink = () => {
+    const url = window.prompt('Enter a link URL');
+    if (url) {
+      applySignatureCommand('createLink', url);
+    }
+  };
+
+  const handleInsertImage = () => {
+    const url = window.prompt('Enter an image URL');
+    if (url) {
+      applySignatureCommand('insertImage', url);
+    }
+  };
+
+  const signatureFontFamily =
+    font === 'sans' ? 'ui-sans-serif, system-ui' : font === 'serif' ? 'ui-serif, Georgia' : 'inherit';
 
   return (
     <div className="space-y-6">
@@ -297,11 +321,56 @@ const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
         <div className="mt-4 space-y-4">
           <div>
             <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Email signature</label>
-            <textarea
-              value={signature}
-              onChange={(event) => setSignature(event.target.value)}
-              className="mt-2 h-24 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+            <div className="mt-2 flex flex-wrap gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 px-3 py-2 text-xs text-slate-500 dark:bg-slate-900/60 dark:text-slate-300">
+              <button
+                type="button"
+                onClick={() => applySignatureCommand('bold')}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+              >
+                Bold
+              </button>
+              <button
+                type="button"
+                onClick={() => applySignatureCommand('italic')}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+              >
+                Italic
+              </button>
+              <button
+                type="button"
+                onClick={() => applySignatureCommand('underline')}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+              >
+                Underline
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertLink}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+              >
+                Link
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertImage}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+              >
+                Image
+              </button>
+              <span className="self-center text-xs text-slate-400">Paste HTML or format with the toolbar.</span>
+            </div>
+            <div
+              ref={signatureEditorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={() => setSignature(signatureEditorRef.current?.innerHTML ?? '')}
+              className="mt-3 min-h-[6rem] w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none dark:bg-slate-900/60 dark:text-slate-100"
+              style={{ fontFamily: signatureFontFamily, fontSize: `${fontSize}px`, color: fontColor }}
+              dangerouslySetInnerHTML={{ __html: signature }}
             />
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              Images should be hosted online; FlowMail will embed the HTML in your outbound signatures.
+            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
