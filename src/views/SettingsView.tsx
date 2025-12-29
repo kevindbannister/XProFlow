@@ -5,6 +5,7 @@ import { Category, EmailRule, Integration, SettingsTab } from '../types';
 
 interface SettingsViewProps {
   currentTab: SettingsTab;
+  visibility: Record<string, boolean>;
 }
 
 const sectionClass =
@@ -15,25 +16,25 @@ const generateId = (): string =>
     ? crypto.randomUUID()
     : `rule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
-export const SettingsView: FC<SettingsViewProps> = ({ currentTab }) => {
+export const SettingsView: FC<SettingsViewProps> = ({ currentTab, visibility }) => {
   const renderTab = useMemo(() => {
     switch (currentTab) {
       case 'preferences':
-        return <PreferencesTab />;
+        return <PreferencesTab visibility={visibility} />;
       case 'emailRules':
-        return <EmailRulesTab />;
+        return <EmailRulesTab visibility={visibility} />;
       case 'draftReplies':
-        return <DraftRepliesTab />;
+        return <DraftRepliesTab visibility={visibility} />;
       case 'followUps':
-        return <FollowUpsTab />;
+        return <FollowUpsTab visibility={visibility} />;
       case 'scheduling':
-        return <SchedulingTab />;
+        return <SchedulingTab visibility={visibility} />;
       case 'meetingNotetaker':
-        return <MeetingNotetakerTab />;
+        return <MeetingNotetakerTab visibility={visibility} />;
       case 'integrations':
-        return <IntegrationsTab />;
+        return <IntegrationsTab visibility={visibility} />;
       case 'faq':
-        return <FaqTab />;
+        return <FaqTab visibility={visibility} />;
       default:
         return null;
     }
@@ -42,7 +43,7 @@ export const SettingsView: FC<SettingsViewProps> = ({ currentTab }) => {
   return <div className="space-y-6">{renderTab}</div>;
 };
 
-const PreferencesTab: FC = () => {
+const PreferencesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [emailPreferences] = useState({ primary: 'kevin@firm.co.uk', status: 'Connected' });
   const [toggles, setToggles] = useState({
     categorisation: true,
@@ -61,77 +62,81 @@ const PreferencesTab: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className={sectionClass}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Connected email accounts</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleConnect('gmail')}
-              className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
-            >
-              Connect Gmail
-            </button>
-            <button
-              onClick={() => handleConnect('outlook')}
-              className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
-            >
-              Connect Outlook
-            </button>
-          </div>
-        </div>
-        <div className="mt-6 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
-          <div className="flex items-center justify-between">
+      {visibility['settings.preferences.connectedAccounts'] ? (
+        <div className={sectionClass}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Primary email</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{emailPreferences.primary}</p>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Connected email accounts</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
             </div>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
-              {emailPreferences.status}
-            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleConnect('gmail')}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
+              >
+                Connect Gmail
+              </button>
+              <button
+                onClick={() => handleConnect('outlook')}
+                className="rounded-full border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-medium text-slate-700 hover:border-emerald-500 dark:text-slate-200"
+              >
+                Connect Outlook
+              </button>
+            </div>
+          </div>
+          <div className="mt-6 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Primary email</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{emailPreferences.primary}</p>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
+                {emailPreferences.status}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-      <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">General preferences</h3>
-        <div className="mt-4 space-y-4">
-          {[
-            {
-              key: 'categorisation',
-              title: 'Enable email categorisation',
-              description: 'FlowMail AI will organise messages for downstream automations.',
-            },
-            {
-              key: 'drafts',
-              title: 'Enable AI draft replies',
-              description: 'FlowMail generates suggested responses for review.',
-            },
-            {
-              key: 'followUpTracking',
-              title: 'Enable follow-up tracking',
-              description: 'Get nudges when a reply is overdue.',
-            },
-          ].map((item) => (
-            <ToggleRow
-              key={item.key}
-              title={item.title}
-              description={item.description}
-              enabled={toggles[item.key as keyof typeof toggles]}
-              onToggle={() => handleToggle(item.key as keyof typeof toggles)}
-            />
-          ))}
+      ) : null}
+      {visibility['settings.preferences.general'] ? (
+        <div className={sectionClass}>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">General preferences</h3>
+          <div className="mt-4 space-y-4">
+            {[
+              {
+                key: 'categorisation',
+                title: 'Enable email categorisation',
+                description: 'FlowMail AI will organise messages for downstream automations.',
+              },
+              {
+                key: 'drafts',
+                title: 'Enable AI draft replies',
+                description: 'FlowMail generates suggested responses for review.',
+              },
+              {
+                key: 'followUpTracking',
+                title: 'Enable follow-up tracking',
+                description: 'Get nudges when a reply is overdue.',
+              },
+            ].map((item) => (
+              <ToggleRow
+                key={item.key}
+                title={item.title}
+                description={item.description}
+                enabled={toggles[item.key as keyof typeof toggles]}
+                onToggle={() => handleToggle(item.key as keyof typeof toggles)}
+              />
+            ))}
+          </div>
+          <div className="mt-6 flex justify-end">
+            <PrimaryButton label="Save changes" onClick={saveSettings} />
+          </div>
         </div>
-        <div className="mt-6 flex justify-end">
-          <PrimaryButton label="Save changes" onClick={saveSettings} />
-        </div>
-      </div>
+      ) : null}
     </div>
   );
 };
 
-const EmailRulesTab: FC = () => {
+const EmailRulesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [categoryState, setCategoryState] = useState<Category[]>(defaultCategories);
   const [rules, setRules] = useState<EmailRule[]>(initialEmailRules);
 
@@ -153,7 +158,8 @@ const EmailRulesTab: FC = () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <div className={sectionClass}>
+      {visibility['settings.emailRules.categories'] ? (
+        <div className={sectionClass}>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Categories</h3>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">FlowMail will organise your emails according to these categories in the backend.</p>
         <div className="mt-4 space-y-3">
@@ -178,8 +184,10 @@ const EmailRulesTab: FC = () => {
             </div>
           ))}
         </div>
-      </div>
-      <div className={sectionClass}>
+        </div>
+      ) : null}
+      {visibility['settings.emailRules.rules'] ? (
+        <div className={sectionClass}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Email rules</h3>
@@ -232,12 +240,13 @@ const EmailRulesTab: FC = () => {
         <div className="mt-6 flex justify-end">
           <PrimaryButton label="Save changes" onClick={saveSettings} />
         </div>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 };
 
-const DraftRepliesTab: FC = () => {
+const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [enabled, setEnabled] = useState(true);
   const [prompt, setPrompt] = useState('Keep tone concise but warm. Prioritise clients with active projects.');
   const [signature, setSignature] = useState('Best,\nKevin');
@@ -247,7 +256,8 @@ const DraftRepliesTab: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className={sectionClass}>
+      {visibility['settings.draftReplies.overview'] ? (
+        <div className={sectionClass}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">AI draft replies</h3>
@@ -266,8 +276,10 @@ const DraftRepliesTab: FC = () => {
             </details>
           ))}
         </div>
-      </div>
-      <div className={sectionClass}>
+        </div>
+      ) : null}
+      {visibility['settings.draftReplies.prompt'] ? (
+        <div className={sectionClass}>
         <label className="text-sm font-semibold text-slate-900 dark:text-white">Draft prompt</label>
         <textarea
           value={prompt}
@@ -277,8 +289,10 @@ const DraftRepliesTab: FC = () => {
           placeholder="Give FlowMail AI guidance on tone, priorities, and decision rules."
         />
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{prompt.length}/1000</p>
-      </div>
-      <div className={sectionClass}>
+        </div>
+      ) : null}
+      {visibility['settings.draftReplies.signature'] ? (
+        <div className={sectionClass}>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Signature</h3>
         <div className="mt-4 space-y-4">
           <div>
@@ -326,17 +340,20 @@ const DraftRepliesTab: FC = () => {
         <div className="mt-6 flex justify-end">
           <PrimaryButton label="Save changes" onClick={saveSettings} />
         </div>
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 };
 
-const FollowUpsTab: FC = () => {
+const FollowUpsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [enabled, setEnabled] = useState(true);
   const [days, setDays] = useState(5);
 
   return (
-    <div className={sectionClass}>
+    <>
+      {visibility['settings.followUps.settings'] ? (
+        <div className={sectionClass}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Follow-ups</h3>
@@ -356,14 +373,16 @@ const FollowUpsTab: FC = () => {
         />
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">FlowMail will queue follow-ups {days} days after the original email.</p>
       </div>
-      <div className="mt-6 flex justify-end">
-        <PrimaryButton label="Save changes" onClick={saveSettings} />
-      </div>
-    </div>
+          <div className="mt-6 flex justify-end">
+            <PrimaryButton label="Save changes" onClick={saveSettings} />
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 };
 
-const SchedulingTab: FC = () => {
+const SchedulingTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [enabled, setEnabled] = useState(true);
   const [duration, setDuration] = useState(45);
   const [link, setLink] = useState('https://flowmail.ai/kevin');
@@ -381,7 +400,8 @@ const SchedulingTab: FC = () => {
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <div className={sectionClass}>
+      {visibility['settings.scheduling.settings'] ? (
+        <div className={sectionClass}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Scheduling settings</h3>
@@ -447,30 +467,35 @@ const SchedulingTab: FC = () => {
         <div className="mt-6 flex justify-end">
           <PrimaryButton label="Save changes" onClick={saveSettings} />
         </div>
-      </div>
-      <div className={sectionClass}>
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting booking preview</h3>
-        <div className="mt-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
-          <p className="text-sm font-semibold text-slate-900 dark:text-white">Kevin Brooks</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{duration} minutes · {timeZone.replace('/', ' · ')}</p>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm sm:grid-cols-3">
-          {[...Array(9)].map((_, index) => (
-            <button
-              key={index}
-              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-slate-700 dark:text-slate-200 shadow-sm"
-            >
-              {`Day ${index + 1}`}
-              <span className="block text-xs text-slate-400 dark:text-slate-500">10:00 · 14:00</span>
-            </button>
-          ))}
+      ) : null}
+      {visibility['settings.scheduling.preview'] ? (
+        <div className={sectionClass}>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting booking preview</h3>
+          <div className="mt-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">Kevin Brooks</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {duration} minutes · {timeZone.replace('/', ' · ')}
+            </p>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-center text-sm sm:grid-cols-3">
+            {[...Array(9)].map((_, index) => (
+              <button
+                key={index}
+                className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-slate-700 dark:text-slate-200 shadow-sm"
+              >
+                {`Day ${index + 1}`}
+                <span className="block text-xs text-slate-400 dark:text-slate-500">10:00 · 14:00</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };
 
-const MeetingNotetakerTab: FC = () => {
+const MeetingNotetakerTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [enabled, setEnabled] = useState(true);
   const [meetingState, setMeetingState] = useState(meetings);
 
@@ -479,45 +504,53 @@ const MeetingNotetakerTab: FC = () => {
   };
 
   return (
-    <div className={sectionClass}>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting Notetaker</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Automatically join eligible meetings, summarise, and send a recap.</p>
+    <>
+      {visibility['settings.meetingNotetaker.table'] ? (
+        <div className={sectionClass}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Meeting Notetaker</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Automatically join eligible meetings, summarise, and send a recap.
+              </p>
+            </div>
+            <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
+          </div>
+          <div className="mt-4 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-500 dark:text-slate-400">
+                  <th className="pb-2">Date & time</th>
+                  <th className="pb-2">Title</th>
+                  <th className="pb-2">Platform</th>
+                  <th className="pb-2 text-center">Send</th>
+                </tr>
+              </thead>
+              <tbody>
+                {meetingState.map((meeting) => (
+                  <tr key={meeting.id} className="border-t border-slate-100 dark:border-slate-800">
+                    <td className="py-3 text-slate-700 dark:text-slate-200">{meeting.date}</td>
+                    <td className="py-3 font-medium text-slate-900 dark:text-white">{meeting.title}</td>
+                    <td className="py-3 text-slate-500 dark:text-slate-400">{meeting.platform}</td>
+                    <td className="py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={meeting.sendToNotetaker}
+                        onChange={() => toggleMeeting(meeting.id)}
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
+            In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.
+          </p>
         </div>
-        <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
-      </div>
-      <div className="mt-4 overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="text-left text-slate-500 dark:text-slate-400">
-              <th className="pb-2">Date & time</th>
-              <th className="pb-2">Title</th>
-              <th className="pb-2">Platform</th>
-              <th className="pb-2 text-center">Send</th>
-            </tr>
-          </thead>
-          <tbody>
-            {meetingState.map((meeting) => (
-              <tr key={meeting.id} className="border-t border-slate-100 dark:border-slate-800">
-                <td className="py-3 text-slate-700 dark:text-slate-200">{meeting.date}</td>
-                <td className="py-3 font-medium text-slate-900 dark:text-white">{meeting.title}</td>
-                <td className="py-3 text-slate-500 dark:text-slate-400">{meeting.platform}</td>
-                <td className="py-3 text-center">
-                  <input
-                    type="checkbox"
-                    checked={meeting.sendToNotetaker}
-                    onChange={() => toggleMeeting(meeting.id)}
-                    className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">In production, changes here will trigger n8n workflows. TODO: Hook checkbox state to backend mutation.</p>
-    </div>
+      ) : null}
+    </>
   );
 };
 
@@ -536,7 +569,7 @@ interface StorageConnection {
   helper?: string;
 }
 
-const IntegrationsTab: FC = () => {
+const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [integrationState, setIntegrationState] = useState<Integration[]>(defaultIntegrations);
   const [complianceServices, setComplianceServices] = useState<ComplianceService[]>([
     {
@@ -609,115 +642,127 @@ const IntegrationsTab: FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className={sectionClass}>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Compliance services</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Tell FlowMail which services your practice delivers so requests route correctly.</p>
-          </div>
-          <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
-            Beta
-          </span>
-        </div>
-        <div className="mt-4 space-y-3">
-          {complianceServices.map((service) => (
-            <div
-              key={service.id}
-              className="flex items-start justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/40"
-            >
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-white">{service.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{service.description}</p>
-              </div>
-              <ToggleSwitch enabled={service.enabled} onToggle={() => toggleComplianceService(service.id)} />
+      {visibility['settings.integrations.compliance'] ? (
+        <div className={sectionClass}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Compliance services</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Tell FlowMail which services your practice delivers so requests route correctly.
+              </p>
             </div>
-          ))}
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+              Beta
+            </span>
+          </div>
+          <div className="mt-4 space-y-3">
+            {complianceServices.map((service) => (
+              <div
+                key={service.id}
+                className="flex items-start justify-between rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-900/40"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{service.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{service.description}</p>
+                </div>
+                <ToggleSwitch enabled={service.enabled} onToggle={() => toggleComplianceService(service.id)} />
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            These services determine which automations n8n should run for each incoming request.
+          </p>
         </div>
-        <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">These services determine which automations n8n should run for each incoming request.</p>
-      </div>
+      ) : null}
 
-      <div className={sectionClass}>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Document storage</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Connect your drive so FlowMail can fetch statements, bank feeds, and working papers.</p>
+      {visibility['settings.integrations.storage'] ? (
+        <div className={sectionClass}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Document storage</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Connect your drive so FlowMail can fetch statements, bank feeds, and working papers.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-4">
+            {storageConnections.map((connection) => (
+              <div
+                key={connection.id}
+                className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white/60 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/40"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-base font-semibold text-slate-900 dark:text-white">{connection.name}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{connection.description}</p>
+                  </div>
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      connection.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
+                    }`}
+                  >
+                    {connection.connected ? 'Connected' : 'Not connected'}
+                  </span>
+                </div>
+                {connection.helper && <p className="text-xs text-slate-500 dark:text-slate-400">{connection.helper}</p>}
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => handleStorageConnection(connection)}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                      connection.connected
+                        ? 'border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200'
+                        : 'bg-emerald-600 text-white shadow'
+                    }`}
+                  >
+                    {connection.connected ? 'Manage connection' : 'Connect drive'}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="mt-4 space-y-4">
-          {storageConnections.map((connection) => (
-            <div
-              key={connection.id}
-              className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white/60 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/40"
-            >
+      ) : null}
+
+      {visibility['settings.integrations.apps'] ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {integrationState.map((integration) => (
+            <div key={integration.id} className={sectionClass}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-base font-semibold text-slate-900 dark:text-white">{connection.name}</p>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{connection.description}</p>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white">{integration.name}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{integration.description}</p>
                 </div>
+                <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/40" />
+              </div>
+              <div className="mt-4 flex items-center justify-between">
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    connection.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
+                    integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
                   }`}
                 >
-                  {connection.connected ? 'Connected' : 'Not connected'}
+                  {integration.connected ? 'Connected' : 'Not connected'}
                 </span>
-              </div>
-              {connection.helper && <p className="text-xs text-slate-500 dark:text-slate-400">{connection.helper}</p>}
-              <div className="flex justify-end">
                 <button
-                  onClick={() => handleStorageConnection(connection)}
+                  onClick={() => handleToggle(integration)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                    connection.connected
-                      ? 'border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-200'
+                    integration.connected
+                      ? 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
                       : 'bg-emerald-600 text-white shadow'
                   }`}
                 >
-                  {connection.connected ? 'Manage connection' : 'Connect drive'}
+                  {integration.connected ? 'Manage' : 'Connect'}
                 </button>
               </div>
+              <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">TODO: Trigger n8n integration call for {integration.name}.</p>
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {integrationState.map((integration) => (
-          <div key={integration.id} className={sectionClass}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white">{integration.name}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{integration.description}</p>
-              </div>
-              <div className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-900/40" />
-            </div>
-            <div className="mt-4 flex items-center justify-between">
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  integration.connected ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 dark:bg-slate-900/40 text-slate-500'
-                }`}
-              >
-                {integration.connected ? 'Connected' : 'Not connected'}
-              </span>
-              <button
-                onClick={() => handleToggle(integration)}
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${
-                  integration.connected
-                    ? 'border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
-                    : 'bg-emerald-600 text-white shadow'
-                }`}
-              >
-                {integration.connected ? 'Manage' : 'Connect'}
-              </button>
-            </div>
-            <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">TODO: Trigger n8n integration call for {integration.name}.</p>
-          </div>
-        ))}
-      </div>
+      ) : null}
     </div>
   );
 };
 
-const FaqTab: FC = () => {
+const FaqTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const faqs = [
     {
       question: 'What if I already have an email label system?',
@@ -742,14 +787,18 @@ const FaqTab: FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
-      {faqs.map((faq) => (
-        <details key={faq.question} className={sectionClass}>
-          <summary className="cursor-pointer text-base font-semibold text-slate-900 dark:text-white">{faq.question}</summary>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{faq.answer}</p>
-        </details>
-      ))}
-    </div>
+    <>
+      {visibility['settings.faq.list'] ? (
+        <div className="space-y-4">
+          {faqs.map((faq) => (
+            <details key={faq.question} className={sectionClass}>
+              <summary className="cursor-pointer text-base font-semibold text-slate-900 dark:text-white">{faq.question}</summary>
+              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      ) : null}
+    </>
   );
 };
 

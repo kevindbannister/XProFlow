@@ -6,9 +6,10 @@ interface SidebarProps {
   onSelectTab: (tab: SettingsTab) => void;
   mobileOpen: boolean;
   setMobileOpen: (value: boolean) => void;
+  tabs?: { label: string; value: SettingsTab }[];
 }
 
-const tabs: { label: string; value: SettingsTab }[] = [
+const defaultTabs: { label: string; value: SettingsTab }[] = [
   { label: 'Preferences', value: 'preferences' },
   { label: 'Email rules', value: 'emailRules' },
   { label: 'Draft replies', value: 'draftReplies' },
@@ -19,7 +20,7 @@ const tabs: { label: string; value: SettingsTab }[] = [
   { label: 'FAQ', value: 'faq' },
 ];
 
-export const Sidebar: FC<SidebarProps> = ({ currentTab, onSelectTab, mobileOpen, setMobileOpen }) => {
+export const Sidebar: FC<SidebarProps> = ({ currentTab, onSelectTab, mobileOpen, setMobileOpen, tabs = defaultTabs }) => {
   const content = (
     <div className="flex h-full flex-col gap-6 p-4">
       <div>

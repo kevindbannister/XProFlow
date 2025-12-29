@@ -5,27 +5,27 @@ import flowEmailLogo from '../assets/flow-email-logo.svg';
 interface TopNavProps {
   currentView: MainView;
   onChangeView: (view: MainView) => void;
+  navItems: { label: string; value: MainView }[];
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onLogout?: () => void;
   username?: string;
+  showFeatureToggles?: boolean;
+  featurePanelOpen?: boolean;
+  onToggleFeaturePanel?: () => void;
 }
-
-const navItems: { label: string; value: MainView }[] = [
-  { label: 'Overview', value: 'overview' },
-  { label: 'Settings', value: 'settings' },
-  { label: 'Billing', value: 'billing' },
-  { label: 'Team', value: 'team' },
-  { label: 'Account', value: 'account' },
-];
 
 export const TopNav: FC<TopNavProps> = ({
   currentView,
   onChangeView,
+  navItems,
   isDarkMode,
   onToggleDarkMode,
   onLogout,
   username,
+  showFeatureToggles,
+  featurePanelOpen,
+  onToggleFeaturePanel,
 }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -63,6 +63,16 @@ export const TopNav: FC<TopNavProps> = ({
           ))}
         </nav>
         <div className="hidden items-center gap-3 md:flex">
+          {showFeatureToggles ? (
+            <button
+              onClick={onToggleFeaturePanel}
+              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-4 py-2 text-sm font-semibold shadow-sm ${
+                featurePanelOpen ? 'bg-slate-900 text-white' : 'bg-white/70 text-slate-700'
+              }`}
+            >
+              Feature toggles
+            </button>
+          ) : null}
           <button className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
             New flow
           </button>
@@ -91,6 +101,16 @@ export const TopNav: FC<TopNavProps> = ({
           </div>
         </div>
         <div className="flex flex-1 items-center justify-end gap-3 md:hidden">
+          {showFeatureToggles ? (
+            <button
+              onClick={onToggleFeaturePanel}
+              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-3 py-2 text-xs font-semibold shadow-sm ${
+                featurePanelOpen ? 'bg-slate-900 text-white' : 'bg-white/70 text-slate-700'
+              }`}
+            >
+              Toggles
+            </button>
+          ) : null}
           <button
             onClick={onToggleDarkMode}
             aria-pressed={isDarkMode}
@@ -131,6 +151,14 @@ export const TopNav: FC<TopNavProps> = ({
                 className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left text-sm font-semibold text-slate-700"
               >
                 Log out
+              </button>
+            ) : null}
+            {showFeatureToggles ? (
+              <button
+                onClick={onToggleFeaturePanel}
+                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-left text-sm font-semibold text-slate-700"
+              >
+                Feature toggles
               </button>
             ) : null}
             <div className="rounded-2xl border border-white/60 bg-slate-50/80 p-3 text-sm text-slate-600">
