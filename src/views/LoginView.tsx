@@ -2,11 +2,19 @@ import { FormEvent, useState } from 'react';
 
 interface LoginViewProps {
   onLogin: (username: string, password: string) => void;
+  isDragAndDropEnabled: boolean;
+  onToggleDragAndDrop: () => void;
   isLoading?: boolean;
   error?: string | null;
 }
 
-export const LoginView = ({ onLogin, isLoading = false, error = null }: LoginViewProps) => {
+export const LoginView = ({
+  onLogin,
+  isDragAndDropEnabled,
+  onToggleDragAndDrop,
+  isLoading = false,
+  error = null,
+}: LoginViewProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -51,6 +59,24 @@ export const LoginView = ({ onLogin, isLoading = false, error = null }: LoginVie
             className="w-full rounded-2xl border border-white/70 bg-white/90 px-4 py-3 text-sm text-slate-900 shadow-inner focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
             placeholder="Enter password"
           />
+          <div className="flex items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-sm text-slate-600">
+            <div>
+              <p className="font-semibold text-slate-700">Dashboard drag &amp; drop</p>
+              <p className="text-xs text-slate-500">Enable layout editing after login.</p>
+            </div>
+            <button
+              type="button"
+              onClick={onToggleDragAndDrop}
+              aria-pressed={isDragAndDropEnabled}
+              className={`inline-flex min-w-[72px] items-center justify-center rounded-full px-3 py-1 text-xs font-semibold transition ${
+                isDragAndDropEnabled
+                  ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
+                  : 'bg-slate-200 text-slate-600'
+              }`}
+            >
+              {isDragAndDropEnabled ? 'Enabled' : 'Disabled'}
+            </button>
+          </div>
           {error ? (
             <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-600">
               {error}
