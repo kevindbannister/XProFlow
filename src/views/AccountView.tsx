@@ -14,7 +14,7 @@ export const AccountView: FC<AccountViewProps> = ({ visibility }) => {
       {visibility['account.profile'] ? (
         <div className="glass-panel">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Profile</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Update your FlowMail AI identity.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Update your Flowiee identity.</p>
           <dl className="mt-4 space-y-2 text-sm text-slate-700 dark:text-slate-200">
             <div className="flex justify-between">
               <dt className="font-semibold text-slate-900 dark:text-white">Name</dt>

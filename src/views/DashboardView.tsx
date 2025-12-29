@@ -70,7 +70,7 @@ const quickActions = [
   },
   {
     title: 'Adjust categories',
-    description: 'Tune how FlowMail sorts your messages.',
+    description: 'Tune how Flowiee sorts your messages.',
     cta: 'Edit',
     icon: '🗂️',
     onClick: () => console.log('TODO: adjust categories'),
@@ -349,7 +349,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
     'overview.categoryBreakdown': (
       <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)]">
         <p className="text-sm font-semibold text-slate-500">Category breakdown</p>
-        <p className="text-lg font-semibold text-slate-900">Where FlowMail filed things</p>
+        <p className="text-lg font-semibold text-slate-900">Where Flowiee filed things</p>
         <div className="mt-6 space-y-4">
           {categoryStats.map((category) => (
             <div key={category.name}>
@@ -370,8 +370,8 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
     ),
     'overview.weeklySummary': (
       <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)]">
-        <p className="text-sm font-semibold text-slate-500">What FlowMail did for you this week</p>
-        <p className="mt-3 text-4xl font-semibold text-slate-900">This week FlowMail saved you 2h 18m</p>
+        <p className="text-sm font-semibold text-slate-500">What Flowiee did for you this week</p>
+        <p className="mt-3 text-4xl font-semibold text-slate-900">This week Flowiee saved you 2h 18m</p>
         <ul className="mt-6 space-y-2 text-slate-600">
           <li>• 318 emails analysed</li>
           <li>• 27 draft replies generated</li>
@@ -385,7 +385,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-500">Quick actions</p>
-            <p className="text-xl font-semibold text-slate-900">Keep FlowMail tuned</p>
+            <p className="text-xl font-semibold text-slate-900">Keep Flowiee tuned</p>
           </div>
           <span className="text-xs text-slate-400">4 suggestions</span>
         </div>

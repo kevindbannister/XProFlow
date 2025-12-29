@@ -40,12 +40,12 @@ export const TopNav: FC<TopNavProps> = ({
         <div className="flex items-center gap-3">
           <img
             src={flowEmailLogo}
-            alt="Flow Email logo"
+            alt="Flowiee logo"
             className="h-12 w-auto rounded-2xl border border-white/70 bg-gradient-to-br from-slate-900 to-indigo-900 p-2 shadow-[0_10px_30px_rgba(79,70,229,0.35)]"
             loading="lazy"
           />
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold uppercase tracking-wide text-slate-900">Flow Email</span>
+            <span className="text-lg font-semibold uppercase tracking-wide text-slate-900">Flowiee</span>
             <span className="text-xs text-slate-500">Automation assistant</span>
           </div>
         </div>

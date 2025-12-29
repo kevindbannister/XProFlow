@@ -25,7 +25,6 @@
     <path d="M204 170H412" stroke-width="10" stroke-linecap="round" />
   </g>
   <g filter="url(#glow)">
-    <text x="210" y="108" font-family="'Space Grotesk', 'Inter', 'Segoe UI', sans-serif" font-size="60" font-weight="700" fill="#7DF9FF" letter-spacing="0.08em">FLOW</text>
-    <text x="210" y="176" font-family="'Space Grotesk', 'Inter', 'Segoe UI', sans-serif" font-size="60" font-weight="700" fill="#7DF9FF" letter-spacing="0.08em">EMAIL</text>
+    <text x="210" y="150" font-family="'Space Grotesk', 'Inter', 'Segoe UI', sans-serif" font-size="60" font-weight="700" fill="#7DF9FF" letter-spacing="0.08em">FLOWIEE</text>
   </g>
 </svg>

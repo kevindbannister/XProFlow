@@ -67,7 +67,7 @@ const PreferencesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibilit
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Connected email accounts</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Manage how FlowMail AI connects to Gmail or Outlook via n8n.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Manage how Flowiee connects to Gmail or Outlook via n8n.</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -105,12 +105,12 @@ const PreferencesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibilit
               {
                 key: 'categorisation',
                 title: 'Enable email categorisation',
-                description: 'FlowMail AI will organise messages for downstream automations.',
+                description: 'Flowiee will organise messages for downstream automations.',
               },
               {
                 key: 'drafts',
                 title: 'Enable AI draft replies',
-                description: 'FlowMail generates suggested responses for review.',
+                description: 'Flowiee generates suggested responses for review.',
               },
               {
                 key: 'followUpTracking',
@@ -161,7 +161,7 @@ const EmailRulesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility
       {visibility['settings.emailRules.categories'] ? (
         <div className={sectionClass}>
         <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Categories</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">FlowMail will organise your emails according to these categories in the backend.</p>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Flowiee will organise your emails according to these categories in the backend.</p>
         <div className="mt-4 space-y-3">
           {categoryState.map((category) => (
             <div
@@ -191,7 +191,7 @@ const EmailRulesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Email rules</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Map senders, domains, or keywords to categories. FlowMail respects your filters.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Map senders, domains, or keywords to categories. Flowiee respects your filters.</p>
           </div>
           <ToggleRow
             title="Respect user-applied labels"
@@ -285,7 +285,7 @@ const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">AI draft replies</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Let FlowMail suggest responses for you to review.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Let Flowiee suggest responses for you to review.</p>
           </div>
           <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
         </div>
@@ -310,7 +310,7 @@ const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
           maxLength={1000}
           onChange={(event) => setPrompt(event.target.value)}
           className="mt-2 h-32 w-full rounded-2xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
-          placeholder="Give FlowMail AI guidance on tone, priorities, and decision rules."
+          placeholder="Give Flowiee guidance on tone, priorities, and decision rules."
         />
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{prompt.length}/1000</p>
         </div>
@@ -369,7 +369,7 @@ const DraftRepliesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
               dangerouslySetInnerHTML={{ __html: signature }}
             />
             <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-              Images should be hosted online; FlowMail will embed the HTML in your outbound signatures.
+              Images should be hosted online; Flowiee will embed the HTML in your outbound signatures.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -426,7 +426,7 @@ const FollowUpsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Follow-ups</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">FlowMail will draft reminders if someone hasn’t replied.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Flowiee will draft reminders if someone hasn’t replied.</p>
         </div>
         <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
       </div>
@@ -440,7 +440,7 @@ const FollowUpsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility 
           onChange={(event) => setDays(Number(event.target.value))}
           className="mt-3 w-full accent-emerald-500"
         />
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">FlowMail will queue follow-ups {days} days after the original email.</p>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">Flowiee will queue follow-ups {days} days after the original email.</p>
       </div>
           <div className="mt-6 flex justify-end">
             <PrimaryButton label="Save changes" onClick={saveSettings} />
@@ -474,7 +474,7 @@ const SchedulingTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Scheduling settings</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Share availability and let FlowMail coordinate.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Share availability and let Flowiee coordinate.</p>
           </div>
           <ToggleSwitch enabled={enabled} onToggle={() => setEnabled((prev) => !prev)} />
         </div>
@@ -522,7 +522,7 @@ const SchedulingTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility
           </div>
           <ToggleRow
             title="Email me when proposing times"
-            description="Receive a summary email whenever FlowMail proposes times."
+            description="Receive a summary email whenever Flowiee proposes times."
             enabled={notifyPropose}
             onToggle={() => setNotifyPropose((prev) => !prev)}
           />
@@ -717,7 +717,7 @@ const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Compliance services</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Tell FlowMail which services your practice delivers so requests route correctly.
+                Tell Flowiee which services your practice delivers so requests route correctly.
               </p>
             </div>
             <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
@@ -750,7 +750,7 @@ const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
             <div>
               <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Document storage</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Connect your drive so FlowMail can fetch statements, bank feeds, and working papers.
+                Connect your drive so Flowiee can fetch statements, bank feeds, and working papers.
               </p>
             </div>
           </div>
@@ -835,19 +835,19 @@ const FaqTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => 
   const faqs = [
     {
       question: 'What if I already have an email label system?',
-      answer: 'FlowMail respects your structure and layers automations without overwriting labels.',
+      answer: 'Flowiee respects your structure and layers automations without overwriting labels.',
     },
     {
-      question: 'Will FlowMail change my inbox permanently?',
+      question: 'Will Flowiee change my inbox permanently?',
       answer: 'No. Settings let you pause or revert at any time. Changes run via automations in n8n.',
     },
     {
-      question: 'Can I disable FlowMail and go back to normal?',
-      answer: 'Yes, toggle features off and FlowMail steps back immediately.',
+      question: 'Can I disable Flowiee and go back to normal?',
+      answer: 'Yes, toggle features off and Flowiee steps back immediately.',
     },
     {
       question: 'How does the scheduling feature work?',
-      answer: 'FlowMail reads your calendar availability and proposes times via the link provided.',
+      answer: 'Flowiee reads your calendar availability and proposes times via the link provided.',
     },
     {
       question: 'Is my data secure?',
