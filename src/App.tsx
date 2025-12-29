@@ -190,7 +190,7 @@ const App = () => {
   const content = useMemo(() => {
     switch (currentView) {
       case 'overview':
-        return <DashboardView visibility={featureVisibility} />;
+        return <DashboardView visibility={featureVisibility} isMaster={isMaster} />;
       case 'settings':
         return <SettingsView currentTab={currentSettingsTab} visibility={featureVisibility} />;
       case 'billing':
