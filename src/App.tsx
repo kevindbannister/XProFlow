@@ -6,18 +6,23 @@ import { AccountView } from './views/AccountView';
 import { SettingsView } from './views/SettingsView';
 import { TeamView } from './views/TeamView';
 import { DashboardView } from './views/DashboardView';
+import { LoginView } from './views/LoginView';
 import { MainView, SettingsTab } from './types';
+import { authenticate, clearSession, getStoredSession, storeSession } from './services/auth';
 
 const App = () => {
   const [currentView, setCurrentView] = useState<MainView>('overview');
   const [currentSettingsTab, setCurrentSettingsTab] = useState<SettingsTab>('preferences');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [session, setSession] = useState(() => getStoredSession());
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
     }
     return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
   });
+
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -44,6 +49,28 @@ const App = () => {
     }
   }, [currentSettingsTab, currentView]);
 
+  const handleLogin = (username: string, password: string) => {
+    setLoginError(null);
+    const nextSession = authenticate(username, password);
+    if (!nextSession) {
+      setLoginError('That username or password did not match the master account.');
+      return;
+    }
+
+    storeSession(nextSession);
+    setSession(nextSession);
+  };
+
+  const handleLogout = () => {
+    clearSession();
+    setSession(null);
+    setCurrentView('overview');
+  };
+
+  if (!session) {
+    return <LoginView onLogin={handleLogin} error={loginError} />;
+  }
+
   return (
     <div className="min-h-screen px-4 py-6 transition-colors duration-300 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
@@ -52,6 +79,8 @@ const App = () => {
           onChangeView={(view) => setCurrentView(view)}
           isDarkMode={isDarkMode}
           onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
+          onLogout={handleLogout}
+          username={session.username}
         />
         {currentView === 'settings' ? (
           <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl sm:p-6">

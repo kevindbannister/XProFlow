@@ -7,6 +7,8 @@ interface TopNavProps {
   onChangeView: (view: MainView) => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
+  onLogout?: () => void;
+  username?: string;
 }
 
 const navItems: { label: string; value: MainView }[] = [
@@ -17,7 +19,14 @@ const navItems: { label: string; value: MainView }[] = [
   { label: 'Account', value: 'account' },
 ];
 
-export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode, onToggleDarkMode }) => {
+export const TopNav: FC<TopNavProps> = ({
+  currentView,
+  onChangeView,
+  isDarkMode,
+  onToggleDarkMode,
+  onLogout,
+  username,
+}) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSelect = (view: MainView) => {
@@ -57,6 +66,14 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode,
           <button className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
             New flow
           </button>
+          {onLogout ? (
+            <button
+              onClick={onLogout}
+              className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
+            >
+              Log out
+            </button>
+          ) : null}
           <button
             onClick={onToggleDarkMode}
             aria-pressed={isDarkMode}
@@ -66,11 +83,11 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode,
             {isDarkMode ? '🌙' : '☀️'}
           </button>
           <div className="text-right">
-            <p className="text-sm font-semibold text-slate-900">Kevin Brooks</p>
+            <p className="text-sm font-semibold text-slate-900">{username ?? 'Kevin Brooks'}</p>
             <p className="text-xs text-slate-500">kevin@firm.co.uk</p>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">
-            KB
+            {username ? username.slice(0, 2).toUpperCase() : 'KB'}
           </div>
         </div>
         <div className="flex flex-1 items-center justify-end gap-3 md:hidden">
@@ -90,7 +107,7 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode,
             ☰
           </button>
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xs font-semibold text-white">
-            KB
+            {username ? username.slice(0, 2).toUpperCase() : 'KB'}
           </div>
         </div>
       </div>
@@ -108,8 +125,16 @@ export const TopNav: FC<TopNavProps> = ({ currentView, onChangeView, isDarkMode,
                 {item.label}
               </button>
             ))}
+            {onLogout ? (
+              <button
+                onClick={onLogout}
+                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left text-sm font-semibold text-slate-700"
+              >
+                Log out
+              </button>
+            ) : null}
             <div className="rounded-2xl border border-white/60 bg-slate-50/80 p-3 text-sm text-slate-600">
-              <p className="font-semibold text-slate-900">Kevin Brooks</p>
+              <p className="font-semibold text-slate-900">{username ?? 'Kevin Brooks'}</p>
               <p>kevin@firm.co.uk</p>
             </div>
           </div>
