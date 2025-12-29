@@ -92,28 +92,28 @@ const quickActions = [
 ];
 
 const MetricCard: FC<{ metric: Metric }> = ({ metric }) => (
-  <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_50px_rgba(15,23,42,0.08)] backdrop-blur">
-    <p className="text-sm font-medium text-slate-500">{metric.label}</p>
-    <p className="mt-3 text-3xl font-semibold text-slate-900">{metric.value}</p>
-    <p className="mt-2 text-xs font-semibold text-emerald-500">{metric.deltaText}</p>
+  <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_50px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{metric.label}</p>
+    <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
+    <p className="mt-2 text-xs font-semibold text-emerald-500 dark:text-emerald-400">{metric.deltaText}</p>
   </div>
 );
 
 const QuickActionTile: FC<(typeof quickActions)[number]> = ({ title, description, cta, icon, onClick }) => (
-  <div className="flex flex-col rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_rgba(15,23,42,0.08)]">
+  <div className="flex flex-col rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_rgba(15,23,42,0.08)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
     <div className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-indigo-50 to-violet-100 text-xl">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-indigo-50 to-violet-100 text-xl dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
         {icon}
       </div>
       <div>
-        <p className="text-base font-semibold text-slate-900">{title}</p>
-        <p className="text-sm text-slate-500">{description}</p>
+        <p className="text-base font-semibold text-slate-900 dark:text-white">{title}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
       </div>
     </div>
     <div className="mt-4">
       <button
         onClick={onClick}
-        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900"
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-200 dark:hover:text-white"
       >
         {cta}
       </button>
@@ -295,18 +295,22 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
 
   const sectionContent: Record<string, JSX.Element> = {
     'overview.hero': (
-      <section className="rounded-[32px] border border-white/70 bg-gradient-to-br from-white via-slate-50 to-[#e4f3ff] p-8 shadow-[0_35px_90px_rgba(15,23,42,0.15)]">
+      <section className="rounded-[32px] border border-white/70 bg-gradient-to-br from-white via-slate-50 to-[#e4f3ff] p-8 shadow-[0_35px_90px_rgba(15,23,42,0.15)] dark:border-slate-800/60 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-black/40">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-sky-500">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-semibold leading-tight text-slate-900 md:text-4xl">Welcome back, Kevin</h1>
-            <p className="mt-2 text-base text-slate-500">Gmail connected · Calendar not connected</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-sky-500 dark:text-sky-300">Dashboard</p>
+            <h1 className="mt-2 text-3xl font-semibold leading-tight text-slate-900 dark:text-white md:text-4xl">
+              Welcome back, Kevin
+            </h1>
+            <p className="mt-2 text-base text-slate-500 dark:text-slate-400">
+              Gmail connected · Calendar not connected
+            </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <button className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
               Continue setup
             </button>
-            <button className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm">
+            <button className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-100">
               View all settings
             </button>
           </div>
@@ -323,23 +327,23 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
       </section>
     ),
     'overview.activity': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)]">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-500">Automation activity</p>
-            <p className="text-lg font-semibold text-slate-900">Last 7 days</p>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Automation activity</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">Last 7 days</p>
           </div>
-          <span className="text-xs text-emerald-500">Live</span>
+          <span className="text-xs text-emerald-500 dark:text-emerald-400">Live</span>
         </div>
         <div className="mt-6 h-36">
           <div className="flex h-full items-end gap-3">
             {automationTrend.map((point) => (
               <div key={point.label} className="flex w-full flex-col items-center gap-2">
                 <div
-                  className="w-full rounded-t-[20px] bg-gradient-to-t from-sky-200 to-sky-500"
+                  className="w-full rounded-t-[20px] bg-gradient-to-t from-sky-200 to-sky-500 dark:from-sky-900 dark:to-sky-500"
                   style={{ height: `${(point.value / maxTrendValue) * 100}%` }}
                 ></div>
-                <span className="text-xs text-slate-500">{point.label}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{point.label}</span>
               </div>
             ))}
           </div>
@@ -347,17 +351,17 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
       </section>
     ),
     'overview.categoryBreakdown': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)]">
-        <p className="text-sm font-semibold text-slate-500">Category breakdown</p>
-        <p className="text-lg font-semibold text-slate-900">Where Flowiee filed things</p>
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Category breakdown</p>
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">Where Flowiee filed things</p>
         <div className="mt-6 space-y-4">
           {categoryStats.map((category) => (
             <div key={category.name}>
-              <div className="flex items-center justify-between text-sm text-slate-600">
+              <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-300">
                 <span>{category.name}</span>
                 <span>{category.count}</span>
               </div>
-              <div className="mt-2 h-2 rounded-full bg-slate-100">
+              <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400"
                   style={{ width: `${category.percentage}%` }}
@@ -369,25 +373,29 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
       </section>
     ),
     'overview.weeklySummary': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)]">
-        <p className="text-sm font-semibold text-slate-500">What Flowiee did for you this week</p>
-        <p className="mt-3 text-4xl font-semibold text-slate-900">This week Flowiee saved you 2h 18m</p>
-        <ul className="mt-6 space-y-2 text-slate-600">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">What Flowiee did for you this week</p>
+        <p className="mt-3 text-4xl font-semibold text-slate-900 dark:text-white">
+          This week Flowiee saved you 2h 18m
+        </p>
+        <ul className="mt-6 space-y-2 text-slate-600 dark:text-slate-300">
           <li>• 318 emails analysed</li>
           <li>• 27 draft replies generated</li>
           <li>• 15 follow-ups created</li>
         </ul>
-        <p className="mt-4 text-xs text-slate-400">* Based on estimated automations and time saved.</p>
+        <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
+          * Based on estimated automations and time saved.
+        </p>
       </section>
     ),
     'overview.quickActions': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_35px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-500">Quick actions</p>
-            <p className="text-xl font-semibold text-slate-900">Keep Flowiee tuned</p>
+            <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Quick actions</p>
+            <p className="text-xl font-semibold text-slate-900 dark:text-white">Keep Flowiee tuned</p>
           </div>
-          <span className="text-xs text-slate-400">4 suggestions</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">4 suggestions</span>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           {quickActions.map((action) => (
@@ -399,9 +407,9 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
   };
 
   return (
-    <div className="space-y-4 text-slate-800">
+    <div className="space-y-4 text-slate-800 dark:text-slate-200">
       {isMaster ? (
-        <div className="rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-sm text-slate-600">
+        <div className="rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300">
           Layout editing is enabled. Drag tiles by the handle and resize from the lower-right corner.
         </div>
       ) : null}
@@ -423,14 +431,14 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
             <div className="relative h-full">
               {sectionContent[item.id]}
               {isMaster ? (
-                <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm backdrop-blur">
+                <div className="absolute right-4 top-4 flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm backdrop-blur dark:bg-slate-900/80 dark:text-slate-300">
                   <span className="pointer-events-none">Move</span>
                   <button
                     type="button"
                     draggable
                     onDragStart={handleDragStart(item.id)}
                     onDragEnd={() => setDraggedId(null)}
-                    className="pointer-events-auto cursor-grab rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 active:cursor-grabbing"
+                    className="pointer-events-auto cursor-grab rounded-full bg-slate-100 px-2 py-0.5 text-slate-600 active:cursor-grabbing dark:bg-slate-800 dark:text-slate-200"
                     aria-label="Drag to move section"
                   >
                     ⇅
@@ -441,7 +449,7 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster }) 
                 <button
                   type="button"
                   onPointerDown={handleResizeStart(item.id)}
-                  className="absolute bottom-4 right-4 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-xs text-white shadow-lg"
+                  className="absolute bottom-4 right-4 inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-900/80 text-xs text-white shadow-lg dark:bg-slate-100/90 dark:text-slate-900"
                   aria-label="Resize section"
                 >
                   ↘
