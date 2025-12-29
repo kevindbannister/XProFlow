@@ -122,6 +122,9 @@ const featureToggleGroups: FeatureToggleGroup[] = [
 const navItems: { label: string; value: MainView; featureId: string }[] = [
   { label: 'Overview', value: 'overview', featureId: 'page.overview' },
   { label: 'Settings', value: 'settings', featureId: 'page.settings' },
+];
+
+const userMenuItems: { label: string; value: MainView; featureId: string }[] = [
   { label: 'Billing', value: 'billing', featureId: 'page.billing' },
   { label: 'Team', value: 'team', featureId: 'page.team' },
   { label: 'Account', value: 'account', featureId: 'page.account' },
@@ -164,14 +167,18 @@ const App = () => {
   const isFeatureEnabled = (id: string) => featureVisibility[id] ?? true;
   const isMaster = session?.username === 'master';
   const visibleNavItems = useMemo(() => navItems.filter((item) => isFeatureEnabled(item.featureId)), [featureVisibility]);
+  const visibleUserMenuItems = useMemo(
+    () => userMenuItems.filter((item) => isFeatureEnabled(item.featureId)),
+    [featureVisibility],
+  );
   const visibleSettingsTabs = useMemo(() => settingsTabs.filter((tab) => isFeatureEnabled(tab.featureId)), [featureVisibility]);
 
   useEffect(() => {
-    const enabledViews = visibleNavItems.map((item) => item.value);
+    const enabledViews = [...visibleNavItems, ...visibleUserMenuItems].map((item) => item.value);
     if (enabledViews.length > 0 && !enabledViews.includes(currentView)) {
       setCurrentView(enabledViews[0]);
     }
-  }, [currentView, visibleNavItems]);
+  }, [currentView, visibleNavItems, visibleUserMenuItems]);
 
   useEffect(() => {
     const enabledTabs = visibleSettingsTabs.map((tab) => tab.value);
@@ -240,6 +247,7 @@ const App = () => {
           currentView={currentView}
           onChangeView={(view) => setCurrentView(view)}
           navItems={visibleNavItems.map(({ label, value }) => ({ label, value }))}
+          userMenuItems={visibleUserMenuItems.map(({ label, value }) => ({ label, value }))}
           isDarkMode={isDarkMode}
           onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
           onLogout={handleLogout}
