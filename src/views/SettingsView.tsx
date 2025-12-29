@@ -2,6 +2,7 @@ import { FC, useMemo, useRef, useState } from 'react';
 import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../data/mockData';
 import { connectEmailProvider, connectIntegration, disconnectIntegration, saveSettings } from '../services/api';
 import { Category, EmailRule, Integration, SettingsTab } from '../types';
+import { RolesSetupView } from './RolesSetupView';
 
 interface SettingsViewProps {
   currentTab: SettingsTab;
@@ -35,6 +36,8 @@ export const SettingsView: FC<SettingsViewProps> = ({ currentTab, visibility }) 
         return <IntegrationsTab visibility={visibility} />;
       case 'faq':
         return <FaqTab visibility={visibility} />;
+      case 'roles':
+        return <RolesSetupView />;
       default:
         return null;
     }

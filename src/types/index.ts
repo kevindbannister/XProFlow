@@ -8,7 +8,8 @@ export type SettingsTab =
   | 'scheduling'
   | 'meetingNotetaker'
   | 'integrations'
-  | 'faq';
+  | 'faq'
+  | 'roles';
 
 export interface Category {
   id: string;
@@ -58,4 +59,15 @@ export interface UserProfile {
   name: string;
   email: string;
   company: string;
+}
+
+export type ThinkingMode = 'Processor' | 'Reviewer' | 'Advisor' | 'Owner';
+
+export interface RoleProfile {
+  primaryRole: string;
+  secondaryRoles: string[];
+  responsibilities: string[];
+  industryFocus: string[];
+  lastUpdatedAt: string | null;
+  thinkingMode: ThinkingMode;
 }

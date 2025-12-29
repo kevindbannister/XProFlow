@@ -44,6 +44,7 @@ const featureToggleGroups: FeatureToggleGroup[] = [
       { id: 'settings.tab.meetingNotetaker', label: 'Meeting Notetaker tab' },
       { id: 'settings.tab.integrations', label: 'Integrations tab' },
       { id: 'settings.tab.faq', label: 'FAQ tab' },
+      { id: 'settings.tab.roles', label: 'Roles & responsibilities tab' },
     ],
   },
   {
@@ -135,6 +136,7 @@ const settingsTabs: { label: string; value: SettingsTab; featureId: string }[] =
   { label: 'Meeting Notetaker', value: 'meetingNotetaker', featureId: 'settings.tab.meetingNotetaker' },
   { label: 'Integrations', value: 'integrations', featureId: 'settings.tab.integrations' },
   { label: 'FAQ', value: 'faq', featureId: 'settings.tab.faq' },
+  { label: 'Roles & responsibilities', value: 'roles', featureId: 'settings.tab.roles' },
 ];
 
 const App = () => {
