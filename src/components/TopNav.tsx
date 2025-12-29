@@ -62,7 +62,7 @@ export const TopNav: FC<TopNavProps> = ({
   };
 
   return (
-    <header className="w-full rounded-[32px] border border-white/60 bg-white/80 p-4 shadow-[0_25px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl">
+    <header className="w-full rounded-[32px] border border-white/60 bg-white/80 p-4 shadow-[0_25px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img
@@ -72,17 +72,19 @@ export const TopNav: FC<TopNavProps> = ({
             loading="lazy"
           />
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold uppercase tracking-wide text-slate-900">Flowiee</span>
-            <span className="text-xs text-slate-500">Automation assistant</span>
+            <span className="text-lg font-semibold uppercase tracking-wide text-slate-900 dark:text-white">Flowiee</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Automation assistant</span>
           </div>
         </div>
-        <nav className="hidden items-center gap-1 rounded-full bg-slate-50/80 p-1 shadow-inner md:flex">
+        <nav className="hidden items-center gap-1 rounded-full bg-slate-50/80 p-1 shadow-inner dark:bg-slate-900/60 md:flex">
           {navItems.map((item) => (
             <button
               key={item.value}
               onClick={() => handleSelect(item.value)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
-                currentView === item.value ? 'bg-white text-slate-900 shadow' : 'text-slate-500 hover:text-slate-800'
+                currentView === item.value
+                  ? 'bg-white text-slate-900 shadow dark:bg-slate-800 dark:text-white dark:shadow-black/40'
+                  : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
               }`}
             >
               {item.label}
@@ -93,8 +95,10 @@ export const TopNav: FC<TopNavProps> = ({
           {showFeatureToggles ? (
             <button
               onClick={onToggleFeaturePanel}
-              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-4 py-2 text-sm font-semibold shadow-sm ${
-                featurePanelOpen ? 'bg-slate-900 text-white' : 'bg-white/70 text-slate-700'
+              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-4 py-2 text-sm font-semibold shadow-sm dark:border-slate-700/70 ${
+                featurePanelOpen
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'bg-white/70 text-slate-700 dark:bg-slate-800/70 dark:text-slate-100'
               }`}
             >
               Feature toggles
@@ -103,7 +107,7 @@ export const TopNav: FC<TopNavProps> = ({
           {onLogout ? (
             <button
               onClick={onLogout}
-              className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm"
+              className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100"
             >
               Log out
             </button>
@@ -111,14 +115,14 @@ export const TopNav: FC<TopNavProps> = ({
           <button
             onClick={onToggleDarkMode}
             aria-pressed={isDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-lg text-slate-700 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-lg text-slate-700 shadow-sm dark:border-slate-700/70 dark:text-slate-200"
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDarkMode ? '🌙' : '☀️'}
           </button>
           <div className="text-right">
-            <p className="text-sm font-semibold text-slate-900">{username ?? 'Kevin Brooks'}</p>
-            <p className="text-xs text-slate-500">kevin@firm.co.uk</p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white">{username ?? 'Kevin Brooks'}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">kevin@firm.co.uk</p>
           </div>
           <div className="relative" ref={desktopUserMenuRef}>
             <button
@@ -133,14 +137,16 @@ export const TopNav: FC<TopNavProps> = ({
             {userMenuOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 top-12 z-20 w-48 rounded-2xl border border-white/70 bg-white/95 p-2 text-sm shadow-xl"
+                className="absolute right-0 top-12 z-20 w-48 rounded-2xl border border-white/70 bg-white/95 p-2 text-sm shadow-xl dark:border-slate-800/80 dark:bg-slate-900/95"
               >
                 {userMenuItems.map((item) => (
                   <button
                     key={item.value}
                     onClick={() => handleSelect(item.value)}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left font-medium transition ${
-                      currentView === item.value ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:text-slate-900'
+                      currentView === item.value
+                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
                     }`}
                     role="menuitem"
                   >
@@ -155,8 +161,10 @@ export const TopNav: FC<TopNavProps> = ({
           {showFeatureToggles ? (
             <button
               onClick={onToggleFeaturePanel}
-              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-3 py-2 text-xs font-semibold shadow-sm ${
-                featurePanelOpen ? 'bg-slate-900 text-white' : 'bg-white/70 text-slate-700'
+              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-3 py-2 text-xs font-semibold shadow-sm dark:border-slate-700/70 ${
+                featurePanelOpen
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'bg-white/70 text-slate-700 dark:bg-slate-800/70 dark:text-slate-100'
               }`}
             >
               Toggles
@@ -165,14 +173,14 @@ export const TopNav: FC<TopNavProps> = ({
           <button
             onClick={onToggleDarkMode}
             aria-pressed={isDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-slate-700 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-slate-700 shadow-sm dark:border-slate-700/70 dark:text-slate-200"
             aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {isDarkMode ? '🌙' : '☀️'}
           </button>
           <button
             onClick={() => setMobileOpen((prev) => !prev)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-slate-700 shadow-sm"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-slate-700 shadow-sm dark:border-slate-700/70 dark:text-slate-200"
             aria-label="Toggle navigation"
           >
             ☰
@@ -190,14 +198,16 @@ export const TopNav: FC<TopNavProps> = ({
             {userMenuOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 top-12 z-20 w-44 rounded-2xl border border-white/70 bg-white/95 p-2 text-sm shadow-xl"
+                className="absolute right-0 top-12 z-20 w-44 rounded-2xl border border-white/70 bg-white/95 p-2 text-sm shadow-xl dark:border-slate-800/80 dark:bg-slate-900/95"
               >
                 {userMenuItems.map((item) => (
                   <button
                     key={item.value}
                     onClick={() => handleSelect(item.value)}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left font-medium transition ${
-                      currentView === item.value ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:text-slate-900'
+                      currentView === item.value
+                        ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
+                        : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
                     }`}
                     role="menuitem"
                   >
@@ -210,14 +220,16 @@ export const TopNav: FC<TopNavProps> = ({
         </div>
       </div>
       {mobileOpen && (
-        <div className="mt-4 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-inner md:hidden">
+        <div className="mt-4 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-inner dark:border-slate-800/80 dark:bg-slate-900/80 md:hidden">
           <div className="space-y-2">
             {navItems.map((item) => (
               <button
                 key={item.value}
                 onClick={() => handleSelect(item.value)}
                 className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-medium ${
-                  currentView === item.value ? 'bg-slate-100 text-slate-900' : 'text-slate-600'
+                  currentView === item.value
+                    ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'
+                    : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
                 {item.label}
@@ -226,7 +238,7 @@ export const TopNav: FC<TopNavProps> = ({
             {onLogout ? (
               <button
                 onClick={onLogout}
-                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left text-sm font-semibold text-slate-700"
+                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100"
               >
                 Log out
               </button>
@@ -234,7 +246,7 @@ export const TopNav: FC<TopNavProps> = ({
             {showFeatureToggles ? (
               <button
                 onClick={onToggleFeaturePanel}
-                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-left text-sm font-semibold text-slate-700"
+                className="flex w-full items-center justify-between rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-left text-sm font-semibold text-slate-700 dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100"
               >
                 Feature toggles
               </button>
