@@ -149,6 +149,7 @@ const App = () => {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [session, setSession] = useState(() => getStoredSession());
   const [featurePanelOpen, setFeaturePanelOpen] = useState(false);
+  const [isLayoutEditingEnabled, setIsLayoutEditingEnabled] = useState(true);
   const [featureVisibility, setFeatureVisibility] = useState<Record<string, boolean>>(() => {
     return featureToggleGroups.reduce<Record<string, boolean>>((acc, group) => {
       group.items.forEach((item) => {
@@ -199,7 +200,13 @@ const App = () => {
   const content = useMemo(() => {
     switch (currentView) {
       case 'overview':
-        return <DashboardView visibility={featureVisibility} isMaster={isMaster} />;
+        return (
+          <DashboardView
+            visibility={featureVisibility}
+            isMaster={isMaster}
+            isLayoutEditingEnabled={isLayoutEditingEnabled}
+          />
+        );
       case 'settings':
         return <SettingsView currentTab={currentSettingsTab} visibility={featureVisibility} />;
       case 'billing':
@@ -233,7 +240,14 @@ const App = () => {
   };
 
   if (!session) {
-    return <LoginView onLogin={handleLogin} error={loginError} />;
+    return (
+      <LoginView
+        onLogin={handleLogin}
+        error={loginError}
+        isDragAndDropEnabled={isLayoutEditingEnabled}
+        onToggleDragAndDrop={() => setIsLayoutEditingEnabled((prev) => !prev)}
+      />
+    );
   }
 
   const handleToggleFeature = (id: string) => {
