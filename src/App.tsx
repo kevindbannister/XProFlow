@@ -266,7 +266,7 @@ const App = () => {
           />
         ) : null}
         {currentView === 'settings' ? (
-          <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl sm:p-6">
+          <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40 sm:p-6">
             <div className="flex flex-col gap-6 lg:flex-row">
               <Sidebar
                 currentTab={currentSettingsTab}
@@ -290,7 +290,7 @@ const App = () => {
           </div>
         ) : (
           <main className="w-full">
-            <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl sm:p-6">
+            <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40 sm:p-6">
               {content}
             </div>
           </main>
