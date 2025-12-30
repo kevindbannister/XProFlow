@@ -213,7 +213,6 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 const DEFAULT_LAYOUT: LayoutItem[] = [
-  { id: 'overview.onboarding', w: 12, h: 4 },
   { id: 'overview.historyAnalysis', w: 7, h: 3 },
   { id: 'overview.costCalculator', w: 5, h: 3 },
   { id: 'overview.emailImpact', w: 12, h: 3 },
@@ -267,17 +266,23 @@ interface DashboardViewProps {
   visibility: Record<string, boolean>;
   isMaster: boolean;
   isLayoutEditingEnabled: boolean;
+  connectedProvider: string | null;
+  onContinueSetup: () => void;
 }
 
-export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster, isLayoutEditingEnabled }) => {
+export const DashboardView: FC<DashboardViewProps> = ({
+  visibility,
+  isMaster,
+  isLayoutEditingEnabled,
+  connectedProvider,
+  onContinueSetup,
+}) => {
   const maxTrendValue = Math.max(...automationTrend.map((point) => point.value));
   const gridRef = useRef<HTMLDivElement | null>(null);
-  const connectSectionRef = useRef<HTMLDivElement | null>(null);
   const [layout, setLayout] = useState<LayoutItem[]>(() => loadLayout());
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
-  const [connectedProvider, setConnectedProvider] = useState<string | null>(null);
   const [assumptions] = useState<EmailAssumptions>(EMAIL_ASSUMPTIONS);
   const [estimatedEmailVolume] = useState(12480);
   const [selectedRole, setSelectedRole] = useState<string>('');
@@ -416,17 +421,6 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster, is
     });
   };
 
-  const handleConnectProvider = (provider: string) => {
-    setConnectedProvider(provider);
-  };
-
-  const handleScrollToConnect = () => {
-    if (!connectSectionRef.current) {
-      return;
-    }
-    connectSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   const handleRoleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const nextRole = event.target.value;
     setSelectedRole(nextRole);
@@ -437,90 +431,6 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster, is
   };
 
   const sectionContent: Record<string, JSX.Element> = {
-    'overview.onboarding': (
-      <section className="rounded-[32px] border border-white/70 bg-white/90 p-8 shadow-[0_35px_90px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
-        <div className="flex flex-col gap-8">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">New user experience</p>
-            <h2 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-white">
-              Start by measuring what your inbox is really costing you.
-            </h2>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              We will guide you through connection, estimation, and the control panel in a few short steps.
-            </p>
-          </div>
-          <div className="rounded-[28px] border border-slate-200/70 bg-slate-50/80 p-6 dark:border-slate-800/70 dark:bg-slate-950/60">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Step 1</p>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Intro Video – Problem, Solution, What to Expect
-              </span>
-            </div>
-            <div className="mt-4">
-              <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-[24px] bg-gradient-to-br from-slate-100 via-white to-sky-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-                <div className="absolute inset-0 opacity-60 mix-blend-multiply dark:opacity-40">
-                  <div className="absolute left-6 top-6 h-16 w-28 rounded-2xl bg-white/70 dark:bg-slate-800/70" />
-                  <div className="absolute bottom-6 right-6 h-12 w-20 rounded-2xl bg-white/70 dark:bg-slate-800/70" />
-                </div>
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 text-3xl text-slate-700 shadow-md dark:bg-slate-950/80 dark:text-slate-200">
-                  ▶
-                </div>
-              </div>
-              <div className="mt-5 space-y-3">
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
-                  Your inbox isn’t disorganised. It’s unmeasured.
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Email creates hidden time and cost that rarely make it into planning. Flowiee makes that impact visible so
-                  you can control it with confidence.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleScrollToConnect}
-                  className="inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-                >
-                  Connect my inbox to see my numbers
-                </button>
-              </div>
-            </div>
-          </div>
-          <div
-            ref={connectSectionRef}
-            id="connect-inbox"
-            className="rounded-[28px] border border-slate-200/70 bg-slate-50/80 p-6 dark:border-slate-800/70 dark:bg-slate-950/60"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">Step 2</p>
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Email connection</span>
-            </div>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              Connect Gmail or Outlook so we can estimate your last {assumptions.periodMonths} months of email impact.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => handleConnectProvider('Gmail')}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-900 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-200 dark:hover:text-white"
-              >
-                Connect Gmail
-              </button>
-              <button
-                type="button"
-                onClick={() => handleConnectProvider('Outlook')}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-900 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-200 dark:hover:text-white"
-              >
-                Connect Outlook
-              </button>
-            </div>
-            {isInboxConnected ? (
-              <div className="mt-4 rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-4 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
-                Connected to {connectedProvider}. Reviewing the last {assumptions.periodMonths} months now.
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </section>
-    ),
     'overview.historyAnalysis': (
       <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_35px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -708,7 +618,11 @@ export const DashboardView: FC<DashboardViewProps> = ({ visibility, isMaster, is
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <button className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30">
+            <button
+              type="button"
+              onClick={onContinueSetup}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30"
+            >
               Continue setup
             </button>
             <button className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-100">

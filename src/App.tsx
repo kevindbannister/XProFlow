@@ -7,6 +7,7 @@ import { AccountView } from './views/AccountView';
 import { SettingsView } from './views/SettingsView';
 import { TeamView } from './views/TeamView';
 import { DashboardView } from './views/DashboardView';
+import { SetupExperienceView } from './views/SetupExperienceView';
 import { LoginView } from './views/LoginView';
 import { MainView, SettingsTab } from './types';
 import { authenticate, clearSession, getStoredSession, storeSession } from './services/auth';
@@ -25,7 +26,6 @@ const featureToggleGroups: FeatureToggleGroup[] = [
   {
     title: 'Overview sections',
     items: [
-      { id: 'overview.onboarding', label: 'Onboarding flow' },
       { id: 'overview.historyAnalysis', label: 'Email history analysis' },
       { id: 'overview.costCalculator', label: 'Email cost calculator' },
       { id: 'overview.emailImpact', label: 'Email impact panel' },
@@ -155,6 +155,7 @@ const App = () => {
   const [session, setSession] = useState(() => getStoredSession());
   const [featurePanelOpen, setFeaturePanelOpen] = useState(false);
   const [isLayoutEditingEnabled, setIsLayoutEditingEnabled] = useState(true);
+  const [connectedProvider, setConnectedProvider] = useState<string | null>(null);
   const [featureVisibility, setFeatureVisibility] = useState<Record<string, boolean>>(() => {
     return featureToggleGroups.reduce<Record<string, boolean>>((acc, group) => {
       group.items.forEach((item) => {
@@ -181,6 +182,9 @@ const App = () => {
 
   useEffect(() => {
     const enabledViews = [...visibleNavItems, ...visibleUserMenuItems].map((item) => item.value);
+    if (currentView === 'setup') {
+      return;
+    }
     if (enabledViews.length > 0 && !enabledViews.includes(currentView)) {
       setCurrentView(enabledViews[0]);
     }
@@ -210,6 +214,17 @@ const App = () => {
             visibility={featureVisibility}
             isMaster={isMaster}
             isLayoutEditingEnabled={isLayoutEditingEnabled}
+            connectedProvider={connectedProvider}
+            onContinueSetup={() => setCurrentView('setup')}
+          />
+        );
+      case 'setup':
+        return (
+          <SetupExperienceView
+            connectedProvider={connectedProvider}
+            onConnectProvider={setConnectedProvider}
+            onFinish={() => setCurrentView('overview')}
+            onBackToDashboard={() => setCurrentView('overview')}
           />
         );
       case 'settings':
@@ -223,7 +238,7 @@ const App = () => {
       default:
         return null;
     }
-  }, [currentSettingsTab, currentView, featureVisibility]);
+  }, [connectedProvider, currentSettingsTab, currentView, featureVisibility]);
 
   const handleLogin = (username: string, password: string) => {
     setLoginError(null);
