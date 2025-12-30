@@ -1,4 +1,4 @@
-export type MainView = 'overview' | 'settings' | 'billing' | 'team' | 'account' | 'setup';
+export type MainView = 'overview' | 'classifier' | 'settings' | 'billing' | 'team' | 'account' | 'setup';
 
 export type SettingsTab =
   | 'preferences'

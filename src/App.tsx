@@ -7,6 +7,7 @@ import { AccountView } from './views/AccountView';
 import { SettingsView } from './views/SettingsView';
 import { TeamView } from './views/TeamView';
 import { DashboardView } from './views/DashboardView';
+import { EmailClassifierView } from './views/EmailClassifierView';
 import { SetupExperienceView } from './views/SetupExperienceView';
 import { LoginView } from './views/LoginView';
 import { MainView, SettingsTab } from './types';
@@ -17,6 +18,7 @@ const featureToggleGroups: FeatureToggleGroup[] = [
     title: 'Pages',
     items: [
       { id: 'page.overview', label: 'Overview page' },
+      { id: 'page.classifier', label: 'Classifier page' },
       { id: 'page.settings', label: 'Settings page' },
       { id: 'page.billing', label: 'Billing page' },
       { id: 'page.team', label: 'Team page' },
@@ -126,6 +128,7 @@ const featureToggleGroups: FeatureToggleGroup[] = [
 
 const navItems: { label: string; value: MainView; featureId: string }[] = [
   { label: 'Overview', value: 'overview', featureId: 'page.overview' },
+  { label: 'Classifier', value: 'classifier', featureId: 'page.classifier' },
   { label: 'Settings', value: 'settings', featureId: 'page.settings' },
 ];
 
@@ -229,6 +232,8 @@ const App = () => {
         );
       case 'settings':
         return <SettingsView currentTab={currentSettingsTab} visibility={featureVisibility} />;
+      case 'classifier':
+        return <EmailClassifierView />;
       case 'billing':
         return <BillingView visibility={featureVisibility} />;
       case 'team':
