@@ -25,6 +25,11 @@ const featureToggleGroups: FeatureToggleGroup[] = [
   {
     title: 'Overview sections',
     items: [
+      { id: 'overview.onboarding', label: 'Onboarding flow' },
+      { id: 'overview.historyAnalysis', label: 'Email history analysis' },
+      { id: 'overview.costCalculator', label: 'Email cost calculator' },
+      { id: 'overview.emailImpact', label: 'Email impact panel' },
+      { id: 'overview.education', label: 'Understanding your email videos' },
       { id: 'overview.hero', label: 'Hero welcome' },
       { id: 'overview.metrics', label: 'Metrics cards' },
       { id: 'overview.activity', label: 'Automation activity chart' },
