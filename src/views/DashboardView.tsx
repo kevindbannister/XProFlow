@@ -55,6 +55,33 @@ const metrics: Metric[] = [
   { id: 'followups', label: 'Follow-ups created', value: '11', deltaText: '+5% vs last week' },
 ];
 
+const metricPlaceholders: Metric[] = [
+  {
+    id: 'analysed',
+    label: 'Emails analysed today',
+    value: '—',
+    deltaText: 'Syncing inbox activity',
+  },
+  {
+    id: 'categorized',
+    label: 'Emails categorised',
+    value: '—',
+    deltaText: 'Assigning categories',
+  },
+  {
+    id: 'drafts',
+    label: 'AI draft replies generated',
+    value: '—',
+    deltaText: 'Reviewing drafted replies',
+  },
+  {
+    id: 'followups',
+    label: 'Follow-ups created',
+    value: '—',
+    deltaText: 'Building follow-up plan',
+  },
+];
+
 const EMAIL_ASSUMPTIONS: EmailAssumptions = {
   averageReadSeconds: 45,
   averageResponseMinutes: 2.5,
@@ -148,11 +175,27 @@ const quickActions = [
   },
 ];
 
-const MetricCard: FC<{ metric: Metric }> = ({ metric }) => (
-  <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_50px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+const MetricCard: FC<{ metric: Metric; isPlaceholder?: boolean }> = ({ metric, isPlaceholder }) => (
+  <div
+    className={`rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_50px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40 ${
+      isPlaceholder ? 'animate-pulse' : ''
+    }`}
+  >
     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{metric.label}</p>
-    <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
-    <p className="mt-2 text-xs font-semibold text-emerald-500 dark:text-emerald-400">{metric.deltaText}</p>
+    <p
+      className={`mt-3 text-3xl font-semibold ${
+        isPlaceholder ? 'text-slate-400 dark:text-slate-500' : 'text-slate-900 dark:text-white'
+      }`}
+    >
+      {metric.value}
+    </p>
+    <p
+      className={`mt-2 text-xs font-semibold ${
+        isPlaceholder ? 'text-slate-400 dark:text-slate-500' : 'text-emerald-500 dark:text-emerald-400'
+      }`}
+    >
+      {metric.deltaText}
+    </p>
   </div>
 );
 
@@ -634,11 +677,22 @@ export const DashboardView: FC<DashboardViewProps> = ({
     ),
     'overview.metrics': (
       <section>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {metrics.map((metric) => (
-            <MetricCard key={metric.id} metric={metric} />
-          ))}
-        </div>
+        {isInboxConnected ? (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {metricPlaceholders.map((metric) => (
+                <MetricCard key={metric.id} metric={metric} isPlaceholder />
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
+              We&apos;re still processing your inbox. Metrics will populate after the integration completes.
+            </p>
+          </>
+        ) : (
+          <div className="rounded-[28px] border border-dashed border-slate-200/70 bg-slate-50/80 p-5 text-sm text-slate-500 dark:border-slate-800/70 dark:bg-slate-950/40 dark:text-slate-400">
+            Connect an inbox to unlock your live metrics.
+          </div>
+        )}
       </section>
     ),
     'overview.activity': (
