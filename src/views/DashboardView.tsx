@@ -722,7 +722,7 @@ export const DashboardView: FC<DashboardViewProps> = ({
   };
 
   return (
-    <div className="space-y-4 text-slate-800 dark:text-slate-200">
+    <div className="space-y-6 text-slate-800 dark:text-slate-200">
       {isMaster ? (
         <div className="rounded-3xl border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-300">
           {canEditLayout
@@ -732,13 +732,13 @@ export const DashboardView: FC<DashboardViewProps> = ({
       ) : null}
       <div
         ref={gridRef}
-
+        className="grid gap-6 md:gap-8"
         onDragLeave={handleDragLeave}
       >
         {visibleLayout.map((item) => (
           <div
             key={item.id}
-
+            className="group relative rounded-[36px] p-2 md:p-3"
             onDragOver={handleDragOver(item.id)}
             onDrop={handleDrop(item.id)}
           >
