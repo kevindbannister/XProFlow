@@ -26,6 +26,84 @@ const generateId = (): string =>
     ? crypto.randomUUID()
     : `rule-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
+const useMicrosoftIntegration = () => {
+  const [microsoftStatus, setMicrosoftStatus] = useState<MicrosoftIntegrationStatus | null>(null);
+  const [microsoftError, setMicrosoftError] = useState<string | null>(null);
+
+  // TODO: Replace with the authenticated user's ID from your auth/session context.
+  const userId = 'current-user-id';
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStatus = async () => {
+      try {
+        const status = await getMicrosoftIntegrationStatus(userId);
+        if (isMounted) {
+          setMicrosoftStatus(status);
+          setMicrosoftError(status.status === 'error' ? 'Unable to load Microsoft 365 status.' : null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setMicrosoftStatus({ status: 'error' });
+          setMicrosoftError('Unable to load Microsoft 365 status.');
+        }
+      }
+    };
+
+    loadStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  const handleMicrosoftConnect = () => startMicrosoftOAuth(userId);
+
+  const handleMicrosoftDisconnect = async () => {
+    await disconnectMicrosoftIntegration(userId);
+    setMicrosoftStatus({ status: 'not_connected' });
+  };
+
+  const microsoftStatusLabel = (() => {
+    switch (microsoftStatus?.status) {
+      case 'connected':
+        return 'Connected';
+      case 'token_expired':
+        return 'Token expired';
+      case 'reauth_required':
+        return 'Re-auth required';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Not connected';
+    }
+  })();
+
+  const microsoftStatusTone = (() => {
+    switch (microsoftStatus?.status) {
+      case 'connected':
+        return 'bg-emerald-50 text-emerald-600';
+      case 'token_expired':
+      case 'reauth_required':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
+      case 'error':
+        return 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200';
+      default:
+        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-500';
+    }
+  })();
+
+  return {
+    microsoftStatus,
+    microsoftError,
+    microsoftStatusLabel,
+    microsoftStatusTone,
+    handleMicrosoftConnect,
+    handleMicrosoftDisconnect,
+  };
+};
+
 export const SettingsView: FC<SettingsViewProps> = ({ currentTab, visibility }) => {
   const renderTab = useMemo(() => {
     switch (currentTab) {
@@ -62,6 +140,14 @@ const PreferencesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibilit
     drafts: true,
     followUpTracking: false,
   });
+  const {
+    microsoftStatus,
+    microsoftError,
+    microsoftStatusLabel,
+    microsoftStatusTone,
+    handleMicrosoftConnect,
+    handleMicrosoftDisconnect,
+  } = useMicrosoftIntegration();
 
   const handleToggle = (key: keyof typeof toggles) => {
     setToggles((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -106,6 +192,39 @@ const PreferencesTab: FC<{ visibility: Record<string, boolean> }> = ({ visibilit
                 {emailPreferences.status}
               </span>
             </div>
+          </div>
+          <div className="mt-4 rounded-2xl border border-slate-100 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/40">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Microsoft 365</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {microsoftStatus?.email ?? 'Connect your Microsoft account to sync mail and send replies.'}
+                </p>
+              </div>
+              <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${microsoftStatusTone}`}>
+                {microsoftStatusLabel}
+              </span>
+            </div>
+            {microsoftError ? <p className="mt-2 text-xs text-rose-600 dark:text-rose-200">{microsoftError}</p> : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={handleMicrosoftConnect}
+                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow"
+              >
+                {microsoftStatus?.status === 'connected' ? 'Reconnect Microsoft 365' : 'Connect Microsoft 365'}
+              </button>
+              {microsoftStatus?.status === 'connected' ? (
+                <button
+                  onClick={handleMicrosoftDisconnect}
+                  className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                >
+                  Disconnect
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+              OAuth access is scoped to User.Read, Mail.Read, Mail.ReadWrite, Mail.Send, and offline_access.
+            </p>
           </div>
         </div>
       ) : null}
