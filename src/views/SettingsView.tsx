@@ -1,6 +1,15 @@
-import { FC, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { categories as defaultCategories, initialEmailRules, integrations as defaultIntegrations, meetings } from '../data/mockData';
-import { connectEmailProvider, connectIntegration, disconnectIntegration, saveSettings } from '../services/api';
+import {
+  connectEmailProvider,
+  connectIntegration,
+  disconnectIntegration,
+  disconnectMicrosoftIntegration,
+  getMicrosoftIntegrationStatus,
+  MicrosoftIntegrationStatus,
+  saveSettings,
+  startMicrosoftOAuth,
+} from '../services/api';
 import { Category, EmailRule, Integration, SettingsTab } from '../types';
 import { RolesSetupView } from './RolesSetupView';
 
@@ -643,6 +652,8 @@ interface StorageConnection {
 
 const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibility }) => {
   const [integrationState, setIntegrationState] = useState<Integration[]>(defaultIntegrations);
+  const [microsoftStatus, setMicrosoftStatus] = useState<MicrosoftIntegrationStatus | null>(null);
+  const [microsoftError, setMicrosoftError] = useState<string | null>(null);
   const [complianceServices, setComplianceServices] = useState<ComplianceService[]>([
     {
       id: 'accounts-prep',
@@ -697,6 +708,70 @@ const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
     );
   };
 
+  // TODO: Replace with the authenticated user's ID from your auth/session context.
+  const userId = 'current-user-id';
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadStatus = async () => {
+      try {
+        const status = await getMicrosoftIntegrationStatus(userId);
+        if (isMounted) {
+          setMicrosoftStatus(status);
+          setMicrosoftError(status.status === 'error' ? 'Unable to load Microsoft 365 status.' : null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setMicrosoftStatus({ status: 'error' });
+          setMicrosoftError('Unable to load Microsoft 365 status.');
+        }
+      }
+    };
+
+    loadStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  const handleMicrosoftConnect = () => startMicrosoftOAuth(userId);
+
+  const handleMicrosoftDisconnect = async () => {
+    await disconnectMicrosoftIntegration(userId);
+    setMicrosoftStatus({ status: 'not_connected' });
+  };
+
+  const microsoftStatusLabel = (() => {
+    switch (microsoftStatus?.status) {
+      case 'connected':
+        return 'Connected';
+      case 'token_expired':
+        return 'Token expired';
+      case 'reauth_required':
+        return 'Re-auth required';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Not connected';
+    }
+  })();
+
+  const microsoftStatusTone = (() => {
+    switch (microsoftStatus?.status) {
+      case 'connected':
+        return 'bg-emerald-50 text-emerald-600';
+      case 'token_expired':
+      case 'reauth_required':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200';
+      case 'error':
+        return 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200';
+      default:
+        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-500';
+    }
+  })();
+
   const toggleComplianceService = (id: string) => {
     setComplianceServices((prev) => prev.map((service) => (service.id === id ? { ...service, enabled: !service.enabled } : service)));
   };
@@ -714,6 +789,55 @@ const IntegrationsTab: FC<{ visibility: Record<string, boolean> }> = ({ visibili
 
   return (
     <div className="space-y-6">
+      <div className={sectionClass}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Microsoft 365 email</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Connect Microsoft 365 to sync mail, draft replies, and send messages from Flowiee.
+            </p>
+          </div>
+          <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${microsoftStatusTone}`}>
+            {microsoftStatusLabel}
+          </span>
+        </div>
+        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Connected account</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {microsoftStatus?.email ?? 'No Microsoft 365 account connected yet.'}
+              </p>
+            </div>
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              Last sync:{' '}
+              <span className="font-medium text-slate-700 dark:text-slate-200">
+                {microsoftStatus?.lastSyncAt ?? '—'}
+              </span>
+            </div>
+          </div>
+          {microsoftError ? <p className="mt-3 text-xs text-rose-600 dark:text-rose-200">{microsoftError}</p> : null}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={handleMicrosoftConnect}
+              className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow"
+            >
+              {microsoftStatus?.status === 'connected' ? 'Reconnect Microsoft 365' : 'Connect Microsoft 365'}
+            </button>
+            {microsoftStatus?.status === 'connected' ? (
+              <button
+                onClick={handleMicrosoftDisconnect}
+                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+              >
+                Disconnect
+              </button>
+            ) : null}
+          </div>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            OAuth access is scoped to User.Read, Mail.Read, Mail.ReadWrite, Mail.Send, and offline_access. You can reconnect at any time.
+          </p>
+        </div>
+      </div>
       {visibility['settings.integrations.compliance'] ? (
         <div className={sectionClass}>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
