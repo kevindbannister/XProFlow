@@ -255,6 +255,7 @@ const App = () => {
 
     storeSession(nextSession);
     setSession(nextSession);
+    setIsDarkMode(false);
   };
 
   const handleLogout = () => {
