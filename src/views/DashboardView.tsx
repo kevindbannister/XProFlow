@@ -139,45 +139,37 @@ const automationTrend: AutomationPoint[] = [
 const categoryStats: CategoryStat[] = [
   { name: 'To respond', count: 124, percentage: 42 },
   { name: 'Awaiting reply', count: 63, percentage: 21 },
-  { name: 'Actioned', count: 52, percentage: 18 },
-  { name: 'Marketing', count: 32, percentage: 11 },
-  { name: 'FYI', count: 23, percentage: 8 },
+  { name: 'Activated', count: 33, percentage: 18 },
+  { name: 'Marketing', count: 33, percentage: 11 },
+  { name: 'FYI', count: 19, percentage: 8 },
 ];
 
 const quickActions = [
   {
-    title: 'Connect another account',
-    description: 'Bring in Yahoo, Outlook or any IMAP inbox.',
+    title: 'Keep Flowiee tuned',
+    description: 'Connect another Gmail, Outlook, or IMAP inbox.',
     cta: 'Connect',
-    icon: '🔗',
+    icon: '🔒',
     onClick: () => console.log('TODO: connect another account'),
   },
   {
-    title: 'Adjust categories',
-    description: 'Tune how Flowiee sorts your messages.',
-    cta: 'Edit',
-    icon: '🗂️',
-    onClick: () => console.log('TODO: adjust categories'),
-  },
-  {
-    title: 'Review draft prompt',
-    description: 'Improve AI tone and messaging guidance.',
-    cta: 'Review',
-    icon: '✍️',
-    onClick: () => console.log('TODO: review draft prompt'),
-  },
-  {
     title: 'Check integrations',
-    description: 'Confirm CRM and calendar automations.',
+    description: 'Confirm CRM, calendar, and automation connections.',
     cta: 'View',
-    icon: '⚙️',
+    icon: '🧩',
     onClick: () => console.log('TODO: check integrations'),
   },
 ];
 
+const weeklyHighlights = [
+  { label: 'Emails analyzed', value: '318', subtext: 'Last 7 days' },
+  { label: 'Draft reply suggestions', value: '37', subtext: 'Last 7 days' },
+  { label: 'Follow-up tasks created', value: '15', subtext: 'See more tags' },
+];
+
 const MetricCard: FC<{ metric: Metric; isPlaceholder?: boolean }> = ({ metric, isPlaceholder }) => (
   <div
-    className={`rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_50px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40 ${
+    className={`rounded-[28px] border border-white/70 bg-white/80 p-5 shadow-[0_20px_45px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40 ${
       isPlaceholder ? 'animate-pulse' : ''
     }`}
   >
@@ -200,9 +192,9 @@ const MetricCard: FC<{ metric: Metric; isPlaceholder?: boolean }> = ({ metric, i
 );
 
 const QuickActionTile: FC<(typeof quickActions)[number]> = ({ title, description, cta, icon, onClick }) => (
-  <div className="flex flex-col rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_25px_60px_rgba(15,23,42,0.08)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+  <div className="flex flex-col rounded-[26px] border border-white/70 bg-white/85 p-5 shadow-[0_22px_50px_rgba(15,23,42,0.08)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
     <div className="flex items-center gap-3">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-indigo-50 to-violet-100 text-xl dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
+      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-100 via-indigo-50 to-violet-100 text-xl shadow-inner dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
         {icon}
       </div>
       <div>
@@ -213,7 +205,7 @@ const QuickActionTile: FC<(typeof quickActions)[number]> = ({ title, description
     <div className="mt-4">
       <button
         onClick={onClick}
-        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-200 dark:hover:text-white"
+        className="inline-flex items-center justify-center rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-200 dark:hover:text-white"
       >
         {cta}
       </button>
@@ -222,7 +214,7 @@ const QuickActionTile: FC<(typeof quickActions)[number]> = ({ title, description
 );
 
 const VideoPlaceholderCard: FC<{ title: string; description?: string }> = ({ title, description }) => (
-  <div className="rounded-[24px] border border-white/70 bg-white/90 p-4 shadow-[0_20px_45px_rgba(15,23,42,0.08)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+  <div className="rounded-[24px] border border-white/70 bg-white/85 p-4 shadow-[0_20px_45px_rgba(15,23,42,0.08)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
     <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-[20px] bg-gradient-to-br from-slate-100 via-slate-50 to-sky-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       <div className="absolute inset-0 opacity-60 mix-blend-multiply dark:opacity-40">
         <div className="absolute left-6 top-6 h-16 w-28 rounded-2xl bg-white/70 dark:bg-slate-800/70" />
@@ -631,7 +623,7 @@ export const DashboardView: FC<DashboardViewProps> = ({
       </section>
     ),
     'overview.education': (
-      <section className="rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+      <section className="rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Understanding your email</p>
@@ -649,28 +641,50 @@ export const DashboardView: FC<DashboardViewProps> = ({
       </section>
     ),
     'overview.hero': (
-      <section className="rounded-[32px] border border-white/70 bg-gradient-to-br from-white via-slate-50 to-[#e4f3ff] p-8 shadow-[0_35px_90px_rgba(15,23,42,0.15)] dark:border-slate-800/60 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-black/40">
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <section className="relative overflow-hidden rounded-[32px] border border-white/70 bg-gradient-to-br from-white via-[#f3f7ff] to-[#dfefff] p-8 shadow-[0_35px_90px_rgba(15,23,42,0.15)] dark:border-slate-800/60 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 dark:shadow-black/40">
+        <div className="absolute right-8 top-8 hidden h-40 w-56 rounded-[28px] bg-white/60 shadow-[0_25px_60px_rgba(59,130,246,0.2)] backdrop-blur md:block" />
+        <div className="absolute -right-10 -top-10 hidden h-40 w-40 rounded-full bg-sky-200/40 blur-2xl md:block" />
+        <div className="absolute -bottom-12 right-16 hidden h-36 w-36 rounded-full bg-indigo-200/40 blur-2xl md:block" />
+        <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-sky-500 dark:text-sky-300">Dashboard</p>
+            <p className="text-sm font-semibold text-sky-500 dark:text-sky-300">👋 Welcome back</p>
             <h1 className="mt-2 text-3xl font-semibold leading-tight text-slate-900 dark:text-white md:text-4xl">
-              Welcome back, Kevin
+              Kevin, your inbox is running smoothly
             </h1>
             <p className="mt-2 text-base text-slate-500 dark:text-slate-400">
               Gmail connected · Calendar not connected
             </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={onContinueSetup}
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30"
+              >
+                Connect new inbox
+              </button>
+              <button className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-100">
+                View all settings →
+              </button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={onContinueSetup}
-              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-sky-500 via-indigo-500 to-violet-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30"
-            >
-              Continue setup
-            </button>
-            <button className="inline-flex items-center justify-center rounded-full border border-white/70 bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/60 dark:text-slate-100">
-              View all settings
-            </button>
+          <div className="relative hidden w-64 flex-col gap-4 rounded-[28px] border border-white/70 bg-white/60 p-5 shadow-[0_25px_60px_rgba(15,23,42,0.12)] backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/60 md:flex">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl shadow">✉️</span>
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Unified inbox</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Automation running</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {['📨', '🧠', '🗂️', '⚡'].map((icon) => (
+                <span
+                  key={icon}
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/90 text-lg shadow-sm dark:bg-slate-900/80"
+                >
+                  {icon}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -696,31 +710,36 @@ export const DashboardView: FC<DashboardViewProps> = ({
       </section>
     ),
     'overview.activity': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
-        <div className="flex items-start justify-between">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Automation activity</p>
             <p className="text-lg font-semibold text-slate-900 dark:text-white">Last 7 days</p>
           </div>
-          <span className="text-xs text-emerald-500 dark:text-emerald-400">Live</span>
-        </div>
-        <div className="mt-6 h-36">
-          <div className="flex h-full items-end gap-3">
-            {automationTrend.map((point) => (
-              <div key={point.label} className="flex w-full flex-col items-center gap-2">
-                <div
-                  className="w-full rounded-t-[20px] bg-gradient-to-t from-sky-200 to-sky-500 dark:from-sky-900 dark:to-sky-500"
-                  style={{ height: `${(point.value / maxTrendValue) * 100}%` }}
-                ></div>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{point.label}</span>
-              </div>
-            ))}
+          <div className="flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-300">
+            <span>Last 7 days</span>
+            <span className="h-1 w-1 rounded-full bg-slate-300" />
+            <span>Settings</span>
           </div>
+        </div>
+        <div className="mt-6 space-y-4">
+          {automationTrend.map((point) => (
+            <div key={point.label} className="flex items-center gap-3">
+              <span className="w-8 text-xs font-semibold text-slate-500 dark:text-slate-400">{point.label}</span>
+              <div className="flex-1 rounded-full bg-slate-100 dark:bg-slate-800">
+                <div
+                  className="h-2 rounded-full bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-400"
+                  style={{ width: `${(point.value / maxTrendValue) * 100}%` }}
+                />
+              </div>
+              <span className="w-8 text-xs font-semibold text-slate-500 dark:text-slate-400">{point.value}</span>
+            </div>
+          ))}
         </div>
       </section>
     ),
     'overview.categoryBreakdown': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_30px_60px_rgba(15,23,42,0.1)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Category breakdown</p>
         <p className="text-lg font-semibold text-slate-900 dark:text-white">Where Flowiee filed things</p>
         <div className="mt-6 space-y-4">
@@ -742,29 +761,37 @@ export const DashboardView: FC<DashboardViewProps> = ({
       </section>
     ),
     'overview.weeklySummary': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">What Flowiee did for you this week</p>
-        <p className="mt-3 text-4xl font-semibold text-slate-900 dark:text-white">
-          This week Flowiee saved you 2h 18m
-        </p>
-        <ul className="mt-6 space-y-2 text-slate-600 dark:text-slate-300">
-          <li>• 318 emails analysed</li>
-          <li>• 27 draft replies generated</li>
-          <li>• 15 follow-ups created</li>
-        </ul>
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_30px_70px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">This week Flowiee saved you</p>
+          <span className="text-xs text-slate-400">Last 7 days</span>
+        </div>
+        <p className="mt-3 text-3xl font-semibold text-slate-900 dark:text-white md:text-4xl">2h 18m</p>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {weeklyHighlights.map((highlight) => (
+            <div
+              key={highlight.label}
+              className="rounded-[22px] border border-white/70 bg-white/80 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-slate-800/70 dark:bg-slate-900/60"
+            >
+              <p className="text-2xl font-semibold text-slate-900 dark:text-white">{highlight.value}</p>
+              <p className="mt-1 text-sm font-medium text-slate-600 dark:text-slate-300">{highlight.label}</p>
+              <p className="mt-2 text-xs text-slate-400">{highlight.subtext}</p>
+            </div>
+          ))}
+        </div>
         <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">
           * Based on estimated automations and time saved.
         </p>
       </section>
     ),
     'overview.quickActions': (
-      <section className="h-full rounded-[32px] border border-white/70 bg-white/90 p-6 shadow-[0_35px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
+      <section className="h-full rounded-[32px] border border-white/70 bg-white/85 p-6 shadow-[0_35px_80px_rgba(15,23,42,0.12)] dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Quick actions</p>
             <p className="text-xl font-semibold text-slate-900 dark:text-white">Keep Flowiee tuned</p>
           </div>
-          <span className="text-xs text-slate-400 dark:text-slate-500">4 suggestions</span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">{quickActions.length} suggestions</span>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           {quickActions.map((action) => (

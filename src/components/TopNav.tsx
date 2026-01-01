@@ -62,13 +62,13 @@ export const TopNav: FC<TopNavProps> = ({
   };
 
   return (
-    <header className="w-full rounded-[32px] border border-white/60 bg-white/80 p-4 shadow-[0_25px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40">
+    <header className="w-full rounded-[32px] border border-white/70 bg-white/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img
             src={flowEmailLogo}
             alt="Flowiee logo"
-            className="h-12 w-auto rounded-2xl border border-white/70 bg-gradient-to-br from-slate-900 to-indigo-900 p-2 shadow-[0_10px_30px_rgba(79,70,229,0.35)]"
+            className="h-12 w-auto rounded-2xl border border-white/70 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 p-2 shadow-[0_12px_28px_rgba(79,70,229,0.35)]"
             loading="lazy"
           />
           <div className="flex flex-col leading-tight">
@@ -76,14 +76,14 @@ export const TopNav: FC<TopNavProps> = ({
             <span className="text-xs text-slate-500 dark:text-slate-400">Automation assistant</span>
           </div>
         </div>
-        <nav className="hidden items-center gap-1 rounded-full bg-slate-50/80 p-1 shadow-inner dark:bg-slate-900/60 md:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-white/70 bg-white/80 p-1 shadow-inner dark:border-slate-800/60 dark:bg-slate-900/60 md:flex">
           {navItems.map((item) => (
             <button
               key={item.value}
               onClick={() => handleSelect(item.value)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 currentView === item.value
-                  ? 'bg-white text-slate-900 shadow dark:bg-slate-800 dark:text-white dark:shadow-black/40'
+                  ? 'bg-white text-slate-900 shadow-sm shadow-slate-200/70 dark:bg-slate-800 dark:text-white dark:shadow-black/40'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
               }`}
             >
@@ -95,13 +95,20 @@ export const TopNav: FC<TopNavProps> = ({
           {showFeatureToggles ? (
             <button
               onClick={onToggleFeaturePanel}
-              className={`inline-flex items-center justify-center rounded-full border border-white/70 px-4 py-2 text-sm font-semibold shadow-sm dark:border-slate-700/70 ${
-                featurePanelOpen
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                  : 'bg-white/70 text-slate-700 dark:bg-slate-800/70 dark:text-slate-100'
-              }`}
+              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100"
             >
-              Feature toggles
+              <span>Feature toggles</span>
+              <span
+                className={`flex h-5 w-9 items-center rounded-full p-0.5 transition ${
+                  featurePanelOpen ? 'bg-sky-500' : 'bg-slate-200 dark:bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`h-4 w-4 rounded-full bg-white shadow transition ${
+                    featurePanelOpen ? 'translate-x-4' : ''
+                  }`}
+                />
+              </span>
             </button>
           ) : null}
           {onLogout ? (
@@ -112,6 +119,12 @@ export const TopNav: FC<TopNavProps> = ({
               Log out
             </button>
           ) : null}
+          <button
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-base text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-200"
+            aria-label="Notifications"
+          >
+            🔔
+          </button>
           <button
             onClick={onToggleDarkMode}
             aria-pressed={isDarkMode}
@@ -127,7 +140,7 @@ export const TopNav: FC<TopNavProps> = ({
           <div className="relative" ref={desktopUserMenuRef}>
             <button
               onClick={() => setUserMenuOpen((prev) => !prev)}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-slate-900 text-sm font-semibold text-white shadow-lg shadow-slate-900/20"
               aria-haspopup="menu"
               aria-expanded={userMenuOpen}
               aria-label="Open user menu"
