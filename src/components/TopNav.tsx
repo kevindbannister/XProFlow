@@ -62,7 +62,7 @@ export const TopNav: FC<TopNavProps> = ({
   };
 
   return (
-    <header className="w-full rounded-[32px] border border-white/70 bg-white/70 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40">
+    <header className="w-full rounded-[32px] border border-white/80 bg-white/80 p-4 shadow-[0_24px_60px_rgba(30,64,175,0.15)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-black/40">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <img
@@ -76,14 +76,14 @@ export const TopNav: FC<TopNavProps> = ({
             <span className="text-xs text-slate-500 dark:text-slate-400">Automation assistant</span>
           </div>
         </div>
-        <nav className="hidden items-center gap-1 rounded-full border border-white/70 bg-white/80 p-1 shadow-inner dark:border-slate-800/60 dark:bg-slate-900/60 md:flex">
+        <nav className="hidden items-center gap-1 rounded-full border border-white/80 bg-white/90 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-slate-800/60 dark:bg-slate-900/60 md:flex">
           {navItems.map((item) => (
             <button
               key={item.value}
               onClick={() => handleSelect(item.value)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-full px-5 py-2 text-sm font-medium transition ${
                 currentView === item.value
-                  ? 'bg-white text-slate-900 shadow-sm shadow-slate-200/70 dark:bg-slate-800 dark:text-white dark:shadow-black/40'
+                  ? 'bg-white text-slate-900 shadow-[0_6px_18px_rgba(15,23,42,0.12)] dark:bg-slate-800 dark:text-white'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100'
               }`}
             >
@@ -93,23 +93,22 @@ export const TopNav: FC<TopNavProps> = ({
         </nav>
         <div className="hidden items-center gap-3 md:flex">
           {showFeatureToggles ? (
-            <button
-              onClick={onToggleFeaturePanel}
-              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/70 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100"
-            >
+            <div className="flex items-center gap-2 rounded-full border border-white/80 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-100">
               <span>Feature toggles</span>
-              <span
+              <button
+                onClick={onToggleFeaturePanel}
                 className={`flex h-5 w-9 items-center rounded-full p-0.5 transition ${
                   featurePanelOpen ? 'bg-sky-500' : 'bg-slate-200 dark:bg-slate-700'
                 }`}
+                aria-pressed={featurePanelOpen}
               >
                 <span
                   className={`h-4 w-4 rounded-full bg-white shadow transition ${
                     featurePanelOpen ? 'translate-x-4' : ''
                   }`}
                 />
-              </span>
-            </button>
+              </button>
+            </div>
           ) : null}
           {onLogout ? (
             <button
@@ -119,20 +118,22 @@ export const TopNav: FC<TopNavProps> = ({
               Log out
             </button>
           ) : null}
-          <button
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 bg-white/80 text-base text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70 dark:text-slate-200"
-            aria-label="Notifications"
-          >
-            🔔
-          </button>
-          <button
-            onClick={onToggleDarkMode}
-            aria-pressed={isDarkMode}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/70 text-lg text-slate-700 shadow-sm dark:border-slate-700/70 dark:text-slate-200"
-            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-          >
-            {isDarkMode ? '🌙' : '☀️'}
-          </button>
+          <div className="flex items-center gap-2 rounded-full border border-white/80 bg-white/80 px-2 py-1 shadow-sm dark:border-slate-700/70 dark:bg-slate-800/70">
+            <button
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/90 text-base text-slate-700 shadow-sm dark:border-slate-700/70 dark:bg-slate-900/70 dark:text-slate-200"
+              aria-label="Notifications"
+            >
+              🔔
+            </button>
+            <button
+              onClick={onToggleDarkMode}
+              aria-pressed={isDarkMode}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/70 text-lg text-slate-700 shadow-sm dark:border-slate-700/70 dark:text-slate-200"
+              aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDarkMode ? '🌙' : '☀️'}
+            </button>
+          </div>
           <div className="text-right">
             <p className="text-sm font-semibold text-slate-900 dark:text-white">{username ?? 'Kevin Brooks'}</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">kevin@firm.co.uk</p>
@@ -140,7 +141,7 @@ export const TopNav: FC<TopNavProps> = ({
           <div className="relative" ref={desktopUserMenuRef}>
             <button
               onClick={() => setUserMenuOpen((prev) => !prev)}
-              className="flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-slate-900 text-sm font-semibold text-white shadow-lg shadow-slate-900/20"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/70 bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-800 text-sm font-semibold text-white shadow-lg shadow-indigo-900/30"
               aria-haspopup="menu"
               aria-expanded={userMenuOpen}
               aria-label="Open user menu"
