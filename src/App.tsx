@@ -292,19 +292,7 @@ const App = () => {
           onToggleDarkMode={() => setIsDarkMode((prev) => !prev)}
           onLogout={handleLogout}
           username={session.username}
-          showFeatureToggles={isMaster}
-          featurePanelOpen={featurePanelOpen}
-          onToggleFeaturePanel={() => setFeaturePanelOpen((prev) => !prev)}
         />
-        {isMaster ? (
-          <FeatureTogglePanel
-            isOpen={featurePanelOpen}
-            groups={featureToggleGroups}
-            toggles={featureVisibility}
-            onToggle={handleToggleFeature}
-            onClose={() => setFeaturePanelOpen(false)}
-          />
-        ) : null}
         {currentView === 'settings' ? (
           <div className="rounded-[40px] border border-white/60 bg-white/80 p-4 shadow-[0_35px_80px_rgba(15,23,42,0.15)] backdrop-blur-2xl dark:border-slate-800/60 dark:bg-slate-900/60 dark:shadow-black/40 sm:p-6">
             <div className="flex flex-col gap-6 lg:flex-row">
@@ -335,6 +323,48 @@ const App = () => {
             </div>
           </main>
         )}
+        {isMaster ? (
+          <div className="flex flex-col gap-4">
+            <FeatureTogglePanel
+              isOpen={featurePanelOpen}
+              groups={featureToggleGroups}
+              toggles={featureVisibility}
+              onToggle={handleToggleFeature}
+              onClose={() => setFeaturePanelOpen(false)}
+            />
+            <div className="flex flex-wrap items-center justify-between gap-4 rounded-[32px] border border-white/70 bg-white/80 px-5 py-4 shadow-[0_20px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl dark:border-slate-800/70 dark:bg-slate-900/70">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Master controls</p>
+                <p className="text-base font-semibold text-slate-900 dark:text-white">Feature toggles</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Manage which experiences are visible across the app.
+                </p>
+              </div>
+              <button
+                onClick={() => setFeaturePanelOpen((prev) => !prev)}
+                className={`flex items-center gap-3 rounded-full border border-white/80 px-4 py-2 text-sm font-semibold shadow-sm transition dark:border-slate-700/70 ${
+                  featurePanelOpen
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'bg-white/80 text-slate-700 dark:bg-slate-800/70 dark:text-slate-100'
+                }`}
+                aria-pressed={featurePanelOpen}
+              >
+                <span>{featurePanelOpen ? 'Hide toggles' : 'Show toggles'}</span>
+                <span
+                  className={`flex h-5 w-9 items-center rounded-full p-0.5 transition ${
+                    featurePanelOpen ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'
+                  }`}
+                >
+                  <span
+                    className={`h-4 w-4 rounded-full bg-white shadow transition ${
+                      featurePanelOpen ? 'translate-x-4' : ''
+                    }`}
+                  />
+                </span>
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
