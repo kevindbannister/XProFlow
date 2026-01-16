@@ -44,14 +44,12 @@ Then open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ## Cloudflare Pages deployment
 
-This is a static Vite frontend, so Cloudflare Pages should build and deploy it directly without using Wrangler.
+This is a static Vite frontend, so Cloudflare Pages should build and deploy it directly.
 
 - **Build command:** `npm run build`
 - **Build output directory:** `dist`
 - **Deploy command:** _none_ (Pages deploys automatically after the build)
 - **Node version:** 18 LTS (see `.nvmrc`, `.node-version`, and `package.json` engines)
-
-If your Pages project still tries to run `npx wrangler deploy`, remove that from the Pages build settings or any external CI job. Wrangler is only needed for Workers or Pages Functions, which this repo does not use.
 
 ## Notes
 
