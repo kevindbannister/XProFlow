@@ -1,87 +1,39 @@
-import { useState } from 'react';
-import { Bell, HelpCircle, Menu, Search, ChevronDown, Sun, Moon } from 'lucide-react';
-import { classNames } from '../../lib/utils';
-import { Avatar } from '../ui/Avatar';
-import { Button } from '../ui/Button';
-import { DropdownMenu } from '../ui/DropdownMenu';
-
-const userMenuItems = [
-  { label: 'Profile', href: '#' },
-  { label: 'Billing', href: '#' },
-  { label: 'Logout', href: '#' }
-];
+import { Bell, Moon, Search, Sun } from 'lucide-react';
 
 type TopbarProps = {
-  onMenuClick: () => void;
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
 };
 
-const Topbar = ({ onMenuClick, theme, onToggleTheme }: TopbarProps) => {
-  const [open, setOpen] = useState(false);
-
+const Topbar = ({ theme, onToggleTheme }: TopbarProps) => {
   return (
-    <header className="topbar-surface flex flex-wrap items-center justify-between gap-4 rounded-[28px] border px-6 py-4 backdrop-blur-xl">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={onMenuClick}
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-        <div>
-          <p className="accent-text text-xs font-semibold uppercase tracking-[0.2em]">XProFlow</p>
-          <h1 className="text-xl font-semibold theme-text-primary">Welcome back, Susan</h1>
-        </div>
-      </div>
-
+    <header className="flex items-center justify-end border-b border-gray-200 bg-white px-8 py-4">
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700"
+          aria-label="Search"
+        >
+          <Search className="h-4 w-4" />
+        </button>
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700"
+          aria-label="Notifications"
+        >
+          <Bell className="h-4 w-4" />
+        </button>
+        <button
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700"
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={onToggleTheme}
         >
-          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-        <Button variant="ghost" size="icon" aria-label="Search">
-          <Search className="h-5 w-5" />
-        </Button>
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
-        </Button>
-        <Button variant="ghost" size="icon" aria-label="Help">
-          <HelpCircle className="h-5 w-5" />
-        </Button>
-        <DropdownMenu
-          isOpen={open}
-          onOpenChange={setOpen}
-          trigger={
-            <button
-              className={classNames(
-                'flex items-center gap-2 rounded-full border border-blue-200/70 bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(59,130,246,0.35)]',
-                open && 'ring-2 ring-blue-200'
-              )}
-            >
-              <Avatar fallback="SS" />
-              Susan Smith
-              <ChevronDown className="h-4 w-4" />
-            </button>
-          }
-        >
-          {userMenuItems.map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className="menu-link block rounded-lg px-3 py-2 text-sm theme-text-secondary"
-            >
-              {item.label}
-            </a>
-          ))}
-        </DropdownMenu>
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+        <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 text-xs font-semibold text-gray-700">
+            SS
+          </span>
+          <span className="text-sm font-medium text-gray-700">Susan Smith</span>
+        </div>
       </div>
     </header>
   );
