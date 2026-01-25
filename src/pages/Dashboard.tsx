@@ -2,6 +2,7 @@ import { Clock, Mail, PoundSterling, X } from 'lucide-react';
 import { useState } from 'react';
 import StatChip from '../components/dashboard/StatChip';
 import Card from '../components/ui/Card';
+import { xProFlowBlue, xProFlowBlueChart } from '../lib/designTokens';
 
 type KpiCardProps = {
   value: string;
@@ -12,7 +13,9 @@ type KpiCardProps = {
 const KpiCard = ({ value, label, icon }: KpiCardProps) => {
   return (
     <Card className="flex items-center gap-4 p-4">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+      <div
+        className={`${xProFlowBlue.iconBadge} ${xProFlowBlue.iconBadgeBorder} flex h-10 w-10 items-center justify-center rounded-xl`}
+      >
         {icon}
       </div>
       <div>
@@ -32,7 +35,10 @@ type MetricCardProps = {
 const MetricCard = ({ title, value, description }: MetricCardProps) => {
   return (
     <Card className="space-y-2 p-4">
-      <p className="text-sm font-semibold text-slate-900">{title}</p>
+      <div className="flex items-center gap-2">
+        <span className={`h-2 w-2 rounded-full ${xProFlowBlue.chartDot}`} />
+        <p className="text-sm font-semibold text-slate-900">{title}</p>
+      </div>
       <div>
         <p className="text-2xl font-semibold text-slate-900">{value}</p>
         <p className="text-xs text-slate-500">{description}</p>
@@ -67,9 +73,9 @@ const Dashboard = () => {
   ];
 
   const emailMakeup = [
-    { label: 'Awaiting Response', value: 45, color: '#64748B' },
-    { label: 'FYI', value: 33, color: '#94A3B8' },
-    { label: 'Marketing', value: 17, color: '#CBD5E1' }
+    { label: 'Awaiting Response', value: 45, color: xProFlowBlueChart.primary },
+    { label: 'FYI', value: 33, color: xProFlowBlueChart.secondary },
+    { label: 'Marketing', value: 17, color: xProFlowBlueChart.tertiary }
   ];
 
   const donutRadius = 56;
@@ -100,7 +106,9 @@ const Dashboard = () => {
                 preferences so every response sounds authentically yours.
               </p>
               <div>
-                <button className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+                <button
+                  className={`rounded-full bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 ${xProFlowBlue.focusRing}`}
+                >
                   Start now
                 </button>
               </div>

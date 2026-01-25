@@ -34,8 +34,26 @@
 - Card background: **white** (dark: **slate-900**).
 - Highlight/hero background: **amber-50** (dark: **amber-950/20**).
 
+## XProFlow Blue Accent System
+- Primary accent color: **XProFlow Blue** (`sky` scale).
+- Accent color **MUST** be used for:
+  - Primary buttons
+  - Active nav state
+  - Stat icon badges
+- Accent color **MUST NOT** be used for:
+  - Full card fills
+  - Heavy gradients
+  - Page backgrounds
+
+### Tailwind Class Recipes
+- Primary button: `bg-sky-600 text-white hover:bg-sky-700 focus-visible:ring-2 focus-visible:ring-sky-200`
+- Icon badge: `bg-sky-50 text-sky-600 border border-sky-200 rounded-xl h-10 w-10`
+- Active sidebar item: `bg-sky-50 text-sky-700 border border-sky-200 border-l-2 border-sky-500`
+- Chart legend dot: `h-2.5 w-2.5 rounded-full bg-sky-500`
+- Focus ring: `focus-visible:ring-2 focus-visible:ring-sky-200`
+
 ## Button Styles
-- Primary: solid, high-contrast (`bg-slate-900 text-white`), **rounded-lg**, `px-4 py-2`.
+- Primary: solid accent (`bg-sky-600 text-white hover:bg-sky-700`), **rounded-lg**, `px-4 py-2`.
 - Secondary: outline (`border border-slate-200 text-slate-900`), **rounded-lg**.
 - Ghost: transparent with subtle hover (`hover:bg-slate-100`).
 

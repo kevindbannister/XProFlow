@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Home, Mail, Settings } from 'lucide-react';
+import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
 
 const navigation = [
@@ -51,20 +52,30 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             <NavLink
               key={item.label}
               to={item.to}
-              className={({ isActive }) =>
+              className={({ isActive }: { isActive: boolean }) =>
                 classNames(
-                  'group relative flex items-center gap-3 rounded-lg py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900',
+                  'group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900',
                   collapsed ? 'justify-center px-2' : 'px-3',
-                  isActive ? 'border border-slate-200 bg-white text-slate-900 shadow-sm' : ''
+                  isActive
+                    ? classNames(
+                        xProFlowBlue.activeNav,
+                        xProFlowBlue.activeNavIndicator,
+                        'shadow-sm'
+                      )
+                    : ''
                 )
               }
             >
-              <Icon className="h-4 w-4" />
-              {!collapsed && <span>{item.label}</span>}
-              {collapsed && (
-                <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100">
-                  {item.label}
-                </span>
+              {({ isActive }: { isActive: boolean }) => (
+                <>
+                  <Icon className={classNames('h-4 w-4', isActive ? xProFlowBlue.text : '')} />
+                  {!collapsed && <span>{item.label}</span>}
+                  {collapsed && (
+                    <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100">
+                      {item.label}
+                    </span>
+                  )}
+                </>
               )}
             </NavLink>
           );
@@ -78,7 +89,13 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             <p className="mt-2 text-xs text-slate-500">
               Unlock advanced insights, custom automations, and priority support.
             </p>
-            <button className="mt-3 w-full rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white">
+            <button
+              className={classNames(
+                'mt-3 w-full rounded-full px-3 py-2 text-xs font-semibold text-white transition hover:bg-sky-700',
+                xProFlowBlue.focusRing,
+                'bg-sky-600'
+              )}
+            >
               Upgrade to Pro
             </button>
           </div>
