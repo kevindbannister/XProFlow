@@ -17,11 +17,11 @@ const Settings = () => {
             <SectionTitle title="Profile settings" subtitle="Keep your account details up to date." />
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">Name</label>
+                <label className="text-xs font-semibold uppercase theme-text-muted">Name</label>
                 <Input defaultValue={settingsData.profile.name} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">Email</label>
+                <label className="text-xs font-semibold uppercase theme-text-muted">Email</label>
                 <Input defaultValue={settingsData.profile.email} />
               </div>
             </div>
@@ -31,14 +31,14 @@ const Settings = () => {
             <SectionTitle title="Preferences" subtitle="Control how XProFlow writes and signs." />
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">Tone</label>
+                <label className="text-xs font-semibold uppercase theme-text-muted">Tone</label>
                 <Input defaultValue={settingsData.preferences.tone} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase text-slate-500">Signature</label>
+                <label className="text-xs font-semibold uppercase theme-text-muted">Signature</label>
                 <textarea
                   defaultValue={settingsData.preferences.signature}
-                  className="min-h-[120px] w-full rounded-2xl border border-blue-100 bg-white/80 px-4 py-3 text-sm text-slate-700 shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  className="input-surface min-h-[120px] w-full rounded-2xl border px-4 py-3 text-sm shadow-sm outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             </div>
@@ -52,14 +52,14 @@ const Settings = () => {
               {settingsData.notifications.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-blue-100/70 bg-white/70 px-4 py-3"
+                  className="panel-surface flex items-center justify-between rounded-2xl border px-4 py-3"
                 >
-                  <span className="text-sm text-slate-600">{item.label}</span>
+                  <span className="text-sm theme-text-secondary">{item.label}</span>
                   <button
                     className={
                       item.enabled
                         ? 'relative h-6 w-11 rounded-full bg-blue-500'
-                        : 'relative h-6 w-11 rounded-full bg-slate-200'
+                        : 'toggle-off relative h-6 w-11 rounded-full'
                     }
                   >
                     <span

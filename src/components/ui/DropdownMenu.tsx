@@ -41,7 +41,7 @@ export const DropdownMenu = ({
       </div>
       <div
         className={classNames(
-          'absolute top-full z-30 mt-2 min-w-[180px] rounded-2xl border border-white/70 bg-white/90 p-2 shadow-[0_20px_40px_rgba(60,100,170,0.15)] backdrop-blur-xl transition',
+          'dropdown-surface absolute top-full z-30 mt-2 min-w-[180px] rounded-2xl border p-2 backdrop-blur-xl transition',
           align === 'right' ? 'right-0' : 'left-0',
           isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
         )}

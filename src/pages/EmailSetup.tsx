@@ -28,8 +28,8 @@ const EmailSetup = () => {
       <GlassCard padding="lg" className="space-y-5">
         <SectionTitle title="Connected Accounts" subtitle="Active mailboxes in your workspace." />
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="text-xs uppercase tracking-wide text-slate-400">
+          <table className="w-full text-left text-sm theme-text-secondary">
+            <thead className="text-xs uppercase tracking-wide theme-text-subtle">
               <tr>
                 <th className="pb-3">Provider</th>
                 <th className="pb-3">Email</th>
@@ -40,7 +40,7 @@ const EmailSetup = () => {
             <tbody className="divide-y divide-blue-100/60">
               {connectedAccounts.map((account) => (
                 <tr key={account.id} className="text-sm">
-                  <td className="py-3 font-medium text-slate-700">{account.provider}</td>
+                  <td className="py-3 font-medium theme-text-primary">{account.provider}</td>
                   <td className="py-3">{account.email}</td>
                   <td className="py-3">
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
@@ -48,7 +48,7 @@ const EmailSetup = () => {
                       {account.status}
                     </span>
                   </td>
-                  <td className="py-3 text-slate-500">{account.lastSync}</td>
+                  <td className="py-3 theme-text-muted">{account.lastSync}</td>
                 </tr>
               ))}
             </tbody>
@@ -79,11 +79,11 @@ const EmailSetup = () => {
           ].map((setting) => (
             <div
               key={setting.title}
-              className="flex items-center justify-between rounded-2xl border border-blue-100/70 bg-white/70 px-4 py-4"
+              className="panel-surface flex items-center justify-between rounded-2xl border px-4 py-4"
             >
               <div>
-                <p className="text-sm font-semibold text-slate-700">{setting.title}</p>
-                <p className="mt-1 text-xs text-slate-500">{setting.description}</p>
+                <p className="text-sm font-semibold theme-text-primary">{setting.title}</p>
+                <p className="mt-1 text-xs theme-text-muted">{setting.description}</p>
               </div>
               <button className="relative h-6 w-11 rounded-full bg-blue-500 shadow-inner">
                 <span className="absolute right-1 top-1 h-4 w-4 rounded-full bg-white" />

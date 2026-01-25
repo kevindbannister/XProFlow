@@ -46,12 +46,12 @@ const DonutChartCard = ({ title, subtitle, data }: DonutChartCardProps) => {
                   className="h-3 w-3 rounded-full"
                   style={{ backgroundColor: entry.color }}
                 />
-                <span className="text-slate-600">{entry.name}</span>
+                <span className="theme-text-secondary">{entry.name}</span>
               </div>
-              <span className="font-semibold text-slate-700">{entry.value}%</span>
+              <span className="font-semibold theme-text-primary">{entry.value}%</span>
             </div>
           ))}
-          <div className="mt-2 rounded-2xl border border-blue-100/60 bg-blue-50/60 px-4 py-3 text-xs text-slate-500">
+          <div className="mt-2 rounded-2xl border border-blue-100/60 bg-blue-50/60 px-4 py-3 text-xs theme-text-muted">
             Awaiting Response, FYI, and Marketing are updated weekly.
           </div>
         </div>
@@ -60,7 +60,7 @@ const DonutChartCard = ({ title, subtitle, data }: DonutChartCardProps) => {
         {data.map((entry) => (
           <span
             key={entry.name}
-            className="inline-flex items-center gap-2 rounded-full border border-blue-100/70 bg-white/70 px-3 py-1 text-xs text-slate-600"
+            className="chip-surface inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs theme-text-secondary"
           >
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
             {entry.name}

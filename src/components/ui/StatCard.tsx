@@ -14,8 +14,8 @@ export const StatCard = ({ icon, label, value }: StatCardProps) => {
         {icon}
       </div>
       <div>
-        <p className="text-xl font-semibold text-slate-900">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className="text-xl font-semibold theme-text-primary">{value}</p>
+        <p className="text-xs theme-text-muted">{label}</p>
       </div>
     </GlassCard>
   );

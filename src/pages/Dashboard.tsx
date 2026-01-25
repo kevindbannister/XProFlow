@@ -18,8 +18,8 @@ const Dashboard = () => {
           <WritesLikeYouCard />
           <SentEmailsCard />
           <GlassCard padding="md" className="space-y-2">
-            <p className="text-sm font-semibold text-slate-800">Coming soon</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-semibold theme-text-primary">Coming soon</p>
+            <p className="text-xs theme-text-muted">
               Upcoming tasks, top clients, and advanced routing insights will appear here.
             </p>
           </GlassCard>
