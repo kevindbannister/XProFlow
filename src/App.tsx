@@ -1,17 +1,18 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppLayout from './components/layout/AppLayout';
+import AppShell from './components/layout/AppShell';
 import Dashboard from './pages/Dashboard';
-import Inbox from './pages/Inbox';
+import EmailSetup from './pages/EmailSetup';
 import Settings from './pages/Settings';
 
 const App = () => {
   return (
     <Routes>
-      <Route element={<AppLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="inbox" element={<Inbox />} />
+      <Route element={<AppShell />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="email-setup" element={<EmailSetup />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>
   );
