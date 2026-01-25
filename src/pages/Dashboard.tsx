@@ -1,46 +1,55 @@
-import ActivityFeed from '../components/dashboard/ActivityFeed';
-import StatChip from '../components/dashboard/StatChip';
-import Card from '../components/ui/Card';
+import PerformanceSummary from '../components/dashboard/PerformanceSummary';
+import SentEmailsCard from '../components/dashboard/SentEmailsCard';
+import WritesLikeYouCard from '../components/dashboard/WritesLikeYouCard';
+import { GlassCard } from '../components/ui/GlassCard';
+import { SectionTitle } from '../components/ui/SectionTitle';
+import { emailMakeup } from '../lib/mockData';
 
 const Dashboard = () => {
-  const activityItems = [
-    { time: '01:11 PM', text: 'You are working in the XProFlow frontend.' },
-    { time: '01:24 PM', text: 'Follow /codex/WORKING_RULES.md.' },
-    { time: '01:32 PM', text: 'Implement ONLY the task below.' },
-    { time: '01:45 PM', text: 'Keep edits minimal.' },
-    { time: '02:02 PM', text: 'Output only changed files.' }
-  ];
+  const donutBackground = `conic-gradient(${emailMakeup[0].color} 0deg 162deg, ${
+    emailMakeup[1].color
+  } 162deg 280.8deg, ${emailMakeup[2].color} 280.8deg 342deg, #E2E8F0 342deg 360deg)`;
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-slate-900">Welcome back, Kev</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatChip label="1 week" />
-          <StatChip label="167 words" />
-          <StatChip label="89 WPM" />
-        </div>
+    <section className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-semibold theme-text-primary">Dashboard</h1>
+        <p className="text-sm theme-text-muted">Your XProFlow performance overview</p>
       </div>
 
-      <Card className="border-amber-200 bg-[#fff7db]">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-lg font-semibold text-slate-900">Make XProFlow sound like you</h2>
-          <p className="text-sm text-slate-600">
-            Onboard your writing samples to teach XProFlow your tone, phrasing, and style
-            preferences so every response sounds authentically yours.
-          </p>
-          <div>
-            <button className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
-              Start now
-            </button>
+      <PerformanceSummary />
+
+      <GlassCard padding="lg" className="space-y-6">
+        <SectionTitle
+          title="Your Email Makeup"
+          subtitle="Breakdown of emails received in the last 30 days"
+        />
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex items-center justify-center">
+              <div className="relative h-44 w-44">
+                <div className="absolute inset-0 rounded-full" style={{ background: donutBackground }} />
+                <div className="absolute inset-6 rounded-full bg-white shadow-inner" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              {emailMakeup.map((entry) => (
+                <div key={entry.name} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                    <span className="theme-text-secondary">{entry.name}</span>
+                  </div>
+                  <span className="font-semibold theme-text-primary">{entry.value}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="grid gap-4">
+            <WritesLikeYouCard />
+            <SentEmailsCard />
           </div>
         </div>
-      </Card>
-
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-slate-900">Today</h3>
-        <ActivityFeed items={activityItems} />
-      </div>
+      </GlassCard>
     </section>
   );
 };
