@@ -19,7 +19,7 @@ type SidebarProps = {
 };
 
 const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
-  const logoSrc = theme === 'dark' ? xProFlowLogoLight : xProFlowLogoDark;
+  const logoSrc = theme === 'dark' ? xProFlowLogoDark : xProFlowLogoLight;
   return (
     <aside
       className={classNames(
