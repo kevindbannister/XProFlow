@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Home, Mail, Settings } from 'lucide-react';
 import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
+import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
 
 const navigation = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
@@ -14,9 +15,11 @@ const secondaryLinks = ['Invite your team', 'Get a free month', 'Settings', 'Hel
 type SidebarProps = {
   collapsed: boolean;
   onToggle: () => void;
+  theme: 'dark' | 'light';
 };
 
-const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
+const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
+  const logoSrc = theme === 'dark' ? xProFlowLogoLight : xProFlowLogoDark;
   return (
     <aside
       className={classNames(
@@ -26,9 +29,14 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div className={classNames('space-y-2', collapsed ? 'text-center' : '')}>
-          <p className="text-lg font-semibold text-slate-900">
-            {collapsed ? 'XP' : 'XProFlow'}
-          </p>
+          <img
+            src={logoSrc}
+            alt="XProFlow"
+            className={classNames(
+              'object-contain',
+              collapsed ? 'h-8 w-8' : 'h-10 w-full max-w-[200px]'
+            )}
+          />
           {!collapsed && (
             <span className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-xs font-medium text-slate-600">
               Basic
