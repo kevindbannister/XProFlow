@@ -7,7 +7,7 @@ import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
 const navigation = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
   { label: 'Email Setup', to: '/email-setup', icon: Mail },
-  { label: 'Drafts', to: '/drafts', icon: Mail },
+  { label: 'Drafts', to: '/settings/drafts', icon: Mail },
   { label: 'Settings', to: '/settings', icon: Settings }
 ];
 
