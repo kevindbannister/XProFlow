@@ -1,13 +1,27 @@
 import { NavLink } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Home, Mail, Settings } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  GitBranch,
+  Home,
+  ListChecks,
+  Plug,
+  Settings,
+  Tag
+} from 'lucide-react';
 import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
 import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
 
 const navigation = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
-  { label: 'Email Setup', to: '/email-setup', icon: Mail },
-  { label: 'Drafts', to: '/settings/drafts', icon: Mail },
+  { label: 'Onboarding', to: '/onboarding', icon: ListChecks },
+  { label: 'Labels', to: '/labels', icon: Tag },
+  { label: 'Rules', to: '/rules', icon: Filter },
+  { label: 'Integrations', to: '/integrations', icon: Plug },
+  { label: 'Workflows', to: '/workflows', icon: GitBranch },
+  { label: 'Drafts', to: '/settings/drafts', icon: Settings },
   { label: 'Settings', to: '/settings', icon: Settings }
 ];
 
