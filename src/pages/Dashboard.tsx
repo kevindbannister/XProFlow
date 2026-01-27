@@ -19,8 +19,8 @@ const KpiCard = ({ value, label, icon }: KpiCardProps) => {
         {icon}
       </div>
       <div>
-        <p className="text-lg font-semibold text-slate-900">{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
       </div>
     </Card>
   );
@@ -37,11 +37,11 @@ const MetricCard = ({ title, value, description }: MetricCardProps) => {
     <Card className="space-y-2 p-4">
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${xProFlowBlue.chartDot}`} />
-        <p className="text-sm font-semibold text-slate-900">{title}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
       </div>
       <div>
-        <p className="text-2xl font-semibold text-slate-900">{value}</p>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{value}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
       </div>
     </Card>
   );
@@ -95,13 +95,13 @@ const Dashboard = () => {
       </div>
 
       {showToneCard ? (
-        <Card className="border-amber-200 bg-[#fff7db]">
+        <Card className="border-amber-200 bg-[#fff7db] dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 Make XProFlow sound like you
               </h2>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
                 Onboard your writing samples to teach XProFlow your tone, phrasing, and style
                 preferences so every response sounds authentically yours.
               </p>
@@ -114,7 +114,7 @@ const Dashboard = () => {
               </div>
             </div>
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white/70 hover:text-slate-700"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-white/70 hover:text-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
               aria-label="Dismiss tone setup card"
               onClick={() => {
                 setShowToneCard(false);
@@ -128,7 +128,9 @@ const Dashboard = () => {
       ) : null}
 
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-900">Performance Summary</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Performance Summary
+        </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {kpiStats.map((stat) => (
             <KpiCard key={stat.label} value={stat.value} label={stat.label} icon={stat.icon} />
@@ -138,8 +140,10 @@ const Dashboard = () => {
 
       <Card className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Your Email Makeup</h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            Your Email Makeup
+          </h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Breakdown of emails received in the last 30 days
           </p>
         </div>
@@ -152,8 +156,8 @@ const Dashboard = () => {
                   cy="80"
                   r={donutRadius}
                   fill="none"
-                  stroke="#E2E8F0"
                   strokeWidth={donutStroke}
+                  className="stroke-slate-200 dark:stroke-slate-700"
                 />
                 {emailMakeup.map((slice) => {
                   const sliceLength = (slice.value / donutTotal) * donutCircumference;
@@ -186,9 +190,11 @@ const Dashboard = () => {
                       className="h-2.5 w-2.5 rounded-full"
                       style={{ backgroundColor: slice.color }}
                     />
-                    <span className="text-slate-600">{slice.label}</span>
+                    <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
                   </div>
-                  <span className="font-semibold text-slate-900">{slice.value}%</span>
+                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                    {slice.value}%
+                  </span>
                 </div>
               ))}
             </div>
