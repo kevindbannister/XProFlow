@@ -25,12 +25,20 @@ export const DropdownMenu = ({
       }
     };
 
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onOpenChange(false);
+      }
+    };
+
     if (isOpen) {
       document.addEventListener('click', handleClick);
+      document.addEventListener('keydown', handleKeyDown);
     }
 
     return () => {
       document.removeEventListener('click', handleClick);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onOpenChange]);
 
@@ -40,6 +48,8 @@ export const DropdownMenu = ({
         {trigger}
       </div>
       <div
+        role="menu"
+        aria-hidden={!isOpen}
         className={classNames(
           'dropdown-surface absolute top-full z-30 mt-2 min-w-[180px] rounded-2xl border p-2 backdrop-blur-xl transition',
           align === 'right' ? 'right-0' : 'left-0',

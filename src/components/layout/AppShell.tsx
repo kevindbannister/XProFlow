@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { useUser } from '../../context/UserContext';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 
@@ -14,7 +15,10 @@ const AppShell = () => {
     return localStorage.getItem('sidebarCollapsed') === 'true';
   });
   const location = useLocation();
-  const topbarTitle = location.pathname === '/dashboard' ? 'Welcome back, Kev' : undefined;
+  const { user } = useUser();
+  const firstName = user.name.split(' ')[0];
+  const topbarTitle =
+    location.pathname === '/dashboard' ? `Welcome back, ${firstName}` : undefined;
 
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', String(sidebarCollapsed));
