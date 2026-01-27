@@ -1,4 +1,4 @@
-import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from 'react';
 import { cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { classNames } from '../../lib/utils';
 
@@ -20,11 +20,11 @@ export const DropdownMenu = ({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerElement = isValidElement(trigger)
     ? cloneElement(trigger, {
-        onClick: (event: MouseEvent<HTMLElement>) => {
+        onClick: (event: ReactMouseEvent<HTMLElement>) => {
           trigger.props.onClick?.(event);
           onOpenChange(!isOpen);
         },
-        onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+        onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => {
           trigger.props.onKeyDown?.(event);
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
@@ -43,13 +43,13 @@ export const DropdownMenu = ({
       );
 
   useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
+    const handleClick = (event: globalThis.MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         onOpenChange(false);
       }
     };
 
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         onOpenChange(false);
       }
