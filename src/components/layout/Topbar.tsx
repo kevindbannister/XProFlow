@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, Moon, Search, Sun } from 'lucide-react';
+import { Bell, Moon, Sun } from 'lucide-react';
 import { classNames } from '../../lib/utils';
 
 type TopbarProps = {
@@ -11,12 +11,6 @@ type TopbarProps = {
 const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const kpiHighlights = [
-    { label: 'Emails processed', value: '1,284' },
-    { label: 'Time saved', value: '14h 32m' },
-    { label: 'Cost saved', value: '£1,284' }
-  ];
-
   useEffect(() => {
     if (isSearchOpen) {
       searchInputRef.current?.focus();
