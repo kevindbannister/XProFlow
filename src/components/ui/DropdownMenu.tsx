@@ -1,4 +1,5 @@
-import { ReactNode, useEffect, useRef } from 'react';
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
+import { cloneElement, isValidElement, useEffect, useRef } from 'react';
 import { classNames } from '../../lib/utils';
 
 type DropdownMenuProps = {
@@ -17,6 +18,29 @@ export const DropdownMenu = ({
   align = 'right'
 }: DropdownMenuProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerElement = isValidElement(trigger)
+    ? cloneElement(trigger, {
+        onClick: (event: MouseEvent<HTMLElement>) => {
+          trigger.props.onClick?.(event);
+          onOpenChange(!isOpen);
+        },
+        onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+          trigger.props.onKeyDown?.(event);
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onOpenChange(!isOpen);
+          }
+        }
+      })
+    : (
+        <button
+          type="button"
+          onClick={() => onOpenChange(!isOpen)}
+          className="inline-flex cursor-pointer"
+        >
+          {trigger}
+        </button>
+      );
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -44,9 +68,7 @@ export const DropdownMenu = ({
 
   return (
     <div ref={containerRef} className="relative">
-      <div onClick={() => onOpenChange(!isOpen)} className="inline-flex cursor-pointer">
-        {trigger}
-      </div>
+      {triggerElement}
       <div
         role="menu"
         aria-hidden={!isOpen}
