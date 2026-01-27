@@ -1,6 +1,5 @@
 import { Clock, Mail, PoundSterling, X } from 'lucide-react';
 import { useState } from 'react';
-import StatChip from '../components/dashboard/StatChip';
 import Card from '../components/ui/Card';
 import { xProFlowBlue, xProFlowBlueChart } from '../lib/designTokens';
 
@@ -86,14 +85,6 @@ const Dashboard = () => {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatChip label="1 week" />
-          <StatChip label="167 words" />
-          <StatChip label="89 WPM" />
-        </div>
-      </div>
-
       {showToneCard ? (
         <Card className="border-amber-200 bg-[#fff7db] dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start justify-between gap-4">

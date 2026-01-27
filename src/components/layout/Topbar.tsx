@@ -11,6 +11,11 @@ type TopbarProps = {
 const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const kpiHighlights = [
+    { label: 'Emails processed', value: '1,284' },
+    { label: 'Time saved', value: '14h 32m' },
+    { label: 'Cost saved', value: '£1,284' }
+  ];
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -40,7 +45,7 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
             aria-label={isSearchOpen ? 'Close search' : 'Open search'}
             onClick={() => setIsSearchOpen((prev) => !prev)}
           >
-            <Search className="h-4 w-4" />
+            <Bell className="h-4 w-4" />
           </button>
         </div>
         <button
