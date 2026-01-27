@@ -71,46 +71,46 @@
 
 .theme-dark {
   color-scheme: dark;
-  --app-bg: #0b1120;
-  --app-shell-gradient: linear-gradient(135deg, #0b1120 0%, #0f172a 45%, #111827 100%);
-  --app-shell-radial-1: rgba(30, 41, 59, 0.8);
-  --app-shell-radial-2: rgba(37, 99, 235, 0.18);
-  --app-shell-radial-3: rgba(56, 189, 248, 0.12);
-  --app-shell-dot: rgba(148, 163, 184, 0.2);
-  --surface: rgba(15, 23, 42, 0.72);
-  --surface-strong: rgba(15, 23, 42, 0.9);
-  --surface-border: rgba(148, 163, 184, 0.2);
-  --surface-border-strong: rgba(148, 163, 184, 0.28);
-  --surface-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
-  --surface-shadow-strong: 0 16px 32px rgba(2, 6, 23, 0.45);
-  --surface-hover: rgba(30, 41, 59, 0.8);
+  --app-bg: #030712;
+  --app-shell-gradient: linear-gradient(135deg, #030712 0%, #0b1120 45%, #0f172a 100%);
+  --app-shell-radial-1: rgba(15, 23, 42, 0.85);
+  --app-shell-radial-2: rgba(37, 99, 235, 0.12);
+  --app-shell-radial-3: rgba(56, 189, 248, 0.08);
+  --app-shell-dot: rgba(148, 163, 184, 0.12);
+  --surface: rgba(3, 7, 18, 0.78);
+  --surface-strong: rgba(3, 7, 18, 0.95);
+  --surface-border: rgba(100, 116, 139, 0.18);
+  --surface-border-strong: rgba(100, 116, 139, 0.24);
+  --surface-shadow: 0 20px 50px rgba(2, 6, 23, 0.6);
+  --surface-shadow-strong: 0 16px 32px rgba(2, 6, 23, 0.55);
+  --surface-hover: rgba(15, 23, 42, 0.9);
   --sidebar-gradient: linear-gradient(
     to bottom,
-    rgba(15, 23, 42, 0.95),
-    rgba(17, 24, 39, 0.92),
-    rgba(15, 23, 42, 0.9)
+    rgba(3, 7, 18, 0.98),
+    rgba(8, 13, 26, 0.96),
+    rgba(3, 7, 18, 0.94)
   );
-  --sidebar-border: rgba(148, 163, 184, 0.22);
-  --sidebar-border-strong: rgba(148, 163, 184, 0.28);
-  --sidebar-shadow: 0 20px 60px rgba(2, 6, 23, 0.6);
-  --panel-bg: rgba(15, 23, 42, 0.82);
-  --panel-border: rgba(148, 163, 184, 0.24);
-  --panel-shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
-  --overlay: rgba(2, 6, 23, 0.7);
+  --sidebar-border: rgba(100, 116, 139, 0.2);
+  --sidebar-border-strong: rgba(100, 116, 139, 0.26);
+  --sidebar-shadow: 0 20px 60px rgba(2, 6, 23, 0.7);
+  --panel-bg: rgba(3, 7, 18, 0.88);
+  --panel-border: rgba(100, 116, 139, 0.2);
+  --panel-shadow: 0 12px 30px rgba(2, 6, 23, 0.6);
+  --overlay: rgba(2, 6, 23, 0.8);
   --accent: #60a5fa;
   --text-primary: #e2e8f0;
   --text-secondary: #cbd5f5;
   --text-muted: #94a3b8;
   --text-subtle: #64748b;
   --nav-shadow: 0 12px 28px rgba(15, 23, 42, 0.5);
-  --outline-border: rgba(59, 130, 246, 0.45);
-  --outline-bg: rgba(15, 23, 42, 0.9);
-  --outline-bg-hover: rgba(30, 41, 59, 0.9);
-  --soft-bg: rgba(30, 58, 138, 0.45);
-  --soft-bg-hover: rgba(37, 99, 235, 0.35);
-  --input-bg: rgba(15, 23, 42, 0.9);
-  --input-border: rgba(59, 130, 246, 0.35);
-  --toggle-off: rgba(30, 41, 59, 0.9);
+  --outline-border: rgba(59, 130, 246, 0.4);
+  --outline-bg: rgba(3, 7, 18, 0.92);
+  --outline-bg-hover: rgba(15, 23, 42, 0.92);
+  --soft-bg: rgba(30, 58, 138, 0.3);
+  --soft-bg-hover: rgba(37, 99, 235, 0.25);
+  --input-bg: rgba(3, 7, 18, 0.94);
+  --input-border: rgba(59, 130, 246, 0.3);
+  --toggle-off: rgba(15, 23, 42, 0.92);
   --toggle-knob: #f8fafc;
   --table-divider: rgba(51, 65, 85, 0.8);
   --info-bg: rgba(30, 58, 138, 0.3);
@@ -121,18 +121,18 @@
   --danger-border: rgba(248, 113, 113, 0.45);
   --danger-text: #fca5a5;
   --danger-accent: #f87171;
-  --menu-hover: rgba(30, 41, 59, 0.85);
-  --thread-bg: rgba(15, 23, 42, 0.78);
-  --thread-border: rgba(51, 65, 85, 0.9);
-  --thread-hover-border: rgba(100, 116, 139, 0.9);
+  --menu-hover: rgba(15, 23, 42, 0.9);
+  --thread-bg: rgba(3, 7, 18, 0.82);
+  --thread-border: rgba(51, 65, 85, 0.8);
+  --thread-hover-border: rgba(100, 116, 139, 0.8);
   --thread-active-border: rgba(16, 185, 129, 0.7);
   --thread-active-bg: rgba(16, 185, 129, 0.16);
-  --thread-panel-bg: rgba(15, 23, 42, 0.88);
-  --thread-panel-border: rgba(51, 65, 85, 0.85);
-  --thread-empty-bg: rgba(15, 23, 42, 0.72);
-  --thread-empty-border: rgba(51, 65, 85, 0.8);
-  --thread-callout-bg: rgba(2, 6, 23, 0.6);
-  --thread-callout-border: rgba(51, 65, 85, 0.7);
+  --thread-panel-bg: rgba(3, 7, 18, 0.92);
+  --thread-panel-border: rgba(51, 65, 85, 0.75);
+  --thread-empty-bg: rgba(3, 7, 18, 0.78);
+  --thread-empty-border: rgba(51, 65, 85, 0.72);
+  --thread-callout-bg: rgba(2, 6, 23, 0.72);
+  --thread-callout-border: rgba(51, 65, 85, 0.65);
 }
 
 .theme-light {
