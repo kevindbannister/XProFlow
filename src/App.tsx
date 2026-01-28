@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
 import { useAuth } from './context/AuthContext';
@@ -5,11 +6,21 @@ import Dashboard from './pages/Dashboard';
 import EmailSetup from './pages/EmailSetup';
 import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
+import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
+import UserProfile from './pages/UserProfile';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
 import SettingsDrafts from './pages/SettingsDrafts';
 import Workflows from './pages/Workflows';
+
+const RequireAuth = ({ children }: { children: ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
 
 const App = () => {
   const { isAuthenticated } = useAuth();

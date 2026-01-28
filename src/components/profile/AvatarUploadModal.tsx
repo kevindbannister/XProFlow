@@ -12,6 +12,7 @@ type AvatarUploadModalProps = {
 const CROP_SIZE = 240;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const readFile = (file: File) =>
   new Promise<string>((resolve, reject) => {
@@ -37,6 +38,7 @@ export const AvatarUploadModal = ({ open, onClose, onSave }: AvatarUploadModalPr
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
@@ -45,6 +47,7 @@ export const AvatarUploadModal = ({ open, onClose, onSave }: AvatarUploadModalPr
       setPosition({ x: 0, y: 0 });
       setIsDragging(false);
       setDragActive(false);
+      setError(null);
     }
   }, [open]);
 
@@ -60,9 +63,33 @@ export const AvatarUploadModal = ({ open, onClose, onSave }: AvatarUploadModalPr
   }, [onClose, open]);
 
   const handleFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setError('Please upload an image file (PNG or JPG).');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setError('Image size must be 5MB or less.');
+      return;
+    }
+    setError(null);
     const dataUrl = await readFile(file);
     setImageSrc(dataUrl);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePaste = (event: ClipboardEvent) => {
+      const items = event.clipboardData?.items;
+      if (!items?.length) return;
+      const imageItem = Array.from(items).find((item) => item.type.startsWith('image/'));
+      const file = imageItem?.getAsFile();
+      if (!file) return;
+      event.preventDefault();
+      handleFile(file);
+    };
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [handleFile, open]);
 
   const handleDrop = useCallback(
     async (event: DragEvent<HTMLDivElement>) => {
@@ -144,8 +171,9 @@ export const AvatarUploadModal = ({ open, onClose, onSave }: AvatarUploadModalPr
                 Drag & drop a photo here
               </p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                PNG, JPG up to 5MB
+                PNG, JPG up to 5MB. You can also paste a screenshot.
               </p>
+              {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
               <Button
                 type="button"
                 variant="outline"
