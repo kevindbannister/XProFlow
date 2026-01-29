@@ -225,6 +225,8 @@ body {
     radial-gradient(circle at 80% 0%, var(--app-shell-radial-2), transparent 55%),
     radial-gradient(circle at 0% 80%, var(--app-shell-radial-3), transparent 45%);
   opacity: 0.8;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .app-shell-bg::after {
@@ -234,6 +236,13 @@ body {
   background-image: radial-gradient(var(--app-shell-dot) 1px, transparent 1px);
   background-size: 120px 120px;
   opacity: 0.25;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.app-shell-bg > * {
+  position: relative;
+  z-index: 1;
 }
 
 .glass-card {
