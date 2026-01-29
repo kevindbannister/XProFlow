@@ -53,7 +53,12 @@ const matchRoutePath = (routePath: string, pathname: string) => {
   return normalizedPath === normalizePathname(pathname);
 };
 
-const matchRoutes = (children: React.ReactNode, pathname: string) => {
+type RouteMatch = {
+  element?: React.ReactNode;
+  outlet?: React.ReactNode;
+};
+
+const matchRoutes = (children: React.ReactNode, pathname: string): RouteMatch | null => {
   const routeElements = React.Children.toArray(children).filter(React.isValidElement);
   for (const routeElement of routeElements) {
     if (routeElement.type !== Route) {
