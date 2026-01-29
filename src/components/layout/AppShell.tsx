@@ -39,7 +39,9 @@ const AppShell = () => {
         theme={theme}
       />
       <div
-        className={`flex min-h-screen flex-1 flex-col ${sidebarCollapsed ? 'ml-20' : 'ml-72'}`}
+        className={`relative z-10 flex min-h-screen flex-1 flex-col ${
+          sidebarCollapsed ? 'ml-20' : 'ml-72'
+        }`}
       >
         <Topbar
           theme={theme}

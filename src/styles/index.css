@@ -240,11 +240,6 @@ body {
   pointer-events: none;
 }
 
-.app-shell-bg > * {
-  position: relative;
-  z-index: 1;
-}
-
 .glass-card {
   background: var(--surface);
   border-color: var(--surface-border);
