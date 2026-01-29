@@ -38,7 +38,7 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
   return (
     <aside
       className={classNames(
-        'fixed inset-y-0 left-0 z-40 flex flex-col border-r border-gray-200 bg-[#f5f5f5] py-8 transition-all dark:border-slate-800 dark:bg-slate-950',
+        'sidebar-surface fixed inset-y-0 left-0 z-40 flex flex-col border-r py-8 transition-all',
         collapsed ? 'w-20 px-4' : 'w-72 px-6'
       )}
     >
@@ -77,21 +77,15 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
               to={item.to}
               className={({ isActive }: { isActive: boolean }) =>
                 classNames(
-                  'group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-slate-100',
+                  'nav-link group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium transition',
                   collapsed ? 'justify-center px-2' : 'px-3',
-                  isActive
-                    ? classNames(
-                        xProFlowBlue.activeNav,
-                        xProFlowBlue.activeNavIndicator,
-                        'shadow-sm'
-                      )
-                    : ''
+                  isActive ? 'nav-link-active shadow-sm' : ''
                 )
               }
             >
               {({ isActive }: { isActive: boolean }) => (
                 <>
-                  <Icon className={classNames('h-4 w-4', isActive ? xProFlowBlue.text : '')} />
+                  <Icon className={classNames('h-4 w-4', isActive ? 'text-current' : '')} />
                   {!collapsed && <span>{item.label}</span>}
                   {collapsed && (
                     <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-800">

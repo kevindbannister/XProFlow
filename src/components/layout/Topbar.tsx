@@ -36,8 +36,8 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
   }, [isProfileOpen]);
 
   return (
-    <header className="flex items-center justify-between border-b border-gray-200 bg-white px-8 py-4 dark:border-slate-800 dark:bg-slate-950">
-      <div className="text-lg font-semibold text-slate-900 dark:text-slate-100">{title}</div>
+    <header className="topbar-surface flex items-center justify-between border-b px-8 py-4">
+      <div className="theme-text-primary text-lg font-semibold">{title}</div>
       <div className="flex items-center gap-3">
         <div className="relative flex items-center">
           <input

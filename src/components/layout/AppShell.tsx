@@ -27,17 +27,21 @@ const AppShell = () => {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.toggle('dark', theme === 'dark');
+    root.classList.toggle('theme-dark', theme === 'dark');
+    root.classList.toggle('theme-light', theme === 'light');
   }, [theme]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div className="relative min-h-screen overflow-hidden app-shell-bg text-slate-900 dark:text-slate-100">
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((current) => !current)}
         theme={theme}
       />
       <div
-        className={`flex min-h-screen flex-1 flex-col ${sidebarCollapsed ? 'ml-20' : 'ml-72'}`}
+        className={`relative z-10 flex min-h-screen flex-1 flex-col ${
+          sidebarCollapsed ? 'ml-20' : 'ml-72'
+        }`}
       >
         <Topbar
           theme={theme}
