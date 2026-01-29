@@ -86,7 +86,7 @@ const Dashboard = () => {
   return (
     <section className="space-y-6">
       {showToneCard ? (
-        <Card className="border-amber-200 bg-[#fff7db] dark:border-slate-800 dark:bg-slate-900">
+        <Card className="!border-amber-200 !bg-[#fff7db] dark:!border-slate-800 dark:!bg-slate-900">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
