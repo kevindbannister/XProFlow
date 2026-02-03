@@ -1,10 +1,9 @@
 node_modules
-dist
-.dist
-.vite
-tsconfig*.tsbuildinfo
+/dist
+/.env
+/.env.*
 .DS_Store
-.env*
-!.env.example
-vite.config.js
-vite.config.d.ts
+*.tsbuildinfo
+
+# Vite
+.vite

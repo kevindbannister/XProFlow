@@ -1,12 +1,16 @@
 import type { Config } from 'tailwindcss';
 
-const config: Config = {
-  darkMode: 'class',
+export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        slate: {
+          950: '#0b1220'
+        }
+      }
+    }
   },
-  plugins: [],
-};
-
-export default config;
+  plugins: []
+} satisfies Config;
