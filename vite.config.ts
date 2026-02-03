@@ -6,6 +6,12 @@ const resolveShim = (relativePath: string) =>
 
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:4000',
+      '/auth': 'http://localhost:4000'
+    }
+  },
   resolve: {
     alias: {
       'lucide-react': resolveShim('./src/shims/lucide-react.tsx'),

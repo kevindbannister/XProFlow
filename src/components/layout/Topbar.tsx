@@ -121,9 +121,10 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
               type="button"
               className="w-full rounded-xl px-3 py-2 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
               onClick={() => {
-                logout();
-                setIsProfileOpen(false);
-                navigate('/login');
+                void logout().finally(() => {
+                  setIsProfileOpen(false);
+                  navigate('/login');
+                });
               }}
             >
               Logout

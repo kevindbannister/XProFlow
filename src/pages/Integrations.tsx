@@ -1,6 +1,8 @@
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { integrationDefinitions } from '../lib/settingsData';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
 
 const statusStyles = {
   connected: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40',
@@ -9,6 +11,20 @@ const statusStyles = {
 };
 
 const Integrations = () => {
+  const { gmailConnected, gmailEmail, csrfToken, loginWithGoogle, refreshSession } = useAuth();
+
+  const handleDisconnect = async () => {
+    if (!csrfToken) {
+      return;
+    }
+    await api.post('/auth/google/disconnect', undefined, { 'x-csrf-token': csrfToken });
+    await refreshSession();
+  };
+
+  const otherIntegrations = integrationDefinitions.filter(
+    (integration) => integration.id !== 'gmail'
+  );
+
   return (
     <section className="space-y-6">
       <div>
@@ -35,7 +51,55 @@ const Integrations = () => {
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
-          {integrationDefinitions.map((integration) => (
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Gmail</p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  Sync your primary inbox and draft replies in Gmail.
+                </p>
+              </div>
+              <span
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  gmailConnected ? statusStyles.connected : statusStyles.available
+                }`}
+              >
+                {gmailConnected ? 'connected' : 'available'}
+              </span>
+            </div>
+            <div className="mt-4 space-y-2 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between">
+                <span>Owner</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  {gmailEmail || 'Not connected'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Last sync</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  {gmailConnected ? 'Active session' : 'Not connected'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Data shared</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  Threads, drafts, send
+                </span>
+              </div>
+            </div>
+            <div className="mt-4">
+              {gmailConnected ? (
+                <Button type="button" variant="outline" size="sm" onClick={handleDisconnect}>
+                  Disconnect
+                </Button>
+              ) : (
+                <Button type="button" variant="outline" size="sm" onClick={loginWithGoogle}>
+                  Connect Gmail
+                </Button>
+              )}
+            </div>
+          </div>
+          {otherIntegrations.map((integration) => (
             <div
               key={integration.id}
               className="rounded-2xl border border-slate-200 bg-white p-4 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-950"

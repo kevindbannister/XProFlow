@@ -15,7 +15,10 @@ import SettingsDrafts from './pages/SettingsDrafts';
 import Workflows from './pages/Workflows';
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return null;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -23,13 +26,15 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 };
 
 const App = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   return (
     <Routes>
       <Route
         path="login"
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />}
+        element={
+          isLoading ? null : isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        }
       />
       <Route
         element={
