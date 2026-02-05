@@ -1,4 +1,6 @@
 const { OAuth2Client } = require('google-auth-library');
+const { supabase } = require('../../supabaseClient');
+const { encrypt } = require('../utils/encryption');
 
 const GOOGLE_SCOPES = [
   'openid',
@@ -46,6 +48,14 @@ function registerGoogleAuth(app) {
 
       const { email, name, id } = userInfoResponse.data || {};
 
+      if (!tokens.access_token) {
+        throw new Error('Missing access token from Google.');
+      }
+
+      if (!email || !id) {
+        throw new Error('Missing Google user information.');
+      }
+
       let scopesGranted = [];
       if (tokens.scope) {
         scopesGranted = tokens.scope.split(' ');
@@ -54,15 +64,42 @@ function registerGoogleAuth(app) {
         scopesGranted = tokenInfo.scopes || [];
       }
 
+      const encryptedAccessToken = encrypt(tokens.access_token);
+      const encryptedRefreshToken = tokens.refresh_token
+        ? encrypt(tokens.refresh_token)
+        : null;
+      const tokenExpiry = tokens.expiry_date
+        ? new Date(tokens.expiry_date).toISOString()
+        : null;
+
+      const { error } = await supabase.from('connected_accounts').upsert(
+        {
+          user_email: email,
+          provider: 'google',
+          provider_user_id: id,
+          scopes: scopesGranted,
+          access_token: encryptedAccessToken,
+          refresh_token: encryptedRefreshToken,
+          token_expiry: tokenExpiry
+        },
+        { onConflict: 'provider,provider_user_id' }
+      );
+
+      if (error) {
+        throw new Error('Failed to store Google account tokens.');
+      }
+
       return res.json({
+        message: 'Google account connected',
         email,
-        name,
-        googleUserId: id,
-        scopesGranted
+        provider: 'google'
       });
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      return res.status(500).json({ error: 'Google OAuth callback failed' });
+      return res.status(500).json({
+        error: 'Google OAuth callback failed',
+        message: error.message
+      });
     }
   });
 }
