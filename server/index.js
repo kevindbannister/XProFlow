@@ -68,9 +68,7 @@ function ensureCsrf(req, res, next) {
 }
 
 app.get('/auth/google', (req, res) => {
-  const state = nanoid();
   const { verifier, challenge } = generatePkce();
-  req.session.oauthState = state;
   req.session.pkceVerifier = verifier;
   req.session.csrfToken = req.session.csrfToken || nanoid();
 
@@ -79,7 +77,6 @@ app.get('/auth/google', (req, res) => {
     access_type: 'offline',
     prompt: 'consent',
     scope: GMAIL_SCOPES,
-    state,
     include_granted_scopes: true,
     code_challenge: challenge,
     code_challenge_method: 'S256'
@@ -89,12 +86,9 @@ app.get('/auth/google', (req, res) => {
 });
 
 app.get('/auth/google/callback', async (req, res) => {
-  const { code, state } = req.query;
-  if (!code || !state) {
-    return res.status(400).send('Missing OAuth parameters');
-  }
-  if (state !== req.session?.oauthState) {
-    return res.status(400).send('Invalid OAuth state');
+  const { code } = req.query;
+  if (!code) {
+    return res.status(400).send('Missing OAuth code');
   }
 
   try {
@@ -104,7 +98,6 @@ app.get('/auth/google/callback', async (req, res) => {
       codeVerifier: req.session.pkceVerifier
     });
 
-    req.session.oauthState = null;
     req.session.pkceVerifier = null;
 
     if (!tokens.refresh_token) {
@@ -136,7 +129,14 @@ app.get('/auth/google/callback', async (req, res) => {
       scopes: tokens.scope || GMAIL_SCOPES.join(' ')
     });
 
-    return res.redirect(`${env.appBaseUrl}/dashboard`);
+    return res.json({
+      ok: true,
+      user: {
+        id: userId,
+        email
+      },
+      scopes: tokens.scope || GMAIL_SCOPES.join(' ')
+    });
   } catch (error) {
     console.error('OAuth callback error:', error);
     return res.status(500).send('OAuth failed');
