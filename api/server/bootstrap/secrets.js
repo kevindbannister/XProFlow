@@ -13,12 +13,7 @@ async function loadSecrets() {
   const secretName = process.env.AWS_SECRET_NAME;
 
   if (!secretName) {
-    console.warn(
-      'AWS_SECRET_NAME is not set. Skipping AWS Secrets Manager bootstrap.'
-    );
-    secretsLoaded = true;
-    globalThis.__secretsLoaded = true;
-    return;
+    throw new Error('AWS_SECRET_NAME is required to load secrets from AWS.');
   }
 
   const region = process.env.AWS_REGION;
@@ -62,7 +57,6 @@ async function loadSecrets() {
   );
 
   secretsLoaded = true;
-  globalThis.__secretsLoaded = true;
 }
 
 module.exports = { loadSecrets };

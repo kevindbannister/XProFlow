@@ -11,9 +11,6 @@ function getSupabaseClient() {
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    if (!globalThis.__secretsLoaded) {
-      return null;
-    }
     throw new Error(
       'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.'
     );

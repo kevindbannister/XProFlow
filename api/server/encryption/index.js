@@ -5,9 +5,9 @@ const IV_LENGTH = 12;
 const AUTH_TAG_LENGTH = 16;
 
 function getKey() {
-  const keyMaterial = process.env.TOKEN_ENC_KEY;
+  const keyMaterial = process.env.ENCRYPTION_KEY;
   if (!keyMaterial) {
-    throw new Error("TOKEN_ENC_KEY is required for token encryption.");
+    throw new Error("ENCRYPTION_KEY is required for token encryption.");
   }
   return crypto.createHash("sha256").update(keyMaterial).digest();
 }

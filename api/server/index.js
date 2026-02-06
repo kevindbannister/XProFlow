@@ -1,12 +1,11 @@
-const express = require('express');
-const { loadSecrets } = require('./bootstrap/secrets');
-const { encrypt, decrypt } = require('./encryption');
-
 async function startServer() {
+  const { loadSecrets } = require('./bootstrap/secrets');
   await loadSecrets();
 
+  const express = require('express');
   const { registerGoogleAuth } = require('./auth/google');
   const { getSupabaseClient } = require('./supabaseClient');
+  const { encrypt, decrypt } = require('./encryption');
 
   const app = express();
   const port = Number(process.env.PORT || 3001);
