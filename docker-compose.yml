@@ -1,13 +1,19 @@
 services:
+  n8n:
+    image: n8nio/n8n:latest
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - xproflow
+
   nginx:
-    image: nginx:1.27-alpine
+    image: nginx:latest
     depends_on:
       - xproflow-api
     ports:
       - "80:80"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - xproflow
 
@@ -23,3 +29,6 @@ services:
 networks:
   xproflow:
     driver: bridge
+
+volumes:
+  n8n_data:
