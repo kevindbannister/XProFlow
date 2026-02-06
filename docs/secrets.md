@@ -4,6 +4,11 @@
 Production secrets **must** come from AWS Secrets Manager via an IAM role.
 At runtime: **IAM role → Secrets Manager → environment variables**.
 
+## Runtime env file (.env.runtime)
+Production uses a server-only runtime env file named `.env.runtime`. This file is **required in production** and **must never be committed** to Git. It exists solely to provide the selector values that tell the app which AWS Secrets Manager entry to read at runtime. The actual secrets remain in AWS Secrets Manager, not in this file.
+
+Docker Compose reads `.env.runtime` via `env_file` on the `xproflow-api` service so the container can resolve the correct Secrets Manager payload without hard-coded values in source control.
+
 ## Required variables (Secrets Manager payload)
 | Variable | Purpose |
 | --- | --- |
@@ -19,6 +24,8 @@ At runtime: **IAM role → Secrets Manager → environment variables**.
 | --- | --- |
 | `AWS_SECRET_NAME` | Secrets Manager secret name that contains the JSON payload. |
 | `AWS_REGION` | AWS region for Secrets Manager. |
+
+These runtime variables belong in `.env.runtime` on production hosts (EC2). Do not commit `.env.runtime`; use `.env.runtime.example` as a template instead.
 
 ## Optional variables
 | Variable | Purpose |
