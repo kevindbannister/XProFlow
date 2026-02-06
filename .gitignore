@@ -2,6 +2,7 @@ node_modules
 /dist
 /.env
 /.env.*
+api/.env
 server/.env
 server/data
 .DS_Store

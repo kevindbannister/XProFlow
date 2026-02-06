@@ -1,6 +1,6 @@
 const { OAuth2Client } = require('google-auth-library');
-const { supabase } = require('../../supabaseClient');
-const { encrypt } = require('../utils/encryption');
+const { supabase } = require('../supabaseClient');
+const { encrypt } = require('../encryption');
 
 const GOOGLE_SCOPES = [
   'openid',

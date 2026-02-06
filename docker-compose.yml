@@ -12,7 +12,7 @@ services:
       - xproflow
 
   xproflow-api:
-    image: xproflow-api:latest
+    build: ./api
     expose:
       - "3001"
     networks:
