@@ -3,9 +3,8 @@
 ## Source of truth
 Production secrets **must** come from AWS Secrets Manager via an IAM role.
 At runtime: **IAM role → Secrets Manager → environment variables**.
-A `.env` file is optional for local development and must never be committed.
 
-## Required variables (Secrets Manager)
+## Required variables (Secrets Manager payload)
 | Variable | Purpose |
 | --- | --- |
 | `SUPABASE_URL` | Supabase project URL for the API client. |
@@ -15,10 +14,16 @@ A `.env` file is optional for local development and must never be committed.
 | `GOOGLE_REDIRECT_URI` | OAuth redirect URI that Google returns to. |
 | `TOKEN_ENC_KEY` | Base secret used to encrypt stored OAuth tokens. |
 
+## Required variables (runtime configuration)
+| Variable | Purpose |
+| --- | --- |
+| `AWS_SECRET_NAME` | Secrets Manager secret name that contains the JSON payload. |
+| `AWS_REGION` | AWS region for Secrets Manager. |
+
 ## Optional variables
 | Variable | Purpose |
 | --- | --- |
 | `PORT` | API listen port (defaults to `3001`). |
 
 ## Dev-only variables
-None. Local development can supply the required variables via `.env`.
+None.

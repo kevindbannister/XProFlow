@@ -1,5 +1,4 @@
 const { OAuth2Client } = require('google-auth-library');
-const { supabase } = require('../supabaseClient');
 const { encrypt } = require('../encryption');
 
 const GOOGLE_SCOPES = [
@@ -17,7 +16,11 @@ function createOAuthClient() {
   );
 }
 
-function registerGoogleAuth(app) {
+function registerGoogleAuth(app, supabase) {
+  if (!supabase) {
+    throw new Error('Supabase client is not initialized.');
+  }
+
   app.get('/auth/google', async (req, res) => {
     try {
       const oauthClient = createOAuthClient();
