@@ -13,6 +13,10 @@ async function startServer() {
 
   registerGoogleAuth(app, supabase);
 
+  app.get('/health', (req, res) => {
+    return res.status(200).json({ status: 'ok' });
+  });
+
   app.get('/health/supabase', async (req, res) => {
     try {
       const { data, error } = await supabase
