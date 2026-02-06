@@ -13,6 +13,8 @@ services:
 
   xproflow-api:
     build: ./api
+    env_file:
+      - .env.runtime
     expose:
       - "3001"
     networks:

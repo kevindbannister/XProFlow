@@ -2,6 +2,8 @@ node_modules
 /dist
 /.env
 /.env.*
+!.env.runtime.example
+.env.runtime
 api/.env
 server/.env
 server/data
