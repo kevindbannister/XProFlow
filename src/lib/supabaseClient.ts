@@ -8,10 +8,14 @@ type SupabaseClient = {
   };
 };
 
-const supabaseClient = (globalThis as { supabase?: SupabaseClient }).supabase;
+export const getSupabaseClient = () => {
+  const supabaseClient = (globalThis as { supabase?: SupabaseClient }).supabase;
 
-if (!supabaseClient) {
-  throw new Error('Supabase client is not available on the global scope.');
-}
+  if (!supabaseClient) {
+    const error = new Error('Supabase client is not available on the global scope.');
+    console.error(error);
+    throw error;
+  }
 
-export const supabase = supabaseClient;
+  return supabaseClient;
+};

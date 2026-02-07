@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
-import { supabase } from '../lib/supabaseClient';
+import { getSupabaseClient } from '../lib/supabaseClient';
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -67,6 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       csrfToken,
       loginWithGoogle: async () => {
         console.log('Starting Supabase Google OAuth sign-in.');
+        const supabase = getSupabaseClient();
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: { redirectTo: `${window.location.origin}/auth/callback` }
