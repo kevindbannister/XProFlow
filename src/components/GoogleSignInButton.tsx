@@ -6,20 +6,16 @@ const GoogleSignInButton = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleGoogleSignIn = async () => {
-    console.log('Starting Supabase Google OAuth sign-in.');
+    console.log('Google clicked');
     setErrorMessage(null);
-    console.log('Calling supabase.auth.signInWithOAuth with redirect.', {
-      provider: 'google',
-      redirectTo: `${window.location.origin}/auth/callback`
-    });
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` }
     });
-    console.log('Supabase Google OAuth response', { data, error });
+    console.log('OAuth result', { data, error });
     if (error) {
       console.error('Supabase Google OAuth sign-in failed.', error);
-      setErrorMessage('Google sign-in failed. Please try again.');
+      setErrorMessage(error.message || 'Google sign-in failed. Please try again.');
     }
   };
 
