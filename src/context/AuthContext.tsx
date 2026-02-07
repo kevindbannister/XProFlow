@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabaseClient';
 
@@ -36,27 +36,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return window.localStorage.getItem('xproflow-manual-auth') === 'true';
   });
 
-  const refreshSession = async () => {
+  const refreshSession = useCallback(async () => {
     setIsLoading(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasSession = Boolean(sessionData.session);
       const data = await api.get<MeResponse>('/api/me');
-      setIsAuthenticated(data.authenticated || manualAuth);
+      setIsAuthenticated(data.authenticated || manualAuth || hasSession);
       setCsrfToken(data.csrfToken);
       setGmailConnected(Boolean(data.gmail?.connected));
       setGmailEmail(data.gmail?.email);
     } catch {
-      setIsAuthenticated(manualAuth);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasSession = Boolean(sessionData.session);
+      setIsAuthenticated(manualAuth || hasSession);
       setGmailConnected(false);
       setGmailEmail(undefined);
       setCsrfToken(undefined);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [manualAuth]);
 
   useEffect(() => {
     void refreshSession();
-  }, []);
+  }, [refreshSession]);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setIsAuthenticated(true);
+        void refreshSession();
+      } else {
+        setIsAuthenticated(manualAuth);
+        setGmailConnected(false);
+        setGmailEmail(undefined);
+        setCsrfToken(undefined);
+      }
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, [manualAuth, refreshSession]);
 
   const value = useMemo(
     () => ({

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { refreshSession } = useAuth();
   const [msg, setMsg] = useState('Completing Google sign-in…');
 
   useEffect(() => {
@@ -22,6 +24,7 @@ const AuthCallback = () => {
 
       if (data?.session) {
         setMsg('Signed in. Redirecting…');
+        await refreshSession();
         navigate('/dashboard', { replace: true });
         return;
       }
@@ -32,13 +35,14 @@ const AuthCallback = () => {
         console.log('callback retry getSession:', retry);
 
         if (retry.data?.session) {
+          await refreshSession();
           navigate('/dashboard', { replace: true });
         } else {
           navigate('/login?error=no_session', { replace: true });
         }
       }, 800);
     })();
-  }, [navigate]);
+  }, [navigate, refreshSession]);
 
   return <div style={{ padding: 24 }}>{msg}</div>;
 };
