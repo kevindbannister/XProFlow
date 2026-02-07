@@ -65,7 +65,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       gmailEmail,
       csrfToken,
       loginWithGoogle: () => {
-        window.location.assign('/auth/google');
+        void supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: 'https://xproflow.com/auth/callback' }
+        });
       },
       loginWithManual: () => {
         if (typeof window !== 'undefined') {
