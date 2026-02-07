@@ -5,7 +5,7 @@ import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const { loginWithGoogle, loginWithManual } = useAuth();
+  const { loginWithManual } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +77,10 @@ const Login = () => {
           type="button"
           className="w-full"
           onClick={() => {
-            loginWithGoogle();
+            void supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: { redirectTo: 'https://xproflow.com/auth/callback' }
+            });
           }}
         >
           Sign in with Google

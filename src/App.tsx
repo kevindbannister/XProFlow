@@ -7,6 +7,7 @@ import EmailSetup from './pages/EmailSetup';
 import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
 import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
 import Onboarding from './pages/Onboarding';
 import UserProfile from './pages/UserProfile';
 import Rules from './pages/Rules';
@@ -36,6 +37,7 @@ const App = () => {
           isLoading ? null : isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
         }
       />
+      <Route path="auth/callback" element={<AuthCallback />} />
       <Route
         element={
           <RequireAuth>
