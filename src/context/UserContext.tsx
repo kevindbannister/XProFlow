@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabaseClient';
 
 type UserProfile = {
   name: string;
@@ -18,6 +20,24 @@ const defaultUser: UserProfile = {
 };
 
 const USER_STORAGE_KEY = 'emailai-user-profile';
+
+const getSessionUserProfile = (session: Session | null): UserProfile | null => {
+  if (!session?.user) {
+    return null;
+  }
+
+  const metadata = session.user.user_metadata ?? {};
+  const email = session.user.email ?? defaultUser.email;
+  const name =
+    metadata.full_name ||
+    metadata.name ||
+    metadata.preferred_username ||
+    email.split('@')[0] ||
+    defaultUser.name;
+  const avatarUrl = metadata.avatar_url || metadata.picture || undefined;
+
+  return { name, email, avatarUrl };
+};
 
 const getStoredUser = () => {
   if (typeof window === 'undefined') {
@@ -40,6 +60,37 @@ const UserContext = createContext<UserContextValue | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserProfile>(() => getStoredUser());
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSessionUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!isMounted) {
+        return;
+      }
+      const sessionProfile = getSessionUserProfile(data.session);
+      if (sessionProfile) {
+        setUser((current) => ({ ...current, ...sessionProfile }));
+      }
+    };
+
+    void loadSessionUser();
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const sessionProfile = getSessionUserProfile(session);
+      if (sessionProfile) {
+        setUser((current) => ({ ...current, ...sessionProfile }));
+      } else {
+        setUser(getStoredUser());
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
