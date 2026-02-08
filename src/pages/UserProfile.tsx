@@ -5,12 +5,15 @@ import { Button } from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { PageHeader } from '../components/ui/PageHeader';
+import { useAuth } from '../context/AuthContext';
 import { getUserInitials, useUser } from '../context/UserContext';
 
 const UserProfile = () => {
   const { user, updateProfile } = useUser();
+  const { gmailEmail } = useAuth();
   const [name, setName] = useState(user.name);
   const [saved, setSaved] = useState(false);
+  const displayEmail = gmailEmail ?? user.email;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,7 +42,9 @@ const UserProfile = () => {
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                 {user.name}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {displayEmail}
+              </p>
             </div>
           </div>
 
@@ -54,7 +59,7 @@ const UserProfile = () => {
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Email
               </label>
-              <Input value={user.email} readOnly className="bg-gray-100 text-slate-500" />
+              <Input value={displayEmail} readOnly className="bg-gray-100 text-slate-500" />
             </div>
           </div>
 
