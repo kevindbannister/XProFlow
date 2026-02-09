@@ -3,16 +3,9 @@ import { ChevronLeft, ChevronRight, Mail, Settings } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { classNames } from '../../lib/utils';
 
-const navigation = [{ label: 'Inbox', to: '/inbox', icon: Mail }];
-
-const settingsLinks = [
-  { label: 'Onboarding', to: '/onboarding' },
-  { label: 'Labels', to: '/labels' },
-  { label: 'Rules', to: '/rules' },
-  { label: 'Integrations', to: '/integrations' },
-  { label: 'Workflows', to: '/workflows' },
-  { label: 'Drafts', to: '/settings/drafts' },
-  { label: 'Settings', to: '/settings' }
+const navigation = [
+  { label: 'Inbox', to: '/inbox', icon: Mail },
+  { label: 'Settings', to: '/settings', icon: Settings }
 ];
 
 type SidebarProps = {
@@ -79,35 +72,6 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             </NavLink>
           );
         })}
-        <div className="pt-2">
-          <div
-            className={classNames(
-              'flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500',
-              collapsed ? 'justify-center' : 'px-3'
-            )}
-          >
-            <Settings className="h-3.5 w-3.5" />
-            {!collapsed && <span>Settings</span>}
-          </div>
-          {!collapsed && (
-            <div className="mt-2 flex flex-col gap-1">
-              {settingsLinks.map((link) => (
-                <NavLink
-                  key={link.label}
-                  to={link.to}
-                  className={({ isActive }: { isActive: boolean }) =>
-                    classNames(
-                      'menu-link flex items-center rounded-lg px-3 py-2 text-xs font-medium text-slate-600 transition hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100',
-                      isActive ? 'bg-white/70 text-slate-900 dark:bg-slate-800/70 dark:text-slate-100' : ''
-                    )
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </div>
-          )}
-        </div>
       </nav>
 
       <div className={classNames('mt-6 flex items-center', collapsed ? 'justify-center' : 'px-2')}>
