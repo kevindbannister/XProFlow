@@ -133,6 +133,16 @@ function registerGmailRoutes(app, supabase) {
       googleOAuthUrl.searchParams.set('access_type', 'offline');
       googleOAuthUrl.searchParams.set('prompt', 'consent');
       googleOAuthUrl.searchParams.set('include_granted_scopes', 'true');
+      const referer = req.get('referer');
+      if (referer) {
+        const refererUrl = new URL(referer, appBaseUrl);
+        const appOrigin = new URL(appBaseUrl).origin;
+        if (refererUrl.origin === appOrigin) {
+          const returnTo = `${refererUrl.pathname}${refererUrl.search}`;
+          googleOAuthUrl.searchParams.set('state', returnTo);
+          console.log('Gmail OAuth return path:', returnTo);
+        }
+      }
 
       console.log('Gmail OAuth URL:', googleOAuthUrl.toString());
       res.redirect(googleOAuthUrl.toString());
@@ -143,7 +153,7 @@ function registerGmailRoutes(app, supabase) {
   });
 
   app.get('/api/gmail/oauth/callback', async (req, res) => {
-    const redirectUrl = new URL('/inbox', appBaseUrl);
+    let redirectUrl = new URL('/inbox', appBaseUrl);
     const errorRedirect = new URL('/integrations', appBaseUrl);
 
     try {
@@ -200,6 +210,11 @@ function registerGmailRoutes(app, supabase) {
         refresh_token: refreshToken,
         expiry_ts: tokenExpiry
       });
+
+      const { state } = req.query;
+      if (typeof state === 'string' && state.startsWith('/')) {
+        redirectUrl = new URL(state, appBaseUrl);
+      }
 
       redirectUrl.searchParams.set('connected', 'gmail');
       redirectUrl.searchParams.set('message', 'Gmail connected');
