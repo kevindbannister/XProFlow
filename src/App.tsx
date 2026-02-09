@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppShell from './components/layout/AppShell';
+import DashboardShell from './components/layout/DashboardShell';
 import { useAuth } from './context/AuthContext';
 import Dashboard from './pages/Dashboard';
 import EmailSetup from './pages/EmailSetup';
@@ -41,7 +41,7 @@ const App = () => {
       <Route
         element={
           <RequireAuth>
-            <AppShell />
+            <DashboardShell />
           </RequireAuth>
         }
       >

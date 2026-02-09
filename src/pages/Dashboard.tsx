@@ -1,5 +1,6 @@
 import { Clock, Mail, PoundSterling, X } from 'lucide-react';
 import { useState } from 'react';
+import PageContainer from '../components/layout/PageContainer';
 import Card from '../components/ui/Card';
 import { xProFlowAccents, xProFlowBlue } from '../lib/designTokens';
 
@@ -94,9 +95,9 @@ const Dashboard = () => {
   let donutOffset = 0;
 
   return (
-    <section className="space-y-6">
+    <PageContainer>
       {showToneCard ? (
-        <Card className="!border-amber-200 !bg-[#fff7db] dark:!border-slate-800 dark:!bg-slate-900">
+        <Card className="card-callout">
           <div className="flex items-start justify-between gap-4">
             <div className="flex flex-col gap-3">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -154,10 +155,10 @@ const Dashboard = () => {
             Breakdown of emails received in the last 30 days
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <div className="flex h-40 w-40 items-center justify-center">
-              <svg width="160" height="160" viewBox="0 0 160 160" className="overflow-visible">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.7fr)_minmax(0,0.6fr)]">
+          <div className="flex items-center justify-center">
+            <div className="flex h-44 w-44 items-center justify-center">
+              <svg width="176" height="176" viewBox="0 0 160 160" className="overflow-visible">
                 <circle
                   cx="80"
                   cy="80"
@@ -189,22 +190,25 @@ const Dashboard = () => {
                 })}
               </svg>
             </div>
-            <div className="space-y-3">
-              {emailMakeup.map((slice) => (
-                <div key={slice.label} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: slice.color }}
-                    />
-                    <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
-                  </div>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">
-                    {slice.value}%
-                  </span>
+          </div>
+          <div className="space-y-4">
+            {emailMakeup.map((slice) => (
+              <div
+                key={slice.label}
+                className="flex items-center justify-between rounded-2xl border border-slate-200/70 bg-white/70 px-3 py-2 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900/70"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: slice.color }}
+                  />
+                  <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
                 </div>
-              ))}
-            </div>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                  {slice.value}%
+                </span>
+              </div>
+            ))}
           </div>
           <div className="flex flex-col gap-4">
             <MetricCard
@@ -217,7 +221,7 @@ const Dashboard = () => {
         </div>
       </Card>
 
-    </section>
+    </PageContainer>
   );
 };
 

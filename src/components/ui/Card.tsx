@@ -9,14 +9,14 @@ type CardProps = {
 
 const Card = ({ children, className, variant = 'default' }: CardProps) => {
   const variantClasses = {
-    default: 'panel-surface',
+    default: 'card-surface',
     glass: 'glass-card'
   };
 
   return (
     <div
       className={classNames(
-        'rounded-2xl border p-6 shadow-sm',
+        'card-base border p-6',
         variantClasses[variant],
         className
       )}

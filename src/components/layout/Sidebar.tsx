@@ -1,4 +1,3 @@
-import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,6 +12,7 @@ import {
 import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
 import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
+import SidebarNav from './SidebarNav';
 
 const navigation = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
@@ -31,15 +31,26 @@ type SidebarProps = {
   collapsed: boolean;
   onToggle: () => void;
   theme: 'dark' | 'light';
+  className?: string;
+  showCollapseToggle?: boolean;
+  onNavigate?: () => void;
 };
 
-const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
+const Sidebar = ({
+  collapsed,
+  onToggle,
+  theme,
+  className,
+  showCollapseToggle = true,
+  onNavigate
+}: SidebarProps) => {
   const logoSrc = theme === 'dark' ? xProFlowLogoLight : xProFlowLogoDark;
   return (
     <aside
       className={classNames(
-        'sidebar-surface fixed inset-y-0 left-0 z-40 flex flex-col border-r py-8 transition-all',
-        collapsed ? 'w-20 px-4' : 'w-72 px-6'
+        'sidebar-surface fixed bottom-4 left-4 top-4 z-40 flex flex-col border py-6 transition-all',
+        collapsed ? 'w-20 px-3' : 'w-72 px-5',
+        className
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -58,50 +69,23 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={onToggle}
-          className="rounded-lg border border-slate-200 bg-white p-1 text-slate-600 transition hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+        {showCollapseToggle ? (
+          <button
+            type="button"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={onToggle}
+            className="icon-button-ghost"
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        ) : null}
       </div>
 
-      <nav className="mt-8 flex flex-1 flex-col gap-1">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={({ isActive }: { isActive: boolean }) =>
-                classNames(
-                  'nav-link group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium transition',
-                  collapsed ? 'justify-center px-2' : 'px-3',
-                  isActive ? 'nav-link-active shadow-sm' : ''
-                )
-              }
-            >
-              {({ isActive }: { isActive: boolean }) => (
-                <>
-                  <Icon className={classNames('h-4 w-4', isActive ? 'text-current' : '')} />
-                  {!collapsed && <span>{item.label}</span>}
-                  {collapsed && (
-                    <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-800">
-                      {item.label}
-                    </span>
-                  )}
-                </>
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
+      <SidebarNav items={navigation} collapsed={collapsed} onNavigate={onNavigate} />
 
       {!collapsed && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="card-soft border p-4">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Try XProFlow Pro
             </p>

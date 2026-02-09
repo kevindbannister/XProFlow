@@ -40,6 +40,7 @@ export const Home = createIcon('Home');
 export const ListChecks = createIcon('ListChecks');
 export const Mail = createIcon('Mail');
 export const MailCheck = createIcon('MailCheck');
+export const Menu = createIcon('Menu');
 export const Moon = createIcon('Moon');
 export const Plug = createIcon('Plug');
 export const PoundSterling = createIcon('PoundSterling');

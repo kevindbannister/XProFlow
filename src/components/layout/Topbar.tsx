@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Bell, ChevronDown, Menu, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AvatarUploadModal } from '../profile/AvatarUploadModal';
 import { Avatar } from '../ui/Avatar';
 import { DropdownMenu } from '../ui/DropdownMenu';
+import IconButton from '../ui/IconButton';
 import { classNames } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 import { getUserInitials, useUser } from '../../context/UserContext';
@@ -12,9 +13,10 @@ type TopbarProps = {
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
   title?: string;
+  onOpenSidebar?: () => void;
 };
 
-const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
+const Topbar = ({ theme, onToggleTheme, title, onOpenSidebar }: TopbarProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -36,8 +38,16 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
   }, [isProfileOpen]);
 
   return (
-    <header className="topbar-surface flex items-center justify-between border-b px-8 py-4">
-      <div className="theme-text-primary text-lg font-semibold">{title}</div>
+    <header className="topbar-surface sticky top-4 z-20 mx-4 flex items-center justify-between rounded-[28px] border px-4 py-4 shadow-lg sm:px-6">
+      <div className="flex items-center gap-3">
+        <IconButton
+          icon={<Menu className="h-4 w-4" />}
+          label="Open navigation menu"
+          className="md:hidden"
+          onClick={onOpenSidebar}
+        />
+        <div className="theme-text-primary text-lg font-semibold sm:text-xl">{title}</div>
+      </div>
       <div className="flex items-center gap-3">
         <div className="relative flex items-center">
           <input
@@ -45,34 +55,24 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
             type="search"
             placeholder="Search"
             className={classNames(
-              'absolute right-10 h-9 rounded-full border border-gray-200 bg-white px-4 text-sm text-gray-700 shadow-sm outline-none transition-all duration-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100',
+              'absolute right-10 h-9 rounded-full border px-4 text-sm shadow-sm outline-none transition-all duration-300 input-surface',
               isSearchOpen
                 ? 'w-56 opacity-100'
                 : 'w-0 opacity-0 pointer-events-none border-transparent px-0 shadow-none'
             )}
           />
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
-            aria-label={isSearchOpen ? 'Close search' : 'Open search'}
+          <IconButton
+            icon={<Bell className="h-4 w-4" />}
+            label={isSearchOpen ? 'Close search' : 'Open search'}
             onClick={() => setIsSearchOpen((prev) => !prev)}
-          >
-            <Bell className="h-4 w-4" />
-          </button>
+          />
         </div>
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4" />
-        </button>
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
-          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        <IconButton icon={<Bell className="h-4 w-4" />} label="Notifications" />
+        <IconButton
+          icon={theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={onToggleTheme}
-        >
-          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
+        />
         <DropdownMenu
           isOpen={isProfileOpen}
           onOpenChange={setIsProfileOpen}
@@ -80,7 +80,7 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
           trigger={
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              className="flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 input-surface"
               aria-haspopup="menu"
               aria-expanded={isProfileOpen}
             >
