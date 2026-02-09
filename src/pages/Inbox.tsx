@@ -53,6 +53,10 @@ const Inbox = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isStatusLoading, setIsStatusLoading] = useState(true);
+  const [gmailStatus, setGmailStatus] = useState<{ connected: boolean; email?: string } | null>(
+    null
+  );
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,8 +77,34 @@ const Inbox = () => {
   }, [selectedFolder]);
 
   useEffect(() => {
-    void fetchInbox();
-  }, [fetchInbox]);
+    const fetchStatus = async () => {
+      setIsStatusLoading(true);
+      setError(null);
+      try {
+        const response = await api.get<{ connected: boolean; email?: string }>(
+          '/api/gmail/status'
+        );
+        setGmailStatus(response);
+        if (!response.connected) {
+          setGroups(emptyGroups);
+        }
+      } catch (err) {
+        console.error('Failed to check Gmail status', err);
+        setError('Unable to check Gmail connection.');
+        setGmailStatus({ connected: false });
+      } finally {
+        setIsStatusLoading(false);
+      }
+    };
+
+    void fetchStatus();
+  }, []);
+
+  useEffect(() => {
+    if (gmailStatus?.connected) {
+      void fetchInbox();
+    }
+  }, [fetchInbox, gmailStatus]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -113,6 +143,9 @@ const Inbox = () => {
     [groups]
   );
 
+  const isConnected = Boolean(gmailStatus?.connected);
+  const isLoadingState = isStatusLoading || (isConnected && isLoading);
+
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -122,123 +155,151 @@ const Inbox = () => {
             Keep your Gmail inbox synced and prioritized in one view.
           </p>
         </div>
-        <button
-          className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300"
-          type="button"
-          onClick={handleSync}
-          disabled={isSyncing}
-        >
-          {isSyncing ? 'Syncing…' : 'Sync'}
-        </button>
+        {isConnected ? (
+          <button
+            className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-slate-300"
+            type="button"
+            onClick={handleSync}
+            disabled={isSyncing}
+          >
+            {isSyncing ? 'Syncing…' : 'Sync'}
+          </button>
+        ) : null}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-        <aside className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Folders</p>
-          <div className="mt-4 space-y-1">
-            {folders.map((folder, index) => (
-              <button
-                key={`${folder.label}-${index}`}
-                type="button"
-                onClick={() => setSelectedFolder(folder.id)}
-                className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm font-medium transition ${
-                  selectedFolder === folder.id
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <span>{folder.label}</span>
-              </button>
-            ))}
+      {isLoadingState ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 w-40 rounded-full bg-slate-100" />
+            <div className="h-3 w-64 rounded-full bg-slate-100" />
+            <div className="h-24 w-full rounded-2xl bg-slate-100" />
           </div>
-        </aside>
-
-        <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search or ask XProFlow a question"
-                className="w-full rounded-2xl border border-transparent bg-slate-100/80 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-slate-200 focus:bg-white focus:ring-2 focus:ring-sky-100"
-              />
-            </div>
-          </div>
-
-          {successMessage ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              {successMessage}
-            </div>
-          ) : null}
-
-          {error ? <p className="text-sm text-rose-500">{error}</p> : null}
-
-          {isLoading ? (
-            <p className="text-sm text-slate-500">Loading inbox…</p>
-          ) : (
-            <div className="space-y-6">
-              {sections.map((section) => (
-                <div key={section.key} className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      {section.title}
-                    </h2>
-                    <span className="text-xs text-slate-400">
-                      {section.messages.length} messages
-                    </span>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-                    {section.messages.length === 0 ? (
-                      <div className="px-6 py-8 text-sm text-slate-400">
-                        No messages in this section.
-                      </div>
-                    ) : (
-                      <div className="divide-y divide-slate-200/70">
-                        {section.messages.map((message) => (
-                          <div
-                            key={message.external_id}
-                            className="flex items-center gap-4 px-6 py-4 transition hover:bg-slate-50"
-                          >
-                            <span
-                              className={`h-2 w-2 flex-shrink-0 rounded-full ${
-                                message.is_unread ? 'bg-sky-500' : 'bg-slate-200'
-                              }`}
-                            />
-                            <div className="min-w-0 flex-1 space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="text-sm font-semibold text-slate-900">
-                                  {message.from_name || message.from_email || 'Unknown'}
-                                </p>
-                                <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:inline-block" />
-                                <p className="text-sm text-slate-600">{message.subject}</p>
-                              </div>
-                              <p className="truncate text-xs text-slate-400">{message.snippet}</p>
-                            </div>
-                            <div className="flex flex-col items-end gap-2 text-right">
-                              <span className="text-xs font-medium text-slate-400">
-                                {formatTime(message)}
-                              </span>
-                              {message.status && message.status !== 'NONE' ? (
-                                <span
-                                  className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                                    statusStyles[message.status] || 'bg-slate-100 text-slate-600'
-                                  }`}
-                                >
-                                  {message.status.toLowerCase()}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
+        </div>
+      ) : !isConnected ? (
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-12">
+          <h2 className="text-xl font-semibold text-slate-900">Connect your Gmail</h2>
+          <p className="mt-3 text-sm text-slate-500">
+            To sync and prioritise your inbox, connect your Gmail account.
+          </p>
+          <a
+            href="/api/gmail/oauth/start"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+          >
+            Connect Gmail
+          </a>
+        </div>
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
+          <aside className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Folders</p>
+            <div className="mt-4 space-y-1">
+              {folders.map((folder, index) => (
+                <button
+                  key={`${folder.label}-${index}`}
+                  type="button"
+                  onClick={() => setSelectedFolder(folder.id)}
+                  className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm font-medium transition ${
+                    selectedFolder === folder.id
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  <span>{folder.label}</span>
+                </button>
               ))}
             </div>
-          )}
+          </aside>
+
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search or ask XProFlow a question"
+                  className="w-full rounded-2xl border border-transparent bg-slate-100/80 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-slate-200 focus:bg-white focus:ring-2 focus:ring-sky-100"
+                />
+              </div>
+            </div>
+
+            {successMessage ? (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {successMessage}
+              </div>
+            ) : null}
+
+            {error ? <p className="text-sm text-rose-500">{error}</p> : null}
+
+            {isLoading ? (
+              <p className="text-sm text-slate-500">Loading inbox…</p>
+            ) : (
+              <div className="space-y-6">
+                {sections.map((section) => (
+                  <div key={section.key} className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                        {section.title}
+                      </h2>
+                      <span className="text-xs text-slate-400">
+                        {section.messages.length} messages
+                      </span>
+                    </div>
+                    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
+                      {section.messages.length === 0 ? (
+                        <div className="px-6 py-8 text-sm text-slate-400">
+                          No messages in this section.
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-200/70">
+                          {section.messages.map((message) => (
+                            <div
+                              key={message.external_id}
+                              className="flex items-center gap-4 px-6 py-4 transition hover:bg-slate-50"
+                            >
+                              <span
+                                className={`h-2 w-2 flex-shrink-0 rounded-full ${
+                                  message.is_unread ? 'bg-sky-500' : 'bg-slate-200'
+                                }`}
+                              />
+                              <div className="min-w-0 flex-1 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-semibold text-slate-900">
+                                    {message.from_name || message.from_email || 'Unknown'}
+                                  </p>
+                                  <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:inline-block" />
+                                  <p className="text-sm text-slate-600">{message.subject}</p>
+                                </div>
+                                <p className="truncate text-xs text-slate-400">
+                                  {message.snippet}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-2 text-right">
+                                <span className="text-xs font-medium text-slate-400">
+                                  {formatTime(message)}
+                                </span>
+                                {message.status && message.status !== 'NONE' ? (
+                                  <span
+                                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                                      statusStyles[message.status] ||
+                                      'bg-slate-100 text-slate-600'
+                                    }`}
+                                  >
+                                    {message.status.toLowerCase()}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 };
