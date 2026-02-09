@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { classNames } from '../../lib/utils';
 
 type AvatarProps = {
@@ -8,6 +9,12 @@ type AvatarProps = {
 };
 
 export const Avatar = ({ src, alt, fallback, className }: AvatarProps) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(Boolean(src));
+
+  useEffect(() => {
+    setIsImageLoaded(Boolean(src));
+  }, [src]);
+
   return (
     <div
       className={classNames(
@@ -15,7 +22,16 @@ export const Avatar = ({ src, alt, fallback, className }: AvatarProps) => {
         className
       )}
     >
-      {src ? <img src={src} alt={alt ?? 'Avatar'} className="h-full w-full object-cover" /> : fallback}
+      {src && isImageLoaded ? (
+        <img
+          src={src}
+          alt={alt ?? 'Avatar'}
+          className="h-full w-full object-cover"
+          onError={() => setIsImageLoaded(false)}
+        />
+      ) : (
+        fallback
+      )}
     </div>
   );
 };

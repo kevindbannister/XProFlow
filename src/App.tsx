@@ -9,7 +9,7 @@ import Labels from './pages/Labels';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
 import Onboarding from './pages/Onboarding';
-import UserProfile from './pages/UserProfile';
+import ProfilePage from './pages/ProfilePage';
 import Rules from './pages/Rules';
 import Settings from './pages/Settings';
 import SettingsDrafts from './pages/SettingsDrafts';
@@ -56,7 +56,7 @@ const App = () => {
         <Route path="workflows" element={<Workflows />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/drafts" element={<SettingsDrafts />} />
-        <Route path="profile" element={<UserProfile />} />
+        <Route path="profile" element={<ProfilePage />} />
         <Route path="*" element={<Navigate to="/inbox" replace />} />
       </Route>
     </Routes>
