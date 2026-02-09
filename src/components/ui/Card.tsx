@@ -16,7 +16,7 @@ const Card = ({ children, className, variant = 'default' }: CardProps) => {
   return (
     <div
       className={classNames(
-        'rounded-2xl border p-6 shadow-sm',
+        'card-surface border p-6',
         variantClasses[variant],
         className
       )}

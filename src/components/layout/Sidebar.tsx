@@ -1,4 +1,3 @@
-import { NavLink } from 'react-router-dom';
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,13 +7,15 @@ import {
   ListChecks,
   Plug,
   Settings,
-  Tag
+  Tag,
+  X
 } from 'lucide-react';
 import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
 import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
+import SidebarNav, { SidebarNavItem } from './SidebarNav';
 
-const navigation = [
+const navigation: SidebarNavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
   { label: 'Onboarding', to: '/onboarding', icon: ListChecks },
   { label: 'Labels', to: '/labels', icon: Tag },
@@ -31,15 +32,18 @@ type SidebarProps = {
   collapsed: boolean;
   onToggle: () => void;
   theme: 'dark' | 'light';
+  isMobileOpen: boolean;
+  onCloseMobile: () => void;
 };
 
-const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
+const Sidebar = ({ collapsed, onToggle, theme, isMobileOpen, onCloseMobile }: SidebarProps) => {
   const logoSrc = theme === 'dark' ? xProFlowLogoLight : xProFlowLogoDark;
   return (
     <aside
       className={classNames(
-        'sidebar-surface fixed inset-y-0 left-0 z-40 flex flex-col border-r py-8 transition-all',
-        collapsed ? 'w-20 px-4' : 'w-72 px-6'
+        'sidebar-surface fixed inset-y-0 left-0 z-40 flex flex-col overflow-y-auto border-r py-8 transition-all duration-300 lg:inset-y-4 lg:left-4 lg:rounded-[var(--radius-card-lg)] lg:border',
+        collapsed ? 'w-20 px-4' : 'w-72 px-6',
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -58,50 +62,35 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={onToggle}
-          className="rounded-lg border border-slate-200 bg-white p-1 text-slate-600 transition hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Close sidebar"
+            onClick={onCloseMobile}
+            className="icon-button flex h-8 w-8 items-center justify-center lg:hidden"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={onToggle}
+            className="icon-button hidden h-8 w-8 items-center justify-center lg:flex"
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
+        </div>
       </div>
 
-      <nav className="mt-8 flex flex-1 flex-col gap-1">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          return (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={({ isActive }: { isActive: boolean }) =>
-                classNames(
-                  'nav-link group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium transition',
-                  collapsed ? 'justify-center px-2' : 'px-3',
-                  isActive ? 'nav-link-active shadow-sm' : ''
-                )
-              }
-            >
-              {({ isActive }: { isActive: boolean }) => (
-                <>
-                  <Icon className={classNames('h-4 w-4', isActive ? 'text-current' : '')} />
-                  {!collapsed && <span>{item.label}</span>}
-                  {collapsed && (
-                    <span className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs text-white opacity-0 transition group-hover:opacity-100 dark:bg-slate-800">
-                      {item.label}
-                    </span>
-                  )}
-                </>
-              )}
-            </NavLink>
-          );
-        })}
-      </nav>
+      <SidebarNav items={navigation} collapsed={collapsed} />
 
       {!collapsed && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="card-surface border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Try XProFlow Pro
             </p>

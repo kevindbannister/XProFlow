@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Bell, ChevronDown, Menu, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AvatarUploadModal } from '../profile/AvatarUploadModal';
 import { Avatar } from '../ui/Avatar';
 import { DropdownMenu } from '../ui/DropdownMenu';
+import IconButton from '../ui/IconButton';
 import { classNames } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
 import { getUserInitials, useUser } from '../../context/UserContext';
@@ -11,10 +12,11 @@ import { getUserInitials, useUser } from '../../context/UserContext';
 type TopbarProps = {
   theme: 'dark' | 'light';
   onToggleTheme: () => void;
+  onOpenSidebar: () => void;
   title?: string;
 };
 
-const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
+const Topbar = ({ theme, onToggleTheme, onOpenSidebar, title }: TopbarProps) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
@@ -36,8 +38,17 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
   }, [isProfileOpen]);
 
   return (
-    <header className="topbar-surface flex items-center justify-between border-b px-8 py-4">
-      <div className="theme-text-primary text-lg font-semibold">{title}</div>
+    <header className="topbar-surface card-surface card-surface-strong flex flex-wrap items-center justify-between gap-4 border px-5 py-4 lg:px-6">
+      <div className="flex items-center gap-3">
+        <IconButton
+          className="lg:hidden"
+          aria-label="Open sidebar"
+          onClick={onOpenSidebar}
+        >
+          <Menu className="h-4 w-4" />
+        </IconButton>
+        <div className="theme-text-primary text-lg font-semibold">{title}</div>
+      </div>
       <div className="flex items-center gap-3">
         <div className="relative flex items-center">
           <input
@@ -51,28 +62,22 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
                 : 'w-0 opacity-0 pointer-events-none border-transparent px-0 shadow-none'
             )}
           />
-          <button
-            type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
+          <IconButton
             aria-label={isSearchOpen ? 'Close search' : 'Open search'}
             onClick={() => setIsSearchOpen((prev) => !prev)}
           >
             <Bell className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
-          aria-label="Notifications"
-        >
+        <IconButton aria-label="Notifications">
           <Bell className="h-4 w-4" />
-        </button>
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition hover:text-gray-700 dark:border-slate-800 dark:text-slate-300 dark:hover:text-slate-100"
+        </IconButton>
+        <IconButton
           aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={onToggleTheme}
         >
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
+        </IconButton>
         <DropdownMenu
           isOpen={isProfileOpen}
           onOpenChange={setIsProfileOpen}
@@ -80,7 +85,7 @@ const Topbar = ({ theme, onToggleTheme, title }: TopbarProps) => {
           trigger={
             <button
               type="button"
-              className="flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100"
+              className="flex items-center gap-2 rounded-full border border-[var(--outline-border)] bg-[var(--outline-bg)] px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 dark:text-slate-100"
               aria-haspopup="menu"
               aria-expanded={isProfileOpen}
             >

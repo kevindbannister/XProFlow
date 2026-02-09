@@ -11,6 +11,11 @@
   --app-shell-radial-2: rgba(188, 214, 255, 0.6);
   --app-shell-radial-3: rgba(203, 225, 255, 0.55);
   --app-shell-dot: rgba(255, 255, 255, 0.4);
+  --radius-card: 20px;
+  --radius-card-lg: 24px;
+  --radius-pill: 999px;
+  --shadow-card: 0 16px 36px rgba(120, 145, 200, 0.14);
+  --shadow-card-strong: 0 20px 44px rgba(120, 145, 200, 0.18);
   --surface: rgba(255, 255, 255, 0.75);
   --surface-strong: rgba(255, 255, 255, 0.9);
   --surface-border: rgba(255, 255, 255, 0.7);
@@ -244,6 +249,29 @@ body {
   background: var(--surface);
   border-color: var(--surface-border);
   box-shadow: var(--surface-shadow);
+}
+
+.card-surface {
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.card-surface-strong {
+  box-shadow: var(--shadow-card-strong);
+}
+
+.icon-button {
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--outline-border);
+  background-color: var(--outline-bg);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-card);
+  transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+  background-color: var(--outline-bg-hover);
+  color: var(--text-primary);
 }
 
 .topbar-surface {

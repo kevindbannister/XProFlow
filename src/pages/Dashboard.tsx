@@ -94,15 +94,15 @@ const Dashboard = () => {
   let donutOffset = 0;
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-6 lg:space-y-8">
       {showToneCard ? (
-        <Card className="!border-amber-200 !bg-[#fff7db] dark:!border-slate-800 dark:!bg-slate-900">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex flex-col gap-3">
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+        <Card className="!border-amber-200 !bg-[#fff6d6] dark:!border-slate-800 dark:!bg-slate-900">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex flex-1 flex-col gap-3">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
                 Make XProFlow sound like you
               </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
+              <p className="text-sm text-slate-600 dark:text-slate-300 lg:text-base">
                 Onboard your writing samples to teach XProFlow your tone, phrasing, and style
                 preferences so every response sounds authentically yours.
               </p>
@@ -132,7 +132,7 @@ const Dashboard = () => {
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
           Performance Summary
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-3">
           {kpiStats.map((stat) => (
             <KpiCard
               key={stat.label}
@@ -154,9 +154,9 @@ const Dashboard = () => {
             Breakdown of emails received in the last 30 days
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <div className="flex h-40 w-40 items-center justify-center">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px_200px]">
+          <div className="flex justify-center lg:justify-start">
+            <div className="flex h-44 w-44 items-center justify-center">
               <svg width="160" height="160" viewBox="0 0 160 160" className="overflow-visible">
                 <circle
                   cx="80"
@@ -189,22 +189,25 @@ const Dashboard = () => {
                 })}
               </svg>
             </div>
-            <div className="space-y-3">
-              {emailMakeup.map((slice) => (
-                <div key={slice.label} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: slice.color }}
-                    />
-                    <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
-                  </div>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">
-                    {slice.value}%
-                  </span>
+          </div>
+          <div className="space-y-3">
+            {emailMakeup.map((slice) => (
+              <div
+                key={slice.label}
+                className="flex items-center justify-between rounded-2xl border border-transparent bg-white/70 px-3 py-2 text-sm shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/70"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: slice.color }}
+                  />
+                  <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
                 </div>
-              ))}
-            </div>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                  {slice.value}%
+                </span>
+              </div>
+            ))}
           </div>
           <div className="flex flex-col gap-4">
             <MetricCard

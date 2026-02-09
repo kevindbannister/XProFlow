@@ -8,3 +8,6 @@
 ## Engineering docs
 - [Repository architecture](docs/architecture.md)
 - [Secrets & environment variables](docs/secrets.md)
+
+## UI updates
+- Added a soft dashboard shell layout with a responsive sidebar drawer and refreshed card styling for the dashboard experience.
