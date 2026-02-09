@@ -45,7 +45,6 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               to={item.to}
               className="group flex w-full items-center justify-center"
               aria-label={item.label}
-              title={item.label}
             >
               {({ isActive }: { isActive: boolean }) => (
                 <span
@@ -55,6 +54,7 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                       ? 'border-slate-300 bg-slate-900 text-white dark:border-slate-600 dark:bg-slate-100 dark:text-slate-900'
                       : 'group-hover:border-slate-300 group-hover:text-slate-900 dark:group-hover:border-slate-600 dark:group-hover:text-slate-100'
                   )}
+                  title={item.label}
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.6} />
                 </span>
@@ -69,14 +69,15 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
           to="/profile"
           className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-slate-300 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:text-slate-100"
           aria-label="Profile"
-          title="Profile"
         >
-          <Avatar
-            src={user.avatarUrl}
-            alt={`${user.name} avatar`}
-            fallback={getUserInitials(user.name)}
-            className="h-8 w-8 rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-100"
-          />
+          <span title="Profile" className="flex items-center justify-center">
+            <Avatar
+              src={user.avatarUrl}
+              alt={`${user.name} avatar`}
+              fallback={getUserInitials(user.name)}
+              className="h-8 w-8 rounded-full bg-slate-100 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            />
+          </span>
         </NavLink>
         <NavLink
           to="/settings"
@@ -89,9 +90,8 @@ const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             )
           }
           aria-label="Settings"
-          title="Settings"
         >
-          <Settings className="h-5 w-5" strokeWidth={1.6} />
+          <Settings className="h-5 w-5" strokeWidth={1.6} title="Settings" />
         </NavLink>
       </div>
     </aside>
