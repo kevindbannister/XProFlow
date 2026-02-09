@@ -111,15 +111,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setIsAuthenticated(true);
       },
       logout: async () => {
-        if (!csrfToken) {
-          setIsAuthenticated(false);
-          setManualAuth(false);
-          if (typeof window !== 'undefined') {
-            window.localStorage.removeItem('xproflow-manual-auth');
-          }
-          return;
-        }
-        await api.post('/auth/logout', undefined, { 'x-csrf-token': csrfToken });
         setIsAuthenticated(false);
         setGmailConnected(false);
         setGmailEmail(undefined);
@@ -127,6 +118,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setManualAuth(false);
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem('xproflow-manual-auth');
+        }
+        try {
+          if (csrfToken) {
+            await api.post('/auth/logout', undefined, { 'x-csrf-token': csrfToken });
+          }
+        } finally {
+          await supabase.auth.signOut();
         }
       },
       refreshSession
