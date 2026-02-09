@@ -15,12 +15,13 @@ function createOAuthClient() {
   );
 }
 
-function generateAuthUrl({ prompt } = {}) {
+function generateAuthUrl({ prompt, includeGrantedScopes } = {}) {
   const oauthClient = createOAuthClient();
   return oauthClient.generateAuthUrl({
     scope: GOOGLE_SCOPES,
     access_type: 'offline',
-    prompt
+    prompt,
+    include_granted_scopes: includeGrantedScopes
   });
 }
 

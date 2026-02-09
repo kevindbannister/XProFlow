@@ -86,6 +86,25 @@ async function upsertAccount(supabase, account) {
 }
 
 function registerGmailRoutes(app, supabase) {
+  app.get('/api/gmail/oauth/start', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const url = generateAuthUrl({
+        prompt: 'consent',
+        includeGrantedScopes: true
+      });
+
+      res.redirect(url);
+    } catch (error) {
+      console.error('Gmail OAuth start error:', error);
+      res.status(500).json({ error: 'Failed to start Gmail OAuth' });
+    }
+  });
+
   app.get('/api/gmail/authorize', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
