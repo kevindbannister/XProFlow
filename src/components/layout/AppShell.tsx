@@ -7,7 +7,7 @@ import Topbar from './Topbar';
 type ThemeMode = 'dark' | 'light';
 
 const AppShell = () => {
-  const theme: ThemeMode = 'light';
+  const [theme] = useState<ThemeMode>('light');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
