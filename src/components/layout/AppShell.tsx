@@ -7,7 +7,7 @@ import Topbar from './Topbar';
 type ThemeMode = 'dark' | 'light';
 
 const AppShell = () => {
-  const [theme, setTheme] = useState<ThemeMode>('light');
+  const theme: ThemeMode = 'light';
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -40,13 +40,7 @@ const AppShell = () => {
       <div
         className="relative z-10 flex min-h-screen flex-1 flex-col ml-20"
       >
-        <Topbar
-          theme={theme}
-          onToggleTheme={() =>
-            setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-          }
-          title={topbarTitle}
-        />
+        <Topbar title={topbarTitle} />
         <main className="flex-1 space-y-6 px-8 py-8">
           <Outlet />
         </main>
