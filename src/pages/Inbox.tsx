@@ -181,12 +181,15 @@ const Inbox = () => {
           <p className="mt-3 text-sm text-slate-500">
             To sync and prioritise your inbox, connect your Gmail account.
           </p>
-          <a
-            href="/api/gmail/oauth/start"
+          <button
+            type="button"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+            onClick={() => {
+              window.location.href = '/api/gmail/oauth/start';
+            }}
           >
             Connect Gmail
-          </a>
+          </button>
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
