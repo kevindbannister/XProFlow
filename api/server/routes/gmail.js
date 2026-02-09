@@ -6,7 +6,11 @@ const {
   refreshAccessToken,
   fetchUserInfo
 } = require('../google/oauth');
-const { listMessages, getMessageMetadata } = require('../google/gmail');
+const {
+  listMessages,
+  getMessageMetadata,
+  fetchProfile
+} = require('../google/gmail');
 
 const STATUS_MAP = {
   NONE: 'NONE',
@@ -86,6 +90,8 @@ async function upsertAccount(supabase, account) {
 }
 
 function registerGmailRoutes(app, supabase) {
+  const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+
   app.get('/api/gmail/oauth/start', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
@@ -102,6 +108,75 @@ function registerGmailRoutes(app, supabase) {
     } catch (error) {
       console.error('Gmail OAuth start error:', error);
       res.status(500).json({ error: 'Failed to start Gmail OAuth' });
+    }
+  });
+
+  app.get('/api/gmail/oauth/callback', async (req, res) => {
+    const redirectUrl = new URL('/inbox', appBaseUrl);
+    const errorRedirect = new URL('/integrations', appBaseUrl);
+
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const { code } = req.query;
+      if (!code) {
+        errorRedirect.searchParams.set('error', 'gmail_code');
+        res.redirect(errorRedirect.toString());
+        return;
+      }
+
+      const { tokens } = await exchangeCode(code);
+      const accessToken = tokens.access_token;
+      if (!accessToken) {
+        errorRedirect.searchParams.set('error', 'gmail_access_token');
+        res.redirect(errorRedirect.toString());
+        return;
+      }
+
+      const { emailAddress } = await fetchProfile(accessToken);
+      if (!emailAddress) {
+        errorRedirect.searchParams.set('error', 'gmail_profile');
+        res.redirect(errorRedirect.toString());
+        return;
+      }
+
+      const existing = await getStoredAccount(supabase, user.id);
+      const encryptedAccessToken = encrypt(accessToken);
+      const refreshToken = tokens.refresh_token
+        ? encrypt(tokens.refresh_token)
+        : existing?.refresh_token || null;
+
+      if (!refreshToken) {
+        errorRedirect.searchParams.set('error', 'gmail_refresh_token');
+        res.redirect(errorRedirect.toString());
+        return;
+      }
+
+      const expiresIn = typeof tokens.expires_in === 'number' ? tokens.expires_in : null;
+      const expiryTimestamp = tokens.expiry_date
+        ? tokens.expiry_date
+        : Date.now() + (expiresIn || 3600) * 1000;
+      const tokenExpiry = new Date(expiryTimestamp).toISOString();
+
+      await upsertAccount(supabase, {
+        user_id: user.id,
+        email: emailAddress,
+        provider: 'google',
+        access_token: encryptedAccessToken,
+        refresh_token: refreshToken,
+        expiry_ts: tokenExpiry
+      });
+
+      redirectUrl.searchParams.set('connected', 'gmail');
+      redirectUrl.searchParams.set('message', 'Gmail connected');
+      res.redirect(redirectUrl.toString());
+    } catch (error) {
+      console.error('Gmail OAuth callback error:', error);
+      errorRedirect.searchParams.set('error', 'gmail_callback');
+      res.redirect(errorRedirect.toString());
     }
   });
 

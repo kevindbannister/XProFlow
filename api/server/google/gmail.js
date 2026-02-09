@@ -63,4 +63,21 @@ async function getMessageMetadata(accessToken, messageId) {
   return response.json();
 }
 
-module.exports = { getFolderQuery, listMessages, getMessageMetadata };
+async function fetchProfile(accessToken) {
+  const response = await fetch(`${GMAIL_BASE_URL}/users/me/profile`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Gmail profile: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+module.exports = {
+  getFolderQuery,
+  listMessages,
+  getMessageMetadata,
+  fetchProfile
+};
