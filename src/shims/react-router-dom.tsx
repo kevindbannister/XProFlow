@@ -13,6 +13,7 @@ type NavigateOptions = {
 
 type RouterState = {
   pathname: string;
+  search: string;
   navigate: (to: string, options?: NavigateOptions) => void;
 };
 
@@ -89,33 +90,56 @@ const matchRoutes = (children: React.ReactNode, pathname: string): RouteMatch | 
 };
 
 export const BrowserRouter = ({ children }: { children: React.ReactNode }) => {
-  const [pathname, setPathname] = useState(() =>
-    typeof window === 'undefined' ? '/' : window.location.pathname || '/'
-  );
+  const [locationState, setLocationState] = useState(() => ({
+    pathname: typeof window === 'undefined' ? '/' : window.location.pathname || '/',
+    search: typeof window === 'undefined' ? '' : window.location.search || ''
+  }));
+
+  const parseLocation = useCallback((to: string) => {
+    if (typeof window === 'undefined') {
+      return { pathname: normalizePathname(to), search: '' };
+    }
+    const url = new URL(to, window.location.origin);
+    return {
+      pathname: normalizePathname(url.pathname),
+      search: url.search
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       return undefined;
     }
-    const handlePopState = () => setPathname(window.location.pathname || '/');
+    const handlePopState = () =>
+      setLocationState({
+        pathname: window.location.pathname || '/',
+        search: window.location.search || ''
+      });
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigate = useCallback((to: string, options?: NavigateOptions) => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const next = normalizePathname(to);
-    if (options?.replace) {
-      window.history.replaceState({}, '', next);
-    } else {
-      window.history.pushState({}, '', next);
-    }
-    setPathname(next);
-  }, []);
+  const navigate = useCallback(
+    (to: string, options?: NavigateOptions) => {
+      if (typeof window === 'undefined') {
+        return;
+      }
+      const next = parseLocation(to);
+      const nextUrl = `${next.pathname}${next.search}`;
+      if (options?.replace) {
+        window.history.replaceState({}, '', nextUrl);
+      } else {
+        window.history.pushState({}, '', nextUrl);
+      }
+      setLocationState(next);
+    },
+    [parseLocation]
+  );
 
-  const value = useMemo(() => ({ pathname, navigate }), [pathname, navigate]);
+  const value = useMemo(
+    () => ({ pathname: locationState.pathname, search: locationState.search, navigate }),
+    [locationState.pathname, locationState.search, navigate]
+  );
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;
 };
@@ -158,7 +182,7 @@ export const useNavigate = () => {
 
 export const useLocation = () => {
   const router = useContext(RouterContext);
-  return { pathname: router?.pathname ?? '/' };
+  return { pathname: router?.pathname ?? '/', search: router?.search ?? '' };
 };
 
 export const Link = ({ to, className, children }: LinkProps) => {

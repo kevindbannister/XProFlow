@@ -7,7 +7,6 @@ import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
-import GmailCallback from './pages/GmailCallback';
 import Onboarding from './pages/Onboarding';
 import ProfilePage from './pages/ProfilePage';
 import Rules from './pages/Rules';
@@ -39,7 +38,6 @@ const App = () => {
         }
       />
       <Route path="auth/callback" element={<AuthCallback />} />
-      <Route path="gmail/callback" element={<GmailCallback />} />
       <Route
         element={
           <RequireAuth>

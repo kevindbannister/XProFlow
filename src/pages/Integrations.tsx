@@ -14,8 +14,7 @@ const Integrations = () => {
   const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
 
   const handleConnect = async () => {
-    const response = await api.get<{ url: string }>('/api/gmail/authorize');
-    window.location.href = response.url;
+    window.location.href = '/api/gmail/oauth/start';
   };
 
   const handleDisconnect = async () => {

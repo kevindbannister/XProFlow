@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { api } from '../lib/api';
 import type { GroupedInboxResponse, InboxFolder, InboxMessage } from '../../shared/types/inbox';
@@ -51,6 +52,9 @@ const Inbox = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const fetchInbox = useCallback(async () => {
     setIsLoading(true);
@@ -71,6 +75,16 @@ const Inbox = () => {
   useEffect(() => {
     void fetchInbox();
   }, [fetchInbox]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const connected = params.get('connected');
+    if (connected === 'gmail') {
+      const message = params.get('message') || 'Gmail connected successfully.';
+      setSuccessMessage(message);
+      navigate('/inbox', { replace: true });
+    }
+  }, [location.search, navigate]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -150,6 +164,12 @@ const Inbox = () => {
               />
             </div>
           </div>
+
+          {successMessage ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {successMessage}
+            </div>
+          ) : null}
 
           {error ? <p className="text-sm text-rose-500">{error}</p> : null}
 
