@@ -11,7 +11,12 @@ const statusStyles = {
 };
 
 const Integrations = () => {
-  const { gmailConnected, gmailEmail, csrfToken, loginWithGoogle, refreshSession } = useAuth();
+  const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
+
+  const handleConnect = async () => {
+    const response = await api.get<{ url: string }>('/api/gmail/authorize');
+    window.location.href = response.url;
+  };
 
   const handleDisconnect = async () => {
     if (!csrfToken) {
@@ -93,7 +98,7 @@ const Integrations = () => {
                   Disconnect
                 </Button>
               ) : (
-                <Button type="button" variant="outline" size="sm" onClick={loginWithGoogle}>
+                <Button type="button" variant="outline" size="sm" onClick={handleConnect}>
                   Connect Gmail
                 </Button>
               )}

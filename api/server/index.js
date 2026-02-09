@@ -3,15 +3,24 @@ async function startServer() {
   await loadSecrets();
 
   const express = require('express');
+  const express = require('express');
   const { registerGoogleAuth } = require('./auth/google');
+  const { registerGmailRoutes } = require('./routes/gmail');
+  const { registerInboxRoutes } = require('./routes/inbox');
+  const { registerSessionRoutes } = require('./routes/session');
   const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
 
   const app = express();
-  const port = Number(process.env.PORT || 3001);
+  const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
   const supabase = getSupabaseClient();
 
+  app.use(express.json());
+
   registerGoogleAuth(app, supabase);
+  registerSessionRoutes(app, supabase);
+  registerGmailRoutes(app, supabase);
+  registerInboxRoutes(app, supabase);
 
   app.get('/health', (req, res) => {
     return res.status(200).json({ status: 'ok' });

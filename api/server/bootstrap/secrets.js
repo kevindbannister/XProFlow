@@ -11,14 +11,13 @@ async function loadSecrets() {
   }
 
   const secretName = process.env.AWS_SECRET_NAME;
-
-  if (!secretName) {
-    throw new Error('AWS_SECRET_NAME is required to load secrets from AWS.');
-  }
-
   const region = process.env.AWS_REGION;
-  if (!region) {
-    throw new Error('AWS_REGION is required to load secrets from AWS.');
+
+  if (!secretName || !region) {
+    console.warn(
+      'AWS secrets not configured. Falling back to existing environment variables.'
+    );
+    return;
   }
 
   const client = new SecretsManagerClient({ region });

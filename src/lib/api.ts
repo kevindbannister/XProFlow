@@ -1,3 +1,5 @@
+import { supabase } from './supabaseClient';
+
 type ApiOptions = {
   method?: string;
   body?: unknown;
@@ -5,11 +7,14 @@ type ApiOptions = {
 };
 
 const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
+  const { data } = await supabase.auth.getSession();
+  const accessToken = data.session?.access_token;
   const response = await fetch(endpoint, {
     method: options.method || 'GET',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options.headers || {})
     },
     body: options.body ? JSON.stringify(options.body) : undefined

@@ -14,6 +14,9 @@ Docker Compose reads `.env.runtime` via `env_file` on the `xproflow-api` service
 | --- | --- |
 | `SUPABASE_URL` | Supabase project URL for the API client. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key used by the API to access Supabase. |
+| `SUPABASE_ANON_KEY` | Supabase anon key used by the frontend client. |
+| `VITE_SUPABASE_URL` | Supabase URL exposed to the Vite frontend. |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon key exposed to the Vite frontend. |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID for Gmail authorization. |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret. |
 | `GOOGLE_REDIRECT_URI` | OAuth redirect URI that Google returns to. |
@@ -31,6 +34,7 @@ These runtime variables belong in `.env.runtime` on production hosts (EC2). Do n
 | Variable | Purpose |
 | --- | --- |
 | `PORT` | API listen port (defaults to `3001`). |
+| `SERVER_PORT` | API listen port (falls back to `PORT`). |
 
 ## Dev-only variables
 None.
