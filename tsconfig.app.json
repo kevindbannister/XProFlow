@@ -13,7 +13,6 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "lucide-react": ["src/shims/lucide-react"],
       "react-router-dom": ["src/shims/react-router-dom"]
     },
     "strict": true,
