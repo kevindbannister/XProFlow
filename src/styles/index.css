@@ -307,6 +307,7 @@ body {
   background: var(--surface-strong);
   color: var(--accent);
   box-shadow: var(--nav-shadow);
+  border-color: var(--outline-border);
 }
 
 .button-ghost {

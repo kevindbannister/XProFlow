@@ -1,5 +1,6 @@
 import { Clock, Mail, PoundSterling, X } from 'lucide-react';
 import { useState } from 'react';
+import DashboardShell from '../components/layout/DashboardShell';
 import Card from '../components/ui/Card';
 import { xProFlowAccents, xProFlowBlue } from '../lib/designTokens';
 
@@ -94,7 +95,7 @@ const Dashboard = () => {
   let donutOffset = 0;
 
   return (
-    <section className="space-y-6">
+    <DashboardShell>
       {showToneCard ? (
         <Card className="!border-amber-200 !bg-[#fff7db] dark:!border-slate-800 dark:!bg-slate-900">
           <div className="flex items-start justify-between gap-4">
@@ -154,57 +155,55 @@ const Dashboard = () => {
             Breakdown of emails received in the last 30 days
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_240px]">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <div className="flex h-40 w-40 items-center justify-center">
-              <svg width="160" height="160" viewBox="0 0 160 160" className="overflow-visible">
-                <circle
-                  cx="80"
-                  cy="80"
-                  r={donutRadius}
-                  fill="none"
-                  strokeWidth={donutStroke}
-                  className="stroke-slate-200 dark:stroke-slate-700"
-                />
-                {emailMakeup.map((slice) => {
-                  const sliceLength = (slice.value / donutTotal) * donutCircumference;
-                  const dashArray = `${sliceLength} ${donutCircumference - sliceLength}`;
-                  const dashOffset = -(donutOffset / donutTotal) * donutCircumference;
-                  donutOffset += slice.value;
-                  return (
-                    <circle
-                      key={slice.label}
-                      cx="80"
-                      cy="80"
-                      r={donutRadius}
-                      fill="none"
-                      stroke={slice.color}
-                      strokeWidth={donutStroke}
-                      strokeDasharray={dashArray}
-                      strokeDashoffset={dashOffset}
-                      strokeLinecap="round"
-                      transform="rotate(-90 80 80)"
-                    />
-                  );
-                })}
-              </svg>
-            </div>
-            <div className="space-y-3">
-              {emailMakeup.map((slice) => (
-                <div key={slice.label} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: slice.color }}
-                    />
-                    <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
-                  </div>
-                  <span className="font-semibold text-slate-900 dark:text-slate-100">
-                    {slice.value}%
-                  </span>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,220px)_minmax(0,240px)]">
+          <div className="flex h-44 w-full items-center justify-center rounded-3xl bg-white/70 dark:bg-slate-900/60">
+            <svg width="160" height="160" viewBox="0 0 160 160" className="overflow-visible">
+              <circle
+                cx="80"
+                cy="80"
+                r={donutRadius}
+                fill="none"
+                strokeWidth={donutStroke}
+                className="stroke-slate-200 dark:stroke-slate-700"
+              />
+              {emailMakeup.map((slice) => {
+                const sliceLength = (slice.value / donutTotal) * donutCircumference;
+                const dashArray = `${sliceLength} ${donutCircumference - sliceLength}`;
+                const dashOffset = -(donutOffset / donutTotal) * donutCircumference;
+                donutOffset += slice.value;
+                return (
+                  <circle
+                    key={slice.label}
+                    cx="80"
+                    cy="80"
+                    r={donutRadius}
+                    fill="none"
+                    stroke={slice.color}
+                    strokeWidth={donutStroke}
+                    strokeDasharray={dashArray}
+                    strokeDashoffset={dashOffset}
+                    strokeLinecap="round"
+                    transform="rotate(-90 80 80)"
+                  />
+                );
+              })}
+            </svg>
+          </div>
+          <div className="space-y-4">
+            {emailMakeup.map((slice) => (
+              <div key={slice.label} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: slice.color }}
+                  />
+                  <span className="text-slate-600 dark:text-slate-300">{slice.label}</span>
                 </div>
-              ))}
-            </div>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">
+                  {slice.value}%
+                </span>
+              </div>
+            ))}
           </div>
           <div className="flex flex-col gap-4">
             <MetricCard
@@ -217,7 +216,7 @@ const Dashboard = () => {
         </div>
       </Card>
 
-    </section>
+    </DashboardShell>
   );
 };
 

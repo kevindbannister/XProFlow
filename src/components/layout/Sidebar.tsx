@@ -13,6 +13,7 @@ import {
 import { xProFlowBlue } from '../../lib/designTokens';
 import { classNames } from '../../lib/utils';
 import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
+import Card from '../ui/Card';
 
 const navigation = [
   { label: 'Dashboard', to: '/dashboard', icon: Home },
@@ -31,15 +32,28 @@ type SidebarProps = {
   collapsed: boolean;
   onToggle: () => void;
   theme: 'dark' | 'light';
+  className?: string;
+  showClose?: boolean;
+  onClose?: () => void;
+  showCollapseToggle?: boolean;
 };
 
-const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
+const Sidebar = ({
+  collapsed,
+  onToggle,
+  theme,
+  className,
+  showClose = false,
+  onClose,
+  showCollapseToggle = true
+}: SidebarProps) => {
   const logoSrc = theme === 'dark' ? xProFlowLogoLight : xProFlowLogoDark;
   return (
     <aside
       className={classNames(
-        'sidebar-surface fixed inset-y-0 left-0 z-40 flex flex-col border-r py-8 transition-all',
-        collapsed ? 'w-20 px-4' : 'w-72 px-6'
+        'sidebar-surface fixed inset-y-0 left-0 z-40 flex h-full flex-col border-r py-8 transition-all',
+        collapsed ? 'w-20 px-4' : 'w-72 px-6',
+        className
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -58,17 +72,35 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={onToggle}
-          className="rounded-lg border border-slate-200 bg-white p-1 text-slate-600 transition hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
-        >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          {showCollapseToggle && (
+            <button
+              type="button"
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              onClick={onToggle}
+              className="rounded-full border border-slate-200 bg-white p-1 text-slate-600 transition hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+            >
+              {collapsed ? (
+                <ChevronRight className="h-4 w-4" />
+              ) : (
+                <ChevronLeft className="h-4 w-4" />
+              )}
+            </button>
+          )}
+          {showClose && (
+            <button
+              type="button"
+              aria-label="Close sidebar"
+              onClick={onClose}
+              className="rounded-full border border-slate-200 bg-white p-1 text-slate-600 transition hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
-      <nav className="mt-8 flex flex-1 flex-col gap-1">
+      <nav className="mt-8 flex flex-1 flex-col gap-2 overflow-y-auto pr-1">
         {navigation.map((item) => {
           const Icon = item.icon;
           return (
@@ -77,8 +109,8 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
               to={item.to}
               className={({ isActive }: { isActive: boolean }) =>
                 classNames(
-                  'nav-link group relative flex items-center gap-3 rounded-lg border border-transparent py-2 text-sm font-medium transition',
-                  collapsed ? 'justify-center px-2' : 'px-3',
+                  'nav-link group relative flex items-center gap-3 rounded-full border border-transparent py-2 text-sm font-medium transition',
+                  collapsed ? 'justify-center px-2' : 'px-4',
                   isActive ? 'nav-link-active shadow-sm' : ''
                 )
               }
@@ -101,7 +133,7 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
 
       {!collapsed && (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <Card className="p-4">
             <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Try XProFlow Pro
             </p>
@@ -117,7 +149,7 @@ const Sidebar = ({ collapsed, onToggle, theme }: SidebarProps) => {
             >
               Upgrade to Pro
             </button>
-          </div>
+          </Card>
           <div className="flex flex-col gap-2">
             {secondaryLinks.map((link) => (
               <button

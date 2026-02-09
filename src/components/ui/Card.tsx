@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { classNames } from '../../lib/utils';
+import { xProFlowRadii, xProFlowShadows } from '../../lib/designTokens';
 
 type CardProps = {
   children: ReactNode;
@@ -16,7 +17,9 @@ const Card = ({ children, className, variant = 'default' }: CardProps) => {
   return (
     <div
       className={classNames(
-        'rounded-2xl border p-6 shadow-sm',
+        'border p-6',
+        xProFlowRadii.card,
+        xProFlowShadows.card,
         variantClasses[variant],
         className
       )}

@@ -18,6 +18,21 @@ export const xProFlowBlueChart = {
   tertiary: '#CBD5E1'
 };
 
+export const xProFlowRadii = {
+  card: 'rounded-3xl',
+  pill: 'rounded-full',
+  shell: 'rounded-[28px]'
+};
+
+export const xProFlowSpacing = {
+  page: 'px-4 py-6 sm:px-6 lg:px-10 lg:py-8',
+  section: 'space-y-6'
+};
+
+export const xProFlowShadows = {
+  card: 'shadow-[0_20px_50px_rgba(120,145,200,0.12)]'
+};
+
 export const xProFlowAccents = {
   blue: {
     text: 'text-sky-600',
