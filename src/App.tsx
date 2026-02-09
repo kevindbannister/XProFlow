@@ -34,7 +34,7 @@ const App = () => {
       <Route
         path="login"
         element={
-          isLoading ? null : isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+          isLoading ? null : isAuthenticated ? <Navigate to="/inbox" replace /> : <Login />
         }
       />
       <Route path="auth/callback" element={<AuthCallback />} />
@@ -45,8 +45,9 @@ const App = () => {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route index element={<Navigate to="/inbox" replace />} />
+        <Route path="inbox" element={<Dashboard />} />
+        <Route path="dashboard" element={<Navigate to="/inbox" replace />} />
         <Route path="email-setup" element={<EmailSetup />} />
         <Route path="onboarding" element={<Onboarding />} />
         <Route path="labels" element={<Labels />} />
@@ -56,7 +57,7 @@ const App = () => {
         <Route path="settings" element={<Settings />} />
         <Route path="settings/drafts" element={<SettingsDrafts />} />
         <Route path="profile" element={<UserProfile />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/inbox" replace />} />
       </Route>
     </Routes>
   );

@@ -25,7 +25,7 @@ const AuthCallback = () => {
       if (data?.session) {
         setMsg('Signed in. Redirecting…');
         await refreshSession();
-        navigate('/dashboard', { replace: true });
+        navigate('/inbox', { replace: true });
         return;
       }
 
@@ -36,7 +36,7 @@ const AuthCallback = () => {
 
         if (retry.data?.session) {
           await refreshSession();
-          navigate('/dashboard', { replace: true });
+          navigate('/inbox', { replace: true });
         } else {
           navigate('/login?error=no_session', { replace: true });
         }
