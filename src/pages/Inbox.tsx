@@ -1,5 +1,22 @@
 import { Search } from 'lucide-react';
 
+type InboxItem = {
+  id: string;
+  sender: string;
+  subject: string;
+  time: string;
+  status?: string;
+  statusTone?: string;
+  unread?: boolean;
+  date?: string;
+};
+
+type InboxSection = {
+  title: string;
+  summary?: string;
+  items: InboxItem[];
+};
+
 const folderLinks = [
   'Main',
   'Promotions',
@@ -11,7 +28,7 @@ const folderLinks = [
   'All'
 ];
 
-const inboxSections = [
+const inboxSections: InboxSection[] = [
   {
     title: 'Today',
     summary: 'Preparing your recent email history...',
