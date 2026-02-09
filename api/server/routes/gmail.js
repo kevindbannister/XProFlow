@@ -94,6 +94,7 @@ function registerGmailRoutes(app, supabase) {
 
   app.get('/api/gmail/oauth/start', async (req, res) => {
     try {
+      console.log('Gmail OAuth start requested');
       const user = await requireUser(req, res, supabase);
       if (!user) {
         return;
