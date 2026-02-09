@@ -18,6 +18,9 @@
   --surface-shadow: 0 20px 60px rgba(80, 115, 190, 0.16);
   --surface-shadow-strong: 0 15px 40px rgba(84, 120, 190, 0.15);
   --surface-hover: rgba(255, 255, 255, 0.7);
+  --radius-card: 22px;
+  --radius-shell: 28px;
+  --radius-pill: 999px;
   --sidebar-gradient: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.8),
@@ -31,6 +34,8 @@
   --panel-border: rgba(255, 255, 255, 0.6);
   --panel-shadow: 0 12px 30px rgba(84, 120, 190, 0.12);
   --overlay: rgba(15, 23, 42, 0.3);
+  --shadow-soft: 0 16px 40px rgba(80, 115, 190, 0.12);
+  --shadow-soft-strong: 0 20px 45px rgba(80, 115, 190, 0.18);
   --accent: #2563eb;
   --text-primary: #0f172a;
   --text-secondary: #475569;
@@ -84,6 +89,9 @@
   --surface-shadow: 0 20px 50px rgba(2, 6, 23, 0.45);
   --surface-shadow-strong: 0 16px 32px rgba(2, 6, 23, 0.45);
   --surface-hover: rgba(30, 41, 59, 0.8);
+  --radius-card: 22px;
+  --radius-shell: 28px;
+  --radius-pill: 999px;
   --sidebar-gradient: linear-gradient(
     to bottom,
     rgba(15, 23, 42, 0.95),
@@ -97,6 +105,8 @@
   --panel-border: rgba(148, 163, 184, 0.24);
   --panel-shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
   --overlay: rgba(2, 6, 23, 0.7);
+  --shadow-soft: 0 16px 36px rgba(2, 6, 23, 0.5);
+  --shadow-soft-strong: 0 20px 40px rgba(2, 6, 23, 0.6);
   --accent: #60a5fa;
   --text-primary: #e2e8f0;
   --text-secondary: #cbd5f5;
@@ -150,6 +160,9 @@
   --surface-shadow: 0 20px 50px rgba(120, 145, 200, 0.14);
   --surface-shadow-strong: 0 16px 36px rgba(120, 145, 200, 0.16);
   --surface-hover: rgba(244, 248, 255, 0.95);
+  --radius-card: 22px;
+  --radius-shell: 28px;
+  --radius-pill: 999px;
   --sidebar-gradient: linear-gradient(
     to bottom,
     rgba(255, 255, 255, 0.98),
@@ -163,6 +176,8 @@
   --panel-border: rgba(208, 223, 250, 0.85);
   --panel-shadow: 0 14px 32px rgba(120, 145, 200, 0.18);
   --overlay: rgba(148, 163, 184, 0.25);
+  --shadow-soft: 0 18px 40px rgba(120, 145, 200, 0.16);
+  --shadow-soft-strong: 0 22px 45px rgba(120, 145, 200, 0.2);
   --accent: #2f6df6;
   --text-primary: #1f2a44;
   --text-secondary: #4b5b74;
@@ -267,7 +282,7 @@ body {
 .panel-surface {
   background: var(--panel-bg);
   border-color: var(--panel-border);
-  box-shadow: var(--panel-shadow);
+  box-shadow: var(--shadow-soft);
 }
 
 .chip-surface {
@@ -304,8 +319,9 @@ body {
 }
 
 .nav-link-active {
-  background: var(--surface-strong);
+  background: var(--outline-bg);
   color: var(--accent);
+  border-color: var(--outline-border);
   box-shadow: var(--nav-shadow);
 }
 
@@ -334,6 +350,37 @@ body {
 
 .button-soft:hover {
   background-color: var(--soft-bg-hover);
+}
+
+.icon-button {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--outline-border);
+  background-color: var(--outline-bg);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.icon-button:hover {
+  background-color: var(--outline-bg-hover);
+  color: var(--text-primary);
+}
+
+.profile-pill {
+  border-color: var(--outline-border);
+  background-color: var(--surface);
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.profile-pill:hover {
+  border-color: var(--outline-border);
+  background-color: var(--surface-hover);
+  color: var(--text-primary);
 }
 
 .input-surface {
