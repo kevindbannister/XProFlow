@@ -65,18 +65,19 @@ function normalizeMessage(message, folder) {
   };
 }
 
-async function getStoredAccount(supabase, userId) {
-  const { data, error } = await supabase
-    .from('gmail_accounts')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
+async function getStoredAccount(supabase, userId, email) {
+  let query = supabase.from('gmail_accounts').select('*').eq('user_id', userId);
+  if (email) {
+    query = query.eq('email', email);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false }).limit(1);
 
   if (error) {
     throw error;
   }
 
-  return data;
+  return Array.isArray(data) ? data[0] || null : null;
 }
 
 async function upsertAccount(supabase, account) {
@@ -91,6 +92,16 @@ async function upsertAccount(supabase, account) {
 
 function registerGmailRoutes(app, supabase) {
   const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+
+  const getSafeRedirectFromState = (state) => {
+    if (typeof state !== 'string' || !state.startsWith('/') || state.startsWith('//')) {
+      return null;
+    }
+
+    const stateUrl = new URL(state, appBaseUrl);
+    const appOrigin = new URL(appBaseUrl).origin;
+    return stateUrl.origin === appOrigin ? stateUrl : null;
+  };
 
   const handleGmailOAuthStart = async (req, res) => {
     try {
@@ -157,7 +168,7 @@ function registerGmailRoutes(app, supabase) {
   app.get('/api/gmail/oauth/start', handleGmailOAuthStart);
   app.get('/gmail/oauth/start', handleGmailOAuthStart);
 
-  app.get('/api/gmail/oauth/callback', async (req, res) => {
+  const handleGmailOAuthCallback = async (req, res) => {
     let redirectUrl = new URL('/inbox', appBaseUrl);
     const errorRedirect = new URL('/integrations', appBaseUrl);
 
@@ -167,7 +178,7 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const { code } = req.query;
+      const code = typeof req.query.code === 'string' ? req.query.code : null;
       if (!code) {
         errorRedirect.searchParams.set('error', 'gmail_code');
         res.redirect(errorRedirect.toString());
@@ -189,7 +200,7 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const existing = await getStoredAccount(supabase, user.id);
+      const existing = await getStoredAccount(supabase, user.id, emailAddress);
       const encryptedAccessToken = encrypt(accessToken);
       const refreshToken = tokens.refresh_token
         ? encrypt(tokens.refresh_token)
@@ -210,15 +221,15 @@ function registerGmailRoutes(app, supabase) {
       await upsertAccount(supabase, {
         user_id: user.id,
         email: emailAddress,
-        provider: 'google',
+        provider: 'gmail',
         access_token: encryptedAccessToken,
         refresh_token: refreshToken,
         expiry_ts: tokenExpiry
       });
 
-      const { state } = req.query;
-      if (typeof state === 'string' && state.startsWith('/')) {
-        redirectUrl = new URL(state, appBaseUrl);
+      const safeStateRedirect = getSafeRedirectFromState(req.query.state);
+      if (safeStateRedirect) {
+        redirectUrl = safeStateRedirect;
       }
 
       redirectUrl.searchParams.set('connected', 'gmail');
@@ -229,7 +240,10 @@ function registerGmailRoutes(app, supabase) {
       errorRedirect.searchParams.set('error', 'gmail_callback');
       res.redirect(errorRedirect.toString());
     }
-  });
+  };
+
+  app.get('/api/gmail/oauth/callback', handleGmailOAuthCallback);
+  app.get('/gmail/oauth/callback', handleGmailOAuthCallback);
 
   app.get('/api/gmail/authorize', async (req, res) => {
     try {
@@ -296,7 +310,7 @@ function registerGmailRoutes(app, supabase) {
       await upsertAccount(supabase, {
         user_id: user.id,
         email,
-        provider: 'google',
+        provider: 'gmail',
         access_token: encryptedAccessToken,
         refresh_token: refreshToken || (await getStoredAccount(supabase, user.id))?.refresh_token,
         expiry_ts: tokenExpiry
@@ -339,7 +353,7 @@ function registerGmailRoutes(app, supabase) {
         await upsertAccount(supabase, {
           user_id: user.id,
           email: account.email,
-          provider: 'google',
+          provider: 'gmail',
           access_token: encrypt(accessToken),
           refresh_token: account.refresh_token,
           expiry_ts: nextExpiry
