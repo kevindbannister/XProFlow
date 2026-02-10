@@ -1,142 +1,170 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Card from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { settingsSections } from '../lib/settingsData';
+import {
+  AtSign,
+  Clock3,
+  PenSquare,
+  Shield,
+  Tag,
+  Menu,
+  X
+} from 'lucide-react';
+import '../styles/settings-page.css';
+
+type SettingsCategoryId = 'rules' | 'labels' | 'writingStyle' | 'signatureTimeZone' | 'account';
+
+type SettingsCategory = {
+  id: SettingsCategoryId;
+  label: string;
+  icon: typeof Shield;
+  title: string;
+  subtitle: string;
+  sections: Array<{ heading: string; description: string }>;
+};
+
+const categories: SettingsCategory[] = [
+  {
+    id: 'rules',
+    label: 'Rules',
+    icon: Shield,
+    title: 'Rules',
+    subtitle: 'Control automation, approvals, and send protections.',
+    sections: [
+      { heading: 'Approval rules', description: 'Require manual review for key contacts and high-risk drafts.' },
+      { heading: 'Automation scope', description: 'Set when assistant drafting is enabled and when it should pause.' },
+      { heading: 'Quiet hours', description: 'Prevent accidental sends outside your preferred working times.' }
+    ]
+  },
+  {
+    id: 'labels',
+    label: 'Labels',
+    icon: Tag,
+    title: 'Labels',
+    subtitle: 'Organize inbound and drafted messages with consistent tags.',
+    sections: [
+      { heading: 'Default labels', description: 'Apply a review label automatically to generated drafts.' },
+      { heading: 'Smart categorization', description: 'Use topic-driven labels for billing, support, and follow-ups.' },
+      { heading: 'Archive behavior', description: 'Move low-priority labeled threads out of your primary inbox.' }
+    ]
+  },
+  {
+    id: 'writingStyle',
+    label: 'Writing Style',
+    icon: PenSquare,
+    title: 'Writing Style',
+    subtitle: 'Tune voice, formality, and response structure in drafts.',
+    sections: [
+      { heading: 'Tone preset', description: 'Keep a friendly and professional voice across all conversations.' },
+      { heading: 'Response length', description: 'Choose concise defaults while allowing detailed replies when needed.' },
+      { heading: 'Formatting', description: 'Enable clean summaries and action-first paragraph structure.' }
+    ]
+  },
+  {
+    id: 'signatureTimeZone',
+    label: 'Signature & Time Zone',
+    icon: Clock3,
+    title: 'Signature & Time Zone',
+    subtitle: 'Set identity details and schedule behavior.',
+    sections: [
+      { heading: 'Signature block', description: 'Attach your preferred signature to outbound drafts by default.' },
+      { heading: 'Send scheduling', description: 'Use your local time zone when suggesting delayed send times.' },
+      { heading: 'Availability notes', description: 'Optionally include office hours in generated responses.' }
+    ]
+  },
+  {
+    id: 'account',
+    label: 'Account',
+    icon: AtSign,
+    title: 'Account',
+    subtitle: 'Manage profile, security, and personal preferences.',
+    sections: [
+      { heading: 'Profile', description: 'Update display name and account metadata used in your workspace.' },
+      { heading: 'Security', description: 'Configure two-factor authentication and sign-in protections.' },
+      { heading: 'Notifications', description: 'Choose product updates and assistant activity alerts.' }
+    ]
+  }
+];
 
 const Settings = () => {
-  const [toneCardHidden, setToneCardHidden] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return localStorage.getItem('showToneCard') === 'false';
-  });
+  const [activeCategory, setActiveCategory] = useState<SettingsCategoryId>('rules');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const selectedCategory =
+    categories.find((category) => category.id === activeCategory) ?? categories[0];
 
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Settings</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Manage your workspace, drafting preferences, and automation approvals.
-        </p>
-      </div>
+    <main className="settings-page-light" aria-label="Settings page">
+      <button
+        type="button"
+        className="settings-mobile-toggle"
+        onClick={() => setMobileNavOpen((prev) => !prev)}
+        aria-label="Toggle settings navigation"
+        aria-expanded={mobileNavOpen}
+      >
+        {mobileNavOpen ? <X size={16} /> : <Menu size={16} />}
+        <span>Settings Menu</span>
+      </button>
 
-      <Card className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Settings overview
-          </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Jump into each category to configure X-ProFlow behaviors.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {settingsSections.map((section) => (
-            <div
-              key={section.id}
-              className="flex flex-col justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
-            >
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {section.title}
-                </p>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                  {section.description}
-                </p>
-                <ul className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
-                  {section.items.map((item) => (
-                    <li key={item}>• {item}</li>
-                  ))}
-                </ul>
-              </div>
-              <Link to={section.path} className="w-fit">
-                <Button type="button" variant="outline" size="sm">
-                  Manage
-                </Button>
-              </Link>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Drafting defaults
-          </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Decide how X-ProFlow should behave before sending anything.
-          </p>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          {[
-            {
-              title: 'Require approval before sending',
-              description: 'Every draft waits for review.'
-            },
-            {
-              title: 'Keep drafts in the inbox',
-              description: 'Drafts never leave your email provider.'
-            },
-            {
-              title: 'Notify me when VIP drafts are ready',
-              description: 'Send a Slack or email notification.'
-            },
-            {
-              title: 'Summarize new threads daily',
-              description: 'Generate a digest without sending emails.'
-            }
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950"
-            >
-              <div>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  {item.title}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{item.description}</p>
-              </div>
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input type="checkbox" defaultChecked className="peer sr-only" />
-                <span className="toggle-off relative h-6 w-11 rounded-full transition peer-checked:bg-blue-600">
-                  <span className="toggle-knob absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition peer-checked:translate-x-5" />
-                </span>
-              </label>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Admin</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Manage onboarding prompts and dashboard announcements.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900">
-          <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Show the “Make X-ProFlow sound like you” card
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Restore the onboarding prompt on the dashboard if it was dismissed.
-            </p>
+      <section className="settings-layout">
+        <aside className={`settings-nav ${mobileNavOpen ? 'is-open' : ''}`} aria-label="Settings sidebar">
+          {/* Compact brand/icon rail to mirror the mockup proportions */}
+          <div className="settings-rail" aria-hidden="true">
+            <div className="settings-rail__brand">XPF</div>
+            <span className="settings-rail__dot">✉</span>
+            <span className="settings-rail__dot">⚙</span>
           </div>
-          <button
-            className="rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-            onClick={() => {
-              localStorage.setItem('showToneCard', 'true');
-              setToneCardHidden(false);
-            }}
-            disabled={!toneCardHidden}
-          >
-            {toneCardHidden ? 'Show again' : 'Already visible'}
-          </button>
-        </div>
-      </Card>
-    </section>
+
+          {/* Primary category list: only required settings groups */}
+          <div className="settings-menu-panel">
+            <header>
+              <h1>Settings</h1>
+            </header>
+            <nav>
+              <ul>
+                {categories.map((category) => {
+                  const Icon = category.icon;
+                  const isActive = category.id === selectedCategory.id;
+
+                  return (
+                    <li key={category.id}>
+                      <button
+                        type="button"
+                        className={`settings-menu-item ${isActive ? 'is-active' : ''}`}
+                        onClick={() => {
+                          setActiveCategory(category.id);
+                          setMobileNavOpen(false);
+                        }}
+                        aria-current={isActive ? 'page' : undefined}
+                      >
+                        <Icon size={14} strokeWidth={1.75} />
+                        <span>{category.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </div>
+        </aside>
+
+        {/* Right-side content panel updates based on active category */}
+        <section className="settings-content-panel" aria-live="polite">
+          <header className="settings-content-panel__header">
+            <p className="settings-kicker">Category</p>
+            <h2>{selectedCategory.title}</h2>
+            <p>{selectedCategory.subtitle}</p>
+          </header>
+
+          <div className="settings-content-grid">
+            {selectedCategory.sections.map((section) => (
+              <article key={section.heading} className="settings-content-card">
+                <h3>{section.heading}</h3>
+                <p>{section.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </section>
+    </main>
   );
 };
 
