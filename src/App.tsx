@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from './components/layout/AppShell';
 import { useAuth } from './context/AuthContext';
+import { supabase } from './lib/supabaseClient';
 import EmailSetup from './pages/EmailSetup';
 import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
@@ -28,6 +29,14 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) {
+        supabase.auth.setSession(data.session);
+      }
+    });
+  }, []);
 
   return (
     <Routes>
