@@ -9,4 +9,4 @@ COPY . .
 
 EXPOSE 3001
 
-CMD ["node", "server/index.js"]
+CMD ["node", "server/start.js"]
