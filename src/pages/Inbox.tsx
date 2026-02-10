@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { api } from '../lib/api';
-import { apiBaseUrl } from '../lib/apiBaseUrl';
 import type { GroupedInboxResponse, InboxFolder, InboxMessage } from '../../shared/types/inbox';
 
 const folders: { id: InboxFolder; label: string }[] = [
@@ -58,6 +57,7 @@ const Inbox = () => {
   const [gmailStatus, setGmailStatus] = useState<{ connected: boolean; email?: string } | null>(
     null
   );
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
   const location = useLocation();
   const navigate = useNavigate();
 
