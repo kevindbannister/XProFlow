@@ -118,6 +118,11 @@ const Inbox = () => {
   }, [location.search, navigate]);
 
   const handleSync = async () => {
+    if (!gmailStatus?.connected) {
+      setError('Connect Gmail before syncing.');
+      return;
+    }
+
     setIsSyncing(true);
     setError(null);
     try {
@@ -152,9 +157,16 @@ const Inbox = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
-          <p className="text-sm text-slate-500">
-            Keep your Gmail inbox synced and prioritized in one view.
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-slate-500">
+              Keep your Gmail inbox synced and prioritized in one view.
+            </p>
+            {isConnected && gmailStatus?.email ? (
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                Connected: {gmailStatus.email}
+              </span>
+            ) : null}
+          </div>
         </div>
         {isConnected ? (
           <button
@@ -167,6 +179,8 @@ const Inbox = () => {
           </button>
         ) : null}
       </div>
+
+      {error ? <p className="text-sm text-rose-500">{error}</p> : null}
 
       {isLoadingState ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -231,9 +245,6 @@ const Inbox = () => {
                 {successMessage}
               </div>
             ) : null}
-
-            {error ? <p className="text-sm text-rose-500">{error}</p> : null}
-
             {isLoading ? (
               <p className="text-sm text-slate-500">Loading inbox…</p>
             ) : (
