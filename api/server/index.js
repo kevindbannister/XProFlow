@@ -1,9 +1,11 @@
+const express = require('express');
+
+const app = express();
+
 async function startServer() {
   const { loadSecrets } = require('./bootstrap/secrets');
   await loadSecrets();
 
-  const express = require('express');
-  const express = require('express');
   const { registerGoogleAuth } = require('./auth/google');
   const { registerGmailRoutes } = require('./routes/gmail');
   const { registerInboxRoutes } = require('./routes/inbox');
@@ -11,7 +13,6 @@ async function startServer() {
   const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
 
-  const app = express();
   const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
   const supabase = getSupabaseClient();
 
@@ -80,4 +81,4 @@ startServer().catch((error) => {
   process.exit(1);
 });
 
-module.exports = { startServer };
+module.exports = { app, startServer };
