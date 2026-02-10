@@ -92,7 +92,7 @@ async function upsertAccount(supabase, account) {
 function registerGmailRoutes(app, supabase) {
   const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
 
-  app.get('/api/gmail/oauth/start', async (req, res) => {
+  const handleGmailOAuthStart = async (req, res) => {
     try {
       console.log('Starting Gmail OAuth');
       const user = await requireUser(req, res, supabase);
@@ -113,7 +113,9 @@ function registerGmailRoutes(app, supabase) {
           'Gmail OAuth start missing required environment variables:',
           missingVars.join(', ')
         );
-        res.status(500).json({ error: 'Missing Gmail OAuth configuration.' });
+        res.status(500).json({
+          error: `Missing required Gmail OAuth env vars: ${missingVars.join(', ')}`
+        });
         return;
       }
 
@@ -150,7 +152,10 @@ function registerGmailRoutes(app, supabase) {
       console.error('Gmail OAuth start error:', error);
       res.status(500).json({ error: 'Failed to start Gmail OAuth.' });
     }
-  });
+  };
+
+  app.get('/api/gmail/oauth/start', handleGmailOAuthStart);
+  app.get('/gmail/oauth/start', handleGmailOAuthStart);
 
   app.get('/api/gmail/oauth/callback', async (req, res) => {
     let redirectUrl = new URL('/inbox', appBaseUrl);
