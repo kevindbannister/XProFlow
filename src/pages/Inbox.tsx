@@ -157,16 +157,17 @@ const Inbox = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <p className="text-sm text-slate-500">
-              Keep your Gmail inbox synced and prioritized in one view.
+          <p className="text-sm text-slate-500">
+            Keep your Gmail inbox synced and prioritized in one view.
+          </p>
+          {gmailStatus ? (
+            <p className="mt-2 text-xs font-medium text-slate-500">
+              Gmail:{' '}
+              {gmailStatus.connected
+                ? `Connected${gmailStatus.email ? ` • ${gmailStatus.email}` : ''}`
+                : 'Not connected'}
             </p>
-            {isConnected && gmailStatus?.email ? (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                Connected: {gmailStatus.email}
-              </span>
-            ) : null}
-          </div>
+          ) : null}
         </div>
         {isConnected ? (
           <button
