@@ -323,6 +323,37 @@ function registerGmailRoutes(app, supabase) {
     }
   });
 
+  app.get('/api/gmail/status', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('gmail_accounts')
+        .select('email')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.email) {
+        res.json({ connected: false });
+        return;
+      }
+
+      res.json({ connected: true, email: data.email });
+    } catch (error) {
+      console.error('Gmail status error:', error);
+      res.status(500).json({ error: 'Failed to fetch Gmail connection status' });
+    }
+  });
+
   app.post('/api/gmail/sync', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
