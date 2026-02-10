@@ -1,0 +1,206 @@
+/* Light settings page built to match a compact sidebar + clean content hierarchy. */
+.settings-page-light {
+  min-height: calc(100vh - 7rem);
+  background: #f5f6f8;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 19rem 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.settings-mobile-toggle {
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.55rem;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.45rem 0.65rem;
+}
+
+/* Left side combines tiny rail + menu panel like the reference image. */
+.settings-nav {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  grid-template-columns: 2.35rem 1fr;
+  border: 1px solid #dddddf;
+  border-radius: 0.85rem;
+  background: #f3f4f6;
+  min-height: calc(100vh - 9rem);
+  overflow: hidden;
+}
+
+.settings-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 0.65rem 0.3rem;
+  gap: 0.7rem;
+}
+
+.settings-rail__brand {
+  letter-spacing: 0.2em;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.settings-rail__dot {
+  width: 1.28rem;
+  height: 1.28rem;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 0.58rem;
+  color: #6b7280;
+  background: #ffffff;
+}
+
+.settings-menu-panel {
+  padding: 0.7rem 0.55rem;
+}
+
+.settings-menu-panel h1 {
+  margin: 0 0 0.65rem;
+  color: #111827;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.settings-menu-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.22rem;
+}
+
+.settings-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 0;
+  border-radius: 0.42rem;
+  background: transparent;
+  color: #4b5563;
+  text-align: left;
+  font-size: 0.76rem;
+  font-weight: 500;
+  padding: 0.37rem 0.45rem;
+  cursor: pointer;
+}
+
+.settings-menu-item:hover {
+  background: #eef0f3;
+  color: #111827;
+}
+
+.settings-menu-item.is-active {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+/* Content area remains minimal and mostly white. */
+.settings-content-panel {
+  min-height: calc(100vh - 9rem);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.85rem;
+  background: #ffffff;
+  padding: 1.15rem;
+}
+
+.settings-content-panel__header {
+  border-bottom: 1px solid #f0f1f3;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.95rem;
+}
+
+.settings-kicker {
+  margin: 0;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.settings-content-panel__header h2 {
+  margin: 0.34rem 0;
+  color: #111827;
+  font-size: 1.18rem;
+}
+
+.settings-content-panel__header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.88rem;
+}
+
+.settings-content-grid {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.settings-content-card {
+  border: 1px solid #eceef0;
+  border-radius: 0.65rem;
+  padding: 0.78rem 0.85rem;
+  background: #ffffff;
+}
+
+.settings-content-card h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 0.88rem;
+}
+
+.settings-content-card p {
+  margin: 0.26rem 0 0;
+  color: #6b7280;
+  font-size: 0.8rem;
+  line-height: 1.38;
+}
+
+/* Mobile: sidebar is toggled and stacked. */
+@media (max-width: 980px) {
+  .settings-page-light {
+    padding: 0.72rem;
+  }
+
+  .settings-mobile-toggle {
+    display: inline-flex;
+  }
+
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-nav {
+    display: none;
+    position: static;
+    min-height: auto;
+  }
+
+  .settings-nav.is-open {
+    display: grid;
+  }
+
+  .settings-content-panel {
+    min-height: auto;
+  }
+}
