@@ -1,5 +1,6 @@
 const { encrypt, decrypt } = require('../encryption');
 const { requireUser } = require('../auth/supabaseAuth');
+const crypto = require('crypto');
 const {
   generateAuthUrl,
   exchangeCode,
@@ -166,16 +167,31 @@ function registerGmailRoutes(app, supabase) {
       googleOAuthUrl.searchParams.set('access_type', 'offline');
       googleOAuthUrl.searchParams.set('prompt', 'consent');
       googleOAuthUrl.searchParams.set('include_granted_scopes', 'true');
+      const nonce = crypto.randomBytes(16).toString('hex');
+      let returnTo = '/inbox';
       const referer = req.get('referer');
       if (referer) {
         const refererUrl = new URL(referer, appBaseUrl);
         const appOrigin = new URL(appBaseUrl).origin;
         if (refererUrl.origin === appOrigin) {
-          const returnTo = `${refererUrl.pathname}${refererUrl.search}`;
-          googleOAuthUrl.searchParams.set('state', returnTo);
+          returnTo = `${refererUrl.pathname}${refererUrl.search}`;
           console.log('Gmail OAuth return path:', returnTo);
         }
       }
+
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+      const { error: stateInsertError } = await supabase.from('oauth_states').insert({
+        provider: 'gmail',
+        user_id: user.id,
+        nonce,
+        return_to: returnTo,
+        expires_at: expiresAt
+      });
+      if (stateInsertError) {
+        throw stateInsertError;
+      }
+
+      googleOAuthUrl.searchParams.set('state', nonce);
 
       console.log('Gmail OAuth URL:', googleOAuthUrl.toString());
       res.redirect(googleOAuthUrl.toString());
@@ -193,14 +209,35 @@ function registerGmailRoutes(app, supabase) {
     const errorRedirect = new URL('/integrations', appBaseUrl);
 
     try {
-      const user = await requireUser(req, res, supabase);
-      if (!user) {
+      const code = typeof req.query.code === 'string' ? req.query.code : null;
+      const state = typeof req.query.state === 'string' ? req.query.state : null;
+      if (!code) {
+        errorRedirect.searchParams.set('error', 'gmail_code');
+        res.redirect(errorRedirect.toString());
+        return;
+      }
+      if (!state) {
+        errorRedirect.searchParams.set('error', 'gmail_state');
+        res.redirect(errorRedirect.toString());
         return;
       }
 
-      const code = typeof req.query.code === 'string' ? req.query.code : null;
-      if (!code) {
-        errorRedirect.searchParams.set('error', 'gmail_code');
+      const { data: oauthState, error: oauthStateError } = await supabase
+        .from('oauth_states')
+        .select('id,user_id,return_to')
+        .eq('provider', 'gmail')
+        .eq('nonce', state)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (oauthStateError) {
+        throw oauthStateError;
+      }
+
+      if (!oauthState) {
+        errorRedirect.searchParams.set('error', 'gmail_state');
         res.redirect(errorRedirect.toString());
         return;
       }
@@ -220,7 +257,7 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const existing = await getStoredAccount(supabase, user.id, emailAddress);
+      const existing = await getStoredAccount(supabase, oauthState.user_id, emailAddress);
       const encryptedAccessToken = encrypt(accessToken);
       const refreshToken = tokens.refresh_token
         ? encrypt(tokens.refresh_token)
@@ -239,7 +276,7 @@ function registerGmailRoutes(app, supabase) {
       const tokenExpiry = new Date(expiryTimestamp).toISOString();
 
       await upsertAccount(supabase, {
-        user_id: user.id,
+        user_id: oauthState.user_id,
         email: emailAddress,
         provider: 'gmail',
         access_token: encryptedAccessToken,
@@ -247,7 +284,15 @@ function registerGmailRoutes(app, supabase) {
         expiry_ts: tokenExpiry
       });
 
-      const safeStateRedirect = getSafeRedirectFromState(req.query.state);
+      const { error: stateDeleteError } = await supabase
+        .from('oauth_states')
+        .delete()
+        .eq('id', oauthState.id);
+      if (stateDeleteError) {
+        throw stateDeleteError;
+      }
+
+      const safeStateRedirect = getSafeRedirectFromState(oauthState.return_to);
       if (safeStateRedirect) {
         redirectUrl = safeStateRedirect;
       }
@@ -340,37 +385,6 @@ function registerGmailRoutes(app, supabase) {
     } catch (error) {
       console.error('Gmail connect error:', error);
       res.status(500).json({ error: 'Failed to connect Gmail' });
-    }
-  });
-
-  app.get('/api/gmail/status', async (req, res) => {
-    try {
-      const user = await requireUser(req, res, supabase);
-      if (!user) {
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('gmail_accounts')
-        .select('email')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.email) {
-        res.json({ connected: false });
-        return;
-      }
-
-      res.json({ connected: true, email: data.email });
-    } catch (error) {
-      console.error('Gmail status error:', error);
-      res.status(500).json({ error: 'Failed to fetch Gmail connection status' });
     }
   });
 
