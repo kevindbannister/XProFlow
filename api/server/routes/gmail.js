@@ -93,6 +93,26 @@ async function upsertAccount(supabase, account) {
 function registerGmailRoutes(app, supabase) {
   const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
 
+  app.get('/api/gmail/status', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const account = await getStoredAccount(supabase, user.id);
+      if (!account) {
+        res.json({ connected: false });
+        return;
+      }
+
+      res.json({ connected: true, email: account.email });
+    } catch (error) {
+      console.error('Gmail status error:', error);
+      res.status(500).json({ error: 'Failed to fetch Gmail status' });
+    }
+  });
+
   const getSafeRedirectFromState = (state) => {
     if (typeof state !== 'string' || !state.startsWith('/') || state.startsWith('//')) {
       return null;
