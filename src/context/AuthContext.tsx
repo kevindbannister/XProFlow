@@ -11,7 +11,7 @@ type AuthContextValue = {
   loginWithGoogle: () => Promise<void>;
   loginWithManual: () => void;
   logout: () => Promise<void>;
-  refreshSession: () => Promise<void>;
+  refreshSession: (options?: { background?: boolean }) => Promise<void>;
 };
 
 type MeResponse = {
@@ -56,8 +56,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return window.localStorage.getItem('xproflow-manual-auth') === 'true';
   });
 
-  const refreshSession = useCallback(async () => {
-    setIsLoading(true);
+  const refreshSession = useCallback(async (options?: { background?: boolean }) => {
+    const isBackgroundRefresh = options?.background ?? false;
+    if (!isBackgroundRefresh) {
+      setIsLoading(true);
+    }
+
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
@@ -74,7 +78,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setGmailEmail(undefined);
       setCsrfToken(undefined);
     } finally {
-      setIsLoading(false);
+      if (!isBackgroundRefresh) {
+        setIsLoading(false);
+      }
     }
   }, [manualAuth]);
 
@@ -88,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     const intervalId = window.setInterval(() => {
-      void refreshSession();
+      void refreshSession({ background: true });
     }, 60_000);
 
     return () => {
@@ -100,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setIsAuthenticated(true);
-        void refreshSession();
+        void refreshSession({ background: true });
       } else {
         setIsAuthenticated(manualAuth);
         setGmailConnected(false);
