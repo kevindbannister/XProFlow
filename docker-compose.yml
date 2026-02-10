@@ -21,6 +21,9 @@ services:
     build: ./api
     env_file:
       - .env.runtime
+    environment:
+      AWS_SECRET_NAME: xproflow-secret
+      AWS_REGION: eu-north-1
     expose:
       - "3001"
     networks:
