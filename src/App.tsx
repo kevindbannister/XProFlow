@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppShell from './components/layout/AppShell';
+import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 import EmailSetup from './pages/EmailSetup';
@@ -8,6 +8,7 @@ import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
+import Dashboard from './pages/Dashboard';
 import Onboarding from './pages/Onboarding';
 import ProfilePage from './pages/ProfilePage';
 import Rules from './pages/Rules';
@@ -79,13 +80,13 @@ const App = () => {
       <Route
         element={
           <RequireAuth>
-            <AppShell />
+            <AppLayout />
           </RequireAuth>
         }
       >
         <Route index element={<Navigate to="/inbox" replace />} />
         <Route path="inbox" element={<Inbox />} />
-        <Route path="dashboard" element={<Navigate to="/inbox" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="email-setup" element={<EmailSetup />} />
         <Route path="onboarding" element={<Onboarding />} />
         <Route path="labels" element={<Labels />} />
