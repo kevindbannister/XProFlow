@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bell, ChevronDown, CircleHelp, Moon, Sun } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
+import { xProFlowLogoDark, xProFlowLogoLight } from './logoAssets';
 import { getUserInitials, useUser } from '../../context/UserContext';
 import AppLogo from '../branding/AppLogo';
 
@@ -43,7 +44,11 @@ const Topbar = ({ title }: TopbarProps) => {
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex h-11 items-center justify-between border-b border-slate-200 bg-slate-50/95 px-3 backdrop-blur-sm">
       <div className="flex min-w-0 items-center gap-2">
-        <AppLogo className="h-6 w-auto" />
+        <img
+          src={themeMode === 'dark' ? xProFlowLogoLight : xProFlowLogoDark}
+          alt="XProFlow"
+          className="h-6 w-auto shrink-0"
+        />
         {title ? <h1 className="truncate text-sm font-semibold text-slate-700">{title}</h1> : null}
       </div>
 

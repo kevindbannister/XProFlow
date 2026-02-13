@@ -8,6 +8,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { xProFlowLogoDark, xProFlowLogoLight } from '../components/layout/logoAssets';
 import '../styles/settings-page.css';
 
 type SettingsCategoryId = 'rules' | 'labels' | 'writingStyle' | 'signatureTimeZone' | 'account';
@@ -108,7 +109,10 @@ const Settings = () => {
         <aside className={`settings-nav ${mobileNavOpen ? 'is-open' : ''}`} aria-label="Settings sidebar">
           {/* Compact brand rail */}
           <div className="settings-rail" aria-hidden="true">
-            <div className="settings-rail__brand">XPF</div>
+            <div className="settings-rail__brand">
+              <img src={xProFlowLogoDark} alt="XProFlow" className="settings-rail__brand-image settings-rail__brand-image--light" />
+              <img src={xProFlowLogoLight} alt="XProFlow" className="settings-rail__brand-image settings-rail__brand-image--dark" />
+            </div>
           </div>
 
           {/* Primary category list: only required settings groups */}

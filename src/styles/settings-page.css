@@ -52,10 +52,28 @@
 }
 
 .settings-rail__brand {
-  letter-spacing: 0.2em;
-  font-size: 0.62rem;
-  font-weight: 700;
-  color: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.settings-rail__brand-image {
+  width: 1.65rem;
+  height: auto;
+  display: block;
+}
+
+.settings-rail__brand-image--dark {
+  display: none;
+}
+
+.theme-dark .settings-rail__brand-image--light {
+  display: none;
+}
+
+.theme-dark .settings-rail__brand-image--dark {
+  display: block;
 }
 
 .settings-rail__dot {
