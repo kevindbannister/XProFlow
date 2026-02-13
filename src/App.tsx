@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppShell from './components/layout/AppShell';
+import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { supabase } from './lib/supabaseClient';
 import EmailSetup from './pages/EmailSetup';
@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import SettingsDrafts from './pages/SettingsDrafts';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
+import Dashboard from './pages/Dashboard';
 
 const AppLoadingScreen = () => (
   <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-slate-100">
@@ -79,13 +80,13 @@ const App = () => {
       <Route
         element={
           <RequireAuth>
-            <AppShell />
+            <AppLayout />
           </RequireAuth>
         }
       >
         <Route index element={<Navigate to="/inbox" replace />} />
         <Route path="inbox" element={<Inbox />} />
-        <Route path="dashboard" element={<Navigate to="/inbox" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="email-setup" element={<EmailSetup />} />
         <Route path="onboarding" element={<Onboarding />} />
         <Route path="labels" element={<Labels />} />
