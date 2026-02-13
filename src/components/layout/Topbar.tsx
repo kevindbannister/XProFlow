@@ -1,46 +1,66 @@
-import { Bell, ChevronDown, CircleHelp, Plus } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { useEffect, useState } from 'react';
+import { Bell, ChevronDown, CircleHelp, Moon, Sun } from 'lucide-react';
 import { Avatar } from '../ui/Avatar';
 import { getUserInitials, useUser } from '../../context/UserContext';
 
 type TopbarProps = {
   title?: string;
-  primaryActionLabel?: string;
 };
 
-const Topbar = ({ title, primaryActionLabel = 'New' }: TopbarProps) => {
+type ThemeMode = 'light' | 'dark';
+
+const THEME_STORAGE_KEY = 'xproflow-theme-mode';
+
+const getInitialThemeMode = (): ThemeMode => {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  const savedMode = window.localStorage.getItem(THEME_STORAGE_KEY);
+  if (savedMode === 'light' || savedMode === 'dark') {
+    return savedMode;
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+};
+
+const Topbar = ({ title }: TopbarProps) => {
   const { user } = useUser();
+  const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('theme-light', 'theme-dark');
+    root.classList.add(themeMode === 'dark' ? 'theme-dark' : 'theme-light');
+    window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+  }, [themeMode]);
+
+  const toggleTheme = () => {
+    setThemeMode((currentMode) => (currentMode === 'dark' ? 'light' : 'dark'));
+  };
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-slate-50/95 px-5 backdrop-blur-sm">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-wide text-slate-900">XPF</span>
-          <span className="rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-600">
-            Workspace
-          </span>
-        </div>
+        <span className="text-xl font-bold tracking-wide text-slate-900">XPF</span>
         {title ? <h1 className="truncate text-sm font-semibold text-slate-700">{title}</h1> : null}
       </div>
 
       <div className="flex items-center gap-1">
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          className="mr-2 inline-flex items-center gap-1 rounded-lg px-3 py-2"
-          aria-label={`${primaryActionLabel} action`}
-        >
-          <Plus className="h-4 w-4" />
-          {primaryActionLabel}
-        </Button>
-
         <button
           type="button"
           aria-label="Notifications"
           className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           <Bell className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          onClick={toggleTheme}
+          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+        >
+          {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
         <button
           type="button"
