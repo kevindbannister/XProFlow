@@ -16,7 +16,7 @@ const Login = () => {
     if (username.trim() === 'master' && password.trim() === 'master') {
       setError('');
       loginWithManual();
-      navigate('/inbox');
+      navigate('/dashboard');
       return;
     }
     setError('Invalid credentials. Use "master" for both fields.');

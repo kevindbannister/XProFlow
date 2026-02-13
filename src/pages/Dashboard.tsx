@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import Card from '../components/ui/Card';
 
@@ -97,9 +98,81 @@ const inboxGroups: InboxGroup[] = [
   }
 ];
 
+const captureElementAsPng = async (element: HTMLElement, filename: string) => {
+  const rect = element.getBoundingClientRect();
+  if (!rect.width || !rect.height) {
+    return;
+  }
+
+  const xml = new XMLSerializer().serializeToString(element);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(rect.width)}" height="${Math.ceil(
+      rect.height
+    )}">
+      <foreignObject width="100%" height="100%">${xml}</foreignObject>
+    </svg>
+  `;
+
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to render dashboard screenshot.'));
+      img.src = url;
+    });
+
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(rect.width);
+    canvas.height = Math.ceil(rect.height);
+
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return;
+    }
+
+    context.drawImage(image, 0, 0);
+
+    const pngUrl = canvas.toDataURL('image/png');
+    const anchor = document.createElement('a');
+    anchor.href = pngUrl;
+    anchor.download = filename;
+    anchor.click();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
 const Dashboard = () => {
+  const dashboardRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const capturePending = window.sessionStorage.getItem('xproflow-dashboard-capture-pending');
+    const captured = window.sessionStorage.getItem('xproflow-dashboard-captured');
+
+    if (capturePending !== 'true' || captured === 'true') {
+      return;
+    }
+
+    const captureTimeout = window.setTimeout(() => {
+      if (!dashboardRef.current) {
+        return;
+      }
+
+      void captureElementAsPng(dashboardRef.current, 'dashboard-initial.png').finally(() => {
+        window.sessionStorage.setItem('xproflow-dashboard-captured', 'true');
+        window.sessionStorage.removeItem('xproflow-dashboard-capture-pending');
+      });
+    }, 600);
+
+    return () => {
+      window.clearTimeout(captureTimeout);
+    };
+  }, []);
+
   return (
-    <section className="space-y-6">
+    <section ref={dashboardRef} className="space-y-6">
       <Card className="p-4">
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

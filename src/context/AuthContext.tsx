@@ -23,6 +23,16 @@ type MeResponse = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+
+const markDashboardCapturePending = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.sessionStorage.setItem('xproflow-dashboard-capture-pending', 'true');
+  window.sessionStorage.removeItem('xproflow-dashboard-captured');
+};
+
 const clearPersistedAuthState = () => {
   if (typeof window === 'undefined') {
     return;
@@ -106,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setIsAuthenticated(true);
+        markDashboardCapturePending();
         void refreshSession({ background: true });
       } else {
         setIsAuthenticated(manualAuth);
@@ -156,6 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         setManualAuth(true);
         setIsAuthenticated(true);
+        markDashboardCapturePending();
       },
       logout: async () => {
         setIsAuthenticated(false);
