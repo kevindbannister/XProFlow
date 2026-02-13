@@ -40,17 +40,17 @@ const Topbar = ({ title }: TopbarProps) => {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex h-16 items-center justify-between border-b border-slate-200 bg-slate-50/95 px-5 backdrop-blur-sm">
-      <div className="flex min-w-0 items-center gap-4">
-        <span className="text-xl font-bold tracking-wide text-slate-900">XPF</span>
+    <header className="fixed inset-x-0 top-0 z-50 flex h-11 items-center justify-between border-b border-slate-200 bg-slate-50/95 px-3 backdrop-blur-sm">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="text-base font-bold tracking-wide text-slate-900">XPF</span>
         {title ? <h1 className="truncate text-sm font-semibold text-slate-700">{title}</h1> : null}
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-0">
         <button
           type="button"
           aria-label="Notifications"
-          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           <Bell className="h-4 w-4" />
         </button>
@@ -58,14 +58,14 @@ const Topbar = ({ title }: TopbarProps) => {
           type="button"
           aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={toggleTheme}
-          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
         <button
           type="button"
           aria-label="Help"
-          className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+          className="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
         >
           <CircleHelp className="h-4 w-4" />
         </button>
@@ -73,15 +73,15 @@ const Topbar = ({ title }: TopbarProps) => {
         <button
           type="button"
           aria-label="Open user menu"
-          className="ml-1 inline-flex items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left transition hover:border-slate-200 hover:bg-white"
+          className="ml-1 inline-flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1 text-left transition hover:border-slate-200 hover:bg-white"
         >
           <Avatar
             src={user.avatarUrl}
             alt={`${user.name} avatar`}
             fallback={getUserInitials(user.name)}
-            className="h-8 w-8 rounded-full bg-slate-200 text-xs font-semibold text-slate-700"
+            className="h-6 w-6 rounded-full bg-slate-200 text-xs font-semibold text-slate-700"
           />
-          <span className="hidden text-sm font-medium text-slate-700 lg:inline">{user.name}</span>
+          <span className="hidden text-xs font-medium text-slate-700 lg:inline">{user.name}</span>
           <ChevronDown className="h-4 w-4 text-slate-500" />
         </button>
       </div>

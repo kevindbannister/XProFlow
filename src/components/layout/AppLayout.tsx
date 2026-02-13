@@ -17,7 +17,7 @@ const AppLayout = () => {
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <Topbar title={meta?.title} />
       <Sidebar />
-      <main className="ml-16 mt-16 h-[calc(100vh-4rem)] overflow-y-auto p-6">
+      <main className="ml-12 mt-11 h-[calc(100vh-2.75rem)] overflow-y-auto p-6">
         <Outlet />
       </main>
     </div>
