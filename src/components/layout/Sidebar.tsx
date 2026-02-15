@@ -1,4 +1,4 @@
-import { LayoutDashboard, Inbox, GitBranch, Settings, CircleHelp } from 'lucide-react';
+import { LayoutDashboard, Inbox, GitBranch, Settings, CircleHelp, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { classNames } from '../../lib/utils';
@@ -16,9 +16,6 @@ const secondaryNavigation = [
   { label: 'Settings', to: '/settings', icon: Settings },
 ];
 
-const iconButtonStyles =
-  'group relative flex h-7 w-7 items-center justify-center rounded-lg border border-transparent theme-text-muted transition hover:bg-slate-100/60 hover:text-slate-100';
-
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     const savedValue = localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
@@ -33,52 +30,49 @@ const Sidebar = () => {
     setIsCollapsed((currentState) => !currentState);
   };
 
-  useEffect(() => {
-    const onToggleShortcut = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
-        event.preventDefault();
-        toggleSidebar();
-      }
-    };
-
-    window.addEventListener('keydown', onToggleShortcut);
-    return () => window.removeEventListener('keydown', onToggleShortcut);
-  }, []);
-
   const renderItem = (label: string, to: string, Icon: typeof LayoutDashboard) => (
     <NavLink
       key={label}
       to={to}
       className={({ isActive }: { isActive: boolean }) =>
         classNames(
-          iconButtonStyles,
+          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-100/60 hover:text-slate-100',
+          isCollapsed ? 'justify-center' : 'justify-start gap-2',
           isActive && 'border-slate-300/40 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
         )
       }
       aria-label={label}
     >
-      <Icon className="h-4 w-4" strokeWidth={1.8} />
-      <span className="sidebar-label dropdown-surface pointer-events-none absolute left-8 top-1/2 -translate-y-1/2 rounded-md border px-2 py-1 text-xs font-medium theme-text-secondary shadow-sm">
-        {label}
-      </span>
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+      <span className="sidebar-label truncate text-xs font-medium">{label}</span>
     </NavLink>
   );
 
   return (
     <aside
       className={classNames(
-        'sidebar-surface sidebar-shell fixed bottom-0 left-0 top-10 z-40 flex flex-col items-center justify-between border-r py-2',
-        isCollapsed ? 'w-12' : 'w-44'
+        'sidebar-surface sidebar-shell fixed bottom-0 left-0 top-10 z-40 flex flex-col justify-between border-r py-2',
+        isCollapsed ? 'w-12 px-2' : 'w-44 px-2'
       )}
       data-collapsed={isCollapsed}
     >
-      <nav className="flex flex-col items-center gap-1">
-        {primaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
-      </nav>
+      <div className="flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={classNames(
+            'flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-100/60 hover:text-slate-100',
+            isCollapsed ? 'justify-center' : 'justify-start'
+          )}
+        >
+          {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
 
-      <nav className="flex flex-col items-center gap-1">
-        {secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
-      </nav>
+        <nav className="flex flex-col gap-1">{primaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
+      </div>
+
+      <nav className="flex flex-col gap-1">{secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
     </aside>
   );
 };

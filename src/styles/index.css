@@ -285,13 +285,13 @@ body {
 
 .sidebar-shell .sidebar-label {
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
-  transition: opacity 150ms ease, transform 180ms ease;
+  transition: opacity 150ms ease;
 }
 
 .sidebar-shell[data-collapsed='true'] .sidebar-label {
   opacity: 0;
-  transform: translateY(-50%) translateX(-6px);
+  width: 0;
+  overflow: hidden;
 }
 
 .sidebar-shell[data-collapsed='false'] ~ main {
