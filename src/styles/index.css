@@ -278,6 +278,32 @@ body {
   box-shadow: var(--sidebar-shadow);
 }
 
+
+.sidebar-shell {
+  transition: width 180ms ease;
+}
+
+.sidebar-shell .sidebar-label {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  transition: opacity 150ms ease, transform 180ms ease;
+}
+
+.sidebar-shell[data-collapsed='true'] .sidebar-label {
+  opacity: 0;
+  transform: translateY(-50%) translateX(-6px);
+}
+
+.sidebar-shell[data-collapsed='false'] ~ main {
+  margin-left: 11rem;
+  transition: margin-left 180ms ease;
+}
+
+.sidebar-shell[data-collapsed='true'] ~ main {
+  margin-left: 3rem;
+  transition: margin-left 180ms ease;
+}
+
 .panel-surface {
   background: var(--panel-bg);
   border-color: var(--panel-border);
