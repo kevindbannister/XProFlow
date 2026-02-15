@@ -15,7 +15,7 @@ export const getInitialThemeMode = (): ThemeMode => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 };
 
-export const applyThemeMode = (themeMode: ThemeMode) => {
+export const applyThemeMode = (themeMode: ThemeMode, persist = true) => {
   if (typeof document === 'undefined') {
     return;
   }
@@ -29,7 +29,7 @@ export const applyThemeMode = (themeMode: ThemeMode) => {
     root.classList.add('theme-light', 'light');
   }
 
-  if (typeof window !== 'undefined') {
+  if (persist && typeof window !== 'undefined') {
     window.localStorage.setItem(THEME_STORAGE_KEY, themeMode);
   }
 };

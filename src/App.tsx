@@ -42,8 +42,13 @@ const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    applyThemeMode(getInitialThemeMode());
-  }, []);
+    if (isAuthenticated) {
+      applyThemeMode(getInitialThemeMode(), false);
+      return;
+    }
+
+    applyThemeMode('light', false);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
