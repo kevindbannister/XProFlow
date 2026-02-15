@@ -56,23 +56,24 @@ const Sidebar = () => {
       )}
       data-collapsed={isCollapsed}
     >
+      <nav className="flex flex-col gap-1">{primaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
+
       <div className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-1">{secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
+
         <button
           type="button"
           onClick={toggleSidebar}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           className={classNames(
             'flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-100/60 hover:text-slate-100',
-            isCollapsed ? 'justify-center' : 'justify-start'
+            isCollapsed ? 'justify-center' : 'justify-start gap-2'
           )}
         >
-          {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {isCollapsed ? <PanelLeftOpen className="h-4 w-4 shrink-0" /> : <PanelLeftClose className="h-4 w-4 shrink-0" />}
+          <span className="sidebar-label truncate text-xs font-medium">Collapse</span>
         </button>
-
-        <nav className="flex flex-col gap-1">{primaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
       </div>
-
-      <nav className="flex flex-col gap-1">{secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}</nav>
     </aside>
   );
 };
