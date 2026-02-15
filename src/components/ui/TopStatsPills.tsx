@@ -14,7 +14,7 @@ const pillBaseClasses =
   'chip-surface inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold theme-text-secondary transition-colors';
 
 const tooltipBaseClasses =
-  'pointer-events-none absolute right-0 top-full z-20 mt-2 w-56 origin-top-right rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-600 shadow-lg opacity-0 scale-95 transition duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100';
+  'pointer-events-none absolute right-0 top-full z-20 mt-2 w-56 origin-top-right rounded-xl border px-3 py-2 text-xs theme-text-muted shadow-lg dropdown-surface opacity-0 scale-95 transition duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100';
 
 export const TopStatsPills = ({ stats }: TopStatsPillsProps) => {
   const items = [
@@ -53,16 +53,16 @@ export const TopStatsPills = ({ stats }: TopStatsPillsProps) => {
         return (
           <div key={item.id} className="group relative">
             <button type="button" className={pillBaseClasses} aria-describedby={tooltipId}>
-              <Icon className="h-4 w-4 text-slate-400" strokeWidth={1.6} aria-hidden="true" />
+              <Icon className="h-4 w-4 theme-text-subtle" strokeWidth={1.6} aria-hidden="true" />
               <span className="text-sm font-semibold theme-text-primary">{item.value}</span>
               <span className="hidden text-[11px] font-medium theme-text-muted sm:inline">
                 {item.label}
               </span>
             </button>
             <div id={tooltipId} role="tooltip" className={tooltipBaseClasses}>
-              <div className="text-[11px] font-semibold text-slate-800">{item.title}</div>
-              <div className="mt-1 text-sm font-semibold text-slate-900">{item.value}</div>
-              <div className="mt-1 text-[11px] text-slate-500">{item.description}</div>
+              <div className="text-[11px] font-semibold theme-text-secondary">{item.title}</div>
+              <div className="mt-1 text-sm font-semibold theme-text-primary">{item.value}</div>
+              <div className="mt-1 text-[11px] theme-text-muted">{item.description}</div>
             </div>
           </div>
         );

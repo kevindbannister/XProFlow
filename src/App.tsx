@@ -16,6 +16,7 @@ import SettingsDrafts from './pages/SettingsDrafts';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
+import { applyThemeMode, getInitialThemeMode } from './lib/theme';
 
 const AppLoadingScreen = () => (
   <div className="flex min-h-screen items-center justify-center bg-slate-950 px-6 text-center text-slate-100">
@@ -39,6 +40,10 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 
 const App = () => {
   const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    applyThemeMode(getInitialThemeMode());
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {

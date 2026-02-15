@@ -14,7 +14,7 @@ const AppLayout = () => {
   const meta = routeMeta[location.pathname];
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="app-shell-bg min-h-screen theme-text-primary">
       <Topbar title={meta?.title} />
       <Sidebar />
       <main className="app-main-bg ml-12 mt-11 h-[calc(100vh-2.75rem)] overflow-y-auto p-6">

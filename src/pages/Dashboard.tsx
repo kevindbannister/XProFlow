@@ -55,7 +55,7 @@ const inboxGroups: InboxGroup[] = [
         preview: 'Deliverables are in the shared folder with the final edits.',
         time: 'Nov 28',
         status: 'Read',
-        statusStyle: 'bg-slate-100 text-slate-700'
+        statusStyle: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
       },
       {
         sender: 'Daniel Cho',
@@ -84,7 +84,7 @@ const inboxGroups: InboxGroup[] = [
         preview: 'Summarizing the themes from the customer interviews.',
         time: 'Oct 31',
         status: 'Read',
-        statusStyle: 'bg-slate-100 text-slate-700'
+        statusStyle: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
       },
       {
         sender: 'Finance Team',
@@ -175,11 +175,11 @@ const Dashboard = () => {
     <section ref={dashboardRef} className="space-y-6">
       <Card className="p-4">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 theme-text-subtle" />
           <input
             type="text"
             placeholder="Search or ask XProFlow a question"
-            className="w-full rounded-2xl border border-transparent bg-slate-100/80 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition focus:border-slate-200 focus:bg-white focus:ring-2 focus:ring-sky-100"
+            className="input-surface w-full rounded-2xl border py-3 pl-11 pr-4 text-sm theme-text-secondary outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
           />
         </div>
       </Card>
@@ -188,29 +188,29 @@ const Dashboard = () => {
         {inboxGroups.map((group) => (
           <div key={group.title} className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="theme-text-muted text-sm font-semibold uppercase tracking-wide">
                 {group.title}
               </h2>
-              <span className="text-xs text-slate-400">{group.emails.length} messages</span>
+              <span className="theme-text-subtle text-xs">{group.emails.length} messages</span>
             </div>
-            <Card className="divide-y divide-slate-200/70">
+            <Card className="divide-y divide-slate-200/40 dark:divide-slate-700/60">
               {group.emails.map((email, index) => (
                 <div
                   key={`${email.sender}-${email.subject}-${index}`}
-                  className="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 transition hover:bg-slate-50"
+                  className="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 transition hover:bg-slate-100/30 dark:hover:bg-slate-800/40"
                 >
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-slate-900">{email.sender}</p>
-                      <span className="h-1 w-1 rounded-full bg-slate-300" />
-                      <p className="text-sm font-medium text-slate-700">{email.subject}</p>
+                      <p className="theme-text-primary text-sm font-semibold">{email.sender}</p>
+                      <span className="h-1 w-1 rounded-full bg-slate-300/80 dark:bg-slate-500" />
+                      <p className="theme-text-secondary text-sm font-medium">{email.subject}</p>
                     </div>
                     {email.preview ? (
-                      <p className="truncate text-xs text-slate-500">{email.preview}</p>
+                      <p className="theme-text-muted truncate text-xs">{email.preview}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-2 text-right">
-                    <span className="text-xs font-medium text-slate-400">{email.time}</span>
+                    <span className="theme-text-subtle text-xs font-medium">{email.time}</span>
                     <span
                       className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${email.statusStyle}`}
                     >
