@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Bell, ChevronDown, CircleHelp, Moon, Sun } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Avatar } from '../ui/Avatar';
 import { getUserInitials, useUser } from '../../context/UserContext';
 import AppLogo from '../branding/AppLogo';
@@ -53,10 +54,10 @@ const Topbar = ({ title }: TopbarProps) => {
           <CircleHelp className="h-4 w-4" />
         </button>
 
-        <button
-          type="button"
-          aria-label="Open user menu"
-          className="ml-1 inline-flex items-center gap-1 rounded-lg border border-transparent px-1.5 py-1 text-left transition hover:border-slate-300/40 hover:bg-slate-100/40"
+        <Link
+          to="/profile"
+          aria-label="Open user profile"
+          className="ml-1 inline-flex items-center gap-2 rounded-lg border border-transparent px-1.5 py-1 text-left transition hover:border-slate-300/40 hover:bg-slate-100/40"
         >
           <Avatar
             src={user.avatarUrl}
@@ -64,9 +65,12 @@ const Topbar = ({ title }: TopbarProps) => {
             fallback={getUserInitials(user.name)}
             className="h-6 w-6 rounded-full bg-slate-200/70 text-xs font-semibold text-slate-700 dark:bg-slate-700 dark:text-slate-100"
           />
-          <span className="theme-text-secondary hidden text-xs font-medium lg:inline">{user.name}</span>
+          <span className="hidden min-w-0 md:flex md:flex-col">
+            <span className="theme-text-secondary truncate text-xs font-medium">{user.name}</span>
+            <span className="theme-text-muted truncate text-[11px]">{user.email}</span>
+          </span>
           <ChevronDown className="theme-text-muted h-4 w-4" />
-        </button>
+        </Link>
       </div>
     </header>
   );
