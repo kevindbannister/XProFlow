@@ -36,9 +36,11 @@ const Sidebar = () => {
       to={to}
       className={({ isActive }: { isActive: boolean }) =>
         classNames(
-          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-100/60 hover:text-blue-600',
+          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 transition hover:bg-slate-100/60',
           isCollapsed ? 'justify-center' : 'justify-start gap-2',
-          isActive && 'border-slate-300/40 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
+          isActive
+            ? 'border-slate-300/40 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
+            : 'theme-text-muted hover:text-blue-600'
         )
       }
       aria-label={label}
