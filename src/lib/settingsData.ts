@@ -125,31 +125,58 @@ export const settingsSections: SettingsSection[] = [
 
 export const labelDefinitions: LabelDefinition[] = [
   {
-    id: 'vip',
-    name: 'VIP Clients',
-    description: 'High-priority accounts that need fast response times.',
-    color: '#2563EB',
-    appliedCount: 84,
+    id: 'to-respond',
+    name: 'To Respond',
+    description: 'Messages that need a reply from you or your team.',
+    color: '#EF4444',
+    appliedCount: 59,
+    enabled: true,
+    updatedAt: 'Updated today'
+  },
+  {
+    id: 'fyi',
+    name: 'FYI',
+    description: 'Informational updates that may not need an immediate action.',
+    color: '#6366F1',
+    appliedCount: 148,
+    enabled: true,
+    updatedAt: 'Updated 1 day ago'
+  },
+  {
+    id: 'notification',
+    name: 'Notification',
+    description: 'System and app alerts that should be grouped for quick scanning.',
+    color: '#F97316',
+    appliedCount: 271,
+    enabled: true,
+    updatedAt: 'Updated 2 days ago'
+  },
+  {
+    id: 'marketing',
+    name: 'Marketing',
+    description: 'Promotional emails, campaigns, and newsletters.',
+    color: '#10B981',
+    appliedCount: 183,
+    enabled: false,
+    updatedAt: 'Updated 4 days ago'
+  },
+  {
+    id: 'meeting-update',
+    name: 'Meeting Update',
+    description: 'Scheduling changes, invites, and follow-up meeting notes.',
+    color: '#0EA5E9',
+    appliedCount: 94,
     enabled: true,
     updatedAt: 'Updated yesterday'
   },
   {
-    id: 'billing',
-    name: 'Billing Questions',
-    description: 'Invoices, renewal questions, and pricing updates.',
-    color: '#0D9488',
-    appliedCount: 132,
+    id: 'follow-up',
+    name: 'Follow Up',
+    description: 'Threads that need another touchpoint if no response arrives.',
+    color: '#A855F7',
+    appliedCount: 126,
     enabled: true,
-    updatedAt: 'Updated 3 days ago'
-  },
-  {
-    id: 'low-priority',
-    name: 'Low Priority Updates',
-    description: 'Newsletters, releases, and FYI updates for later review.',
-    color: '#64748B',
-    appliedCount: 312,
-    enabled: false,
-    updatedAt: 'Updated 1 week ago'
+    updatedAt: 'Updated today'
   }
 ];
 
