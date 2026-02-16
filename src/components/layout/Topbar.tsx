@@ -5,6 +5,9 @@ import { getUserInitials, useUser } from '../../context/UserContext';
 import AppLogo from '../branding/AppLogo';
 import { applyThemeMode, getInitialThemeMode, type ThemeMode } from '../../lib/theme';
 
+const topbarIconButtonClassName =
+  'theme-text-muted flex h-8 w-8 items-center justify-center rounded-lg border border-transparent transition hover:bg-slate-900/90 hover:text-white';
+
 const Topbar = () => {
   const { user } = useUser();
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
@@ -27,7 +30,7 @@ const Topbar = () => {
         <button
           type="button"
           aria-label="Notifications"
-          className="theme-text-muted rounded-lg p-1.5 transition hover:bg-slate-100/60 hover:text-slate-100"
+          className={topbarIconButtonClassName}
         >
           <Bell className="h-4 w-4" />
         </button>
@@ -35,14 +38,14 @@ const Topbar = () => {
           type="button"
           aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           onClick={toggleTheme}
-          className="theme-text-muted rounded-lg p-1.5 transition hover:bg-slate-100/60 hover:text-slate-100"
+          className={topbarIconButtonClassName}
         >
           {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
         <button
           type="button"
           aria-label="Help"
-          className="theme-text-muted rounded-lg p-1.5 transition hover:bg-slate-100/60 hover:text-slate-100"
+          className={topbarIconButtonClassName}
         >
           <CircleHelp className="h-4 w-4" />
         </button>
