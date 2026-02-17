@@ -13,7 +13,7 @@ type AuthContextValue = {
   hasAppAccess: boolean;
   isMasterUser: boolean;
   loginWithGoogle: () => Promise<void>;
-  loginWithManual: () => void;
+  loginWithManual: () => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: (options?: { background?: boolean }) => Promise<void>;
 };
@@ -106,7 +106,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         if (error) throw error;
       },
-      loginWithManual: () => {
+      loginWithManual: async () => {
+        await supabase.auth.signOut({ scope: 'global' });
         window.localStorage.setItem(MANUAL_AUTH_KEY, 'true');
         setManualAuth(true);
         setIsAuthenticated(true);

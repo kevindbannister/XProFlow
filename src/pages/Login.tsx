@@ -18,7 +18,7 @@ const Login = () => {
     // Keeps legacy local dev/demo login working.
     if (email.trim() === 'master' && password.trim() === 'master') {
       setError('');
-      loginWithManual();
+      await loginWithManual();
       navigate('/dashboard');
       return;
     }
