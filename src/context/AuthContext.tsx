@@ -46,6 +46,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return window.localStorage.getItem(MANUAL_AUTH_KEY) === 'true';
   });
 
+  const clearManualAuth = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(MANUAL_AUTH_KEY);
+    }
+    setManualAuth(false);
+  }, []);
+
   const refreshSession = useCallback(async (options?: { background?: boolean }) => {
     const isBackgroundRefresh = options?.background ?? false;
     if (!isBackgroundRefresh) setIsLoading(true);
@@ -53,8 +60,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
+      const isManualSession = manualAuth && !hasSession;
+      if (hasSession && manualAuth) {
+        clearManualAuth();
+      }
       const data = await api.get<MeResponse>('/api/me');
-      setIsAuthenticated(data.authenticated || hasSession || manualAuth);
+      setIsAuthenticated(data.authenticated || hasSession || isManualSession);
       setCsrfToken(data.csrfToken);
       setGmailConnected(Boolean(data.gmail?.connected));
       setGmailEmail(data.gmail?.email);
@@ -69,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       if (!isBackgroundRefresh) setIsLoading(false);
     }
-  }, [manualAuth]);
+  }, [manualAuth, clearManualAuth]);
 
   useEffect(() => {
     void refreshSession();
@@ -106,13 +117,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setGmailEmail(undefined);
         setCsrfToken(undefined);
         setSubscription(undefined);
-        window.localStorage.removeItem(MANUAL_AUTH_KEY);
-        setManualAuth(false);
+        clearManualAuth();
         await supabase.auth.signOut({ scope: 'global' });
       },
       refreshSession,
     }),
-    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken, subscription, refreshSession, manualAuth]
+    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken, subscription, refreshSession, manualAuth, clearManualAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
