@@ -12,6 +12,7 @@ async function startServer() {
   const { registerSessionRoutes } = require('./routes/session');
   const { registerSignupRoutes } = require('./routes/signup');
   const { registerBillingRoutes } = require('./routes/billing');
+  const { registerProfessionalContextRoutes } = require('./routes/professionalContext');
   const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
 
@@ -28,6 +29,7 @@ async function startServer() {
   registerBillingRoutes(app, supabase);
   registerGmailRoutes(app, supabase);
   registerInboxRoutes(app, supabase);
+  registerProfessionalContextRoutes(app, supabase);
 
   app.get('/health', (req, res) => {
     return res.status(200).json({ status: 'ok' });

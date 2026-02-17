@@ -9,6 +9,8 @@ const routeMeta: Record<string, { title: string }> = {
   '/writing-style': { title: 'Writing Style' },
   '/signature-time-zone': { title: 'Signature & Time Zone' },
   '/account-settings': { title: 'Account' },
+  '/onboarding/professional-context': { title: 'Professional Context' },
+  '/settings/professional-context': { title: 'Professional Context' },
   '/profile': { title: 'Profile' },
 };
 
