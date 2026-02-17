@@ -83,7 +83,7 @@ export const settingsSections: SettingsSection[] = [
     id: 'account',
     title: 'Account & workspace',
     description: 'Manage profile, team members, and permissions.',
-    path: '/settings',
+    path: '/account-settings',
     items: ['Profile', 'Security', 'Team access', 'Audit log']
   },
   {

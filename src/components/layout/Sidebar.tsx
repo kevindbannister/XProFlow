@@ -1,4 +1,4 @@
-import { LayoutDashboard, Inbox, GitBranch, Settings, CircleHelp, PanelLeftClose, PanelLeftOpen, Tag, PenSquare } from 'lucide-react';
+import { LayoutDashboard, Inbox, GitBranch, CircleHelp, PanelLeftClose, PanelLeftOpen, Tag, PenSquare, Clock3, AtSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { classNames } from '../../lib/utils';
@@ -10,8 +10,10 @@ const primaryNavigation = [
   { label: 'Inbox', to: '/inbox', icon: Inbox },
   { label: 'Labels', to: '/labels', icon: Tag },
   { label: 'Rules', to: '/rules', icon: GitBranch },
-  { label: 'Settings', to: '/settings', icon: Settings },
   { label: 'Drafting', to: '/settings/drafts', icon: PenSquare },
+  { label: 'Writing Style', to: '/writing-style', icon: PenSquare },
+  { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
+  { label: 'Account', to: '/account-settings', icon: AtSign },
 ];
 
 const secondaryNavigation = [
