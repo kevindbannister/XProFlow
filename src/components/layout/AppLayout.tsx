@@ -5,7 +5,10 @@ import Topbar from './Topbar';
 const routeMeta: Record<string, { title: string }> = {
   '/dashboard': { title: 'Dashboard' },
   '/rules': { title: 'Rules' },
-  '/settings': { title: 'Settings' },
+  '/settings/drafts': { title: 'Drafting' },
+  '/writing-style': { title: 'Writing Style' },
+  '/signature-time-zone': { title: 'Signature & Time Zone' },
+  '/account-settings': { title: 'Account' },
   '/profile': { title: 'Profile' },
 };
 

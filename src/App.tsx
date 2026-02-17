@@ -12,8 +12,10 @@ import AuthCallback from './pages/AuthCallback';
 import Onboarding from './pages/Onboarding';
 import ProfilePage from './pages/ProfilePage';
 import Rules from './pages/Rules';
-import Settings from './pages/Settings';
 import SettingsDrafts from './pages/SettingsDrafts';
+import WritingStyleSettings from './pages/settings/WritingStyleSettings';
+import SignatureTimeZoneSettings from './pages/settings/SignatureTimeZoneSettings';
+import AccountSettings from './pages/settings/AccountSettings';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
@@ -64,8 +66,10 @@ const App = () => {
         <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
         <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
         <Route path="workflows" element={<RequireProductAccess><Workflows /></RequireProductAccess>} />
-        <Route path="settings" element={<RequireProductAccess><Settings /></RequireProductAccess>} />
         <Route path="settings/drafts" element={<RequireProductAccess><SettingsDrafts /></RequireProductAccess>} />
+        <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
+        <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
+        <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
         <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
