@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabaseClient';
 import type { SubscriptionSnapshot, SubscriptionStatus } from '../types/billing';
