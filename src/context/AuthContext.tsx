@@ -26,6 +26,7 @@ type MeResponse = {
 };
 
 const ALLOWED_APP_STATUSES: SubscriptionStatus[] = ['trial', 'active', 'past_due'];
+const MANUAL_AUTH_KEY = 'xproflow-manual-auth';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
@@ -36,6 +37,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [gmailEmail, setGmailEmail] = useState<string | undefined>(undefined);
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
   const [subscription, setSubscription] = useState<SubscriptionSnapshot | undefined>(undefined);
+  const [manualAuth, setManualAuth] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.localStorage.getItem(MANUAL_AUTH_KEY) === 'true';
+  });
 
   const refreshSession = useCallback(async (options?: { background?: boolean }) => {
     const isBackgroundRefresh = options?.background ?? false;
@@ -45,14 +53,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
       const data = await api.get<MeResponse>('/api/me');
-      setIsAuthenticated(data.authenticated || hasSession);
+      setIsAuthenticated(data.authenticated || hasSession || manualAuth);
       setCsrfToken(data.csrfToken);
       setGmailConnected(Boolean(data.gmail?.connected));
       setGmailEmail(data.gmail?.email);
       setSubscription(data.subscription);
     } catch {
       const { data: sessionData } = await supabase.auth.getSession();
-      setIsAuthenticated(Boolean(sessionData.session));
+      setIsAuthenticated(Boolean(sessionData.session) || manualAuth);
       setGmailConnected(false);
       setGmailEmail(undefined);
       setCsrfToken(undefined);
@@ -60,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       if (!isBackgroundRefresh) setIsLoading(false);
     }
-  }, []);
+  }, [manualAuth]);
 
   useEffect(() => {
     void refreshSession();
@@ -86,6 +94,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
       },
       loginWithManual: () => {
+        window.localStorage.setItem(MANUAL_AUTH_KEY, 'true');
+        setManualAuth(true);
         setIsAuthenticated(true);
       },
       logout: async () => {
@@ -94,6 +104,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setGmailEmail(undefined);
         setCsrfToken(undefined);
         setSubscription(undefined);
+        window.localStorage.removeItem(MANUAL_AUTH_KEY);
+        setManualAuth(false);
         await supabase.auth.signOut({ scope: 'global' });
       },
       refreshSession,
