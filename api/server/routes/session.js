@@ -1,4 +1,5 @@
 const { getUserFromRequest, requireUser } = require('../auth/supabaseAuth');
+const { calculateTrialDaysRemaining } = require('../services/subscriptions');
 
 function registerSessionRoutes(app, supabase) {
   app.get('/api/me', async (req, res) => {
@@ -9,22 +10,33 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const { data, error } = await supabase
-        .from('gmail_accounts')
-        .select('email')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const [{ data: gmailData }, { data: orgData }] = await Promise.all([
+        supabase.from('gmail_accounts').select('email').eq('user_id', user.id).maybeSingle(),
+        supabase
+          .from('organisations')
+          .select('id, name, subscriptions(status, trial_ends_at, current_period_end, cancel_at_period_end)')
+          .eq('owner_user_id', user.id)
+          .maybeSingle(),
+      ]);
 
-      if (error) {
-        throw error;
-      }
+      const subscription = Array.isArray(orgData?.subscriptions)
+        ? orgData?.subscriptions[0]
+        : orgData?.subscriptions;
 
       res.json({
         authenticated: true,
         user: { id: user.id, email: user.email },
-        gmail: data
-          ? { connected: true, email: data.email }
-          : { connected: false }
+        gmail: gmailData ? { connected: true, email: gmailData.email } : { connected: false },
+        organisation: orgData ? { id: orgData.id, name: orgData.name } : undefined,
+        subscription: subscription
+          ? {
+              status: subscription.status,
+              trialEndsAt: subscription.trial_ends_at,
+              trialDaysRemaining: calculateTrialDaysRemaining(subscription.trial_ends_at),
+              currentPeriodEnd: subscription.current_period_end,
+              cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            }
+          : undefined,
       });
     } catch (error) {
       console.error('Session check failed:', error);
@@ -39,10 +51,7 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const { error } = await supabase
-        .from('gmail_accounts')
-        .delete()
-        .eq('user_id', user.id);
+      const { error } = await supabase.from('gmail_accounts').delete().eq('user_id', user.id);
 
       if (error) {
         throw error;

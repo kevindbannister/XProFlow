@@ -10,44 +10,27 @@ async function startServer() {
   const { registerGmailRoutes } = require('./routes/gmail');
   const { registerInboxRoutes } = require('./routes/inbox');
   const { registerSessionRoutes } = require('./routes/session');
+  const { registerSignupRoutes } = require('./routes/signup');
+  const { registerBillingRoutes } = require('./routes/billing');
   const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
 
   const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
   const supabase = getSupabaseClient();
 
+  // Stripe signature validation needs the raw body.
+  app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
   app.use(express.json());
 
   registerGoogleAuth(app, supabase);
   registerSessionRoutes(app, supabase);
+  registerSignupRoutes(app, supabase);
+  registerBillingRoutes(app, supabase);
   registerGmailRoutes(app, supabase);
   registerInboxRoutes(app, supabase);
 
   app.get('/health', (req, res) => {
     return res.status(200).json({ status: 'ok' });
-  });
-
-  app.get('/health/supabase', async (req, res) => {
-    try {
-      const { data, error } = await supabase
-        .from('connected_accounts')
-        .select('id')
-        .limit(1);
-
-      if (error) {
-        throw error;
-      }
-
-      const rows = Array.isArray(data) ? data.length : 0;
-      return res.json({
-        status: 'ok',
-        supabase: 'connected',
-        rows,
-      });
-    } catch (error) {
-      console.error('Supabase health check failed:', error);
-      return res.status(500).json({ error: 'Supabase health check failed' });
-    }
   });
 
   app.get('/debug/encryption-test', (req, res) => {
@@ -63,8 +46,7 @@ async function startServer() {
         success: decrypted === original,
       });
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Encryption test failed';
+      const message = error instanceof Error ? error.message : 'Encryption test failed';
       return res.status(500).json({ error: message });
     }
   });

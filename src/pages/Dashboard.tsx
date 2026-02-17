@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import Card from '../components/ui/Card';
+import { useAuth } from '../context/AuthContext';
 
 type InboxEmail = {
   sender: string;
@@ -146,6 +148,7 @@ const captureElementAsPng = async (element: HTMLElement, filename: string) => {
 
 const Dashboard = () => {
   const dashboardRef = useRef<HTMLElement | null>(null);
+  const { subscription } = useAuth();
 
   useEffect(() => {
     const capturePending = window.sessionStorage.getItem('xproflow-dashboard-capture-pending');
@@ -181,6 +184,22 @@ const Dashboard = () => {
             placeholder="Search or ask XProFlow a question"
             className="input-surface w-full rounded-2xl border py-3 pl-11 pr-4 text-sm theme-text-secondary outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
           />
+        </div>
+      </Card>
+
+
+      <Card className="p-4">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-slate-700">Billing status: {subscription?.status || 'trial'}</p>
+            {subscription?.status === 'trial' ? (
+              <p className="text-xs text-slate-500">{subscription.trialDaysRemaining ?? 0} day(s) left in your free trial.</p>
+            ) : null}
+            {subscription?.status === 'past_due' ? (
+              <p className="text-xs text-amber-600">Payment issue detected. Update billing to avoid cancellation.</p>
+            ) : null}
+          </div>
+          <Link to="/billing" className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white">Manage billing</Link>
         </div>
       </Card>
 

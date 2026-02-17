@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabaseClient';
+import type { SubscriptionSnapshot, SubscriptionStatus } from '../types/billing';
 
 type AuthContextValue = {
   isAuthenticated: boolean;
@@ -8,6 +9,8 @@ type AuthContextValue = {
   gmailConnected: boolean;
   gmailEmail?: string;
   csrfToken?: string;
+  subscription?: SubscriptionSnapshot;
+  hasAppAccess: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithManual: () => void;
   logout: () => Promise<void>;
@@ -19,117 +22,57 @@ type MeResponse = {
   csrfToken?: string;
   user?: { id: string; email?: string };
   gmail?: { connected: boolean; email?: string; scopes?: string };
+  subscription?: SubscriptionSnapshot;
 };
+
+const ALLOWED_APP_STATUSES: SubscriptionStatus[] = ['trial', 'active', 'past_due'];
+const MANUAL_AUTH_KEY = 'xproflow-manual-auth';
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-
-const markDashboardCapturePending = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.sessionStorage.setItem('xproflow-dashboard-capture-pending', 'true');
-  window.sessionStorage.removeItem('xproflow-dashboard-captured');
-};
-
-const clearPersistedAuthState = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.localStorage.removeItem('xproflow-manual-auth');
-
-  Object.keys(window.localStorage)
-    .filter((key) => key.startsWith('sb-'))
-    .forEach((key) => {
-      window.localStorage.removeItem(key);
-    });
-
-  Object.keys(window.sessionStorage)
-    .filter((key) => key.startsWith('sb-'))
-    .forEach((key) => {
-      window.sessionStorage.removeItem(key);
-    });
-};
-
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [gmailConnected, setGmailConnected] = useState(false);
   const [gmailEmail, setGmailEmail] = useState<string | undefined>(undefined);
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
+  const [subscription, setSubscription] = useState<SubscriptionSnapshot | undefined>(undefined);
   const [manualAuth, setManualAuth] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
     }
-    return window.localStorage.getItem('xproflow-manual-auth') === 'true';
+
+    return window.localStorage.getItem(MANUAL_AUTH_KEY) === 'true';
   });
 
   const refreshSession = useCallback(async (options?: { background?: boolean }) => {
     const isBackgroundRefresh = options?.background ?? false;
-    if (!isBackgroundRefresh) {
-      setIsLoading(true);
-    }
+    if (!isBackgroundRefresh) setIsLoading(true);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
       const data = await api.get<MeResponse>('/api/me');
-      setIsAuthenticated(data.authenticated || manualAuth || hasSession);
+      setIsAuthenticated(data.authenticated || hasSession || manualAuth);
       setCsrfToken(data.csrfToken);
       setGmailConnected(Boolean(data.gmail?.connected));
       setGmailEmail(data.gmail?.email);
+      setSubscription(data.subscription);
     } catch {
       const { data: sessionData } = await supabase.auth.getSession();
-      const hasSession = Boolean(sessionData.session);
-      setIsAuthenticated(manualAuth || hasSession);
+      setIsAuthenticated(Boolean(sessionData.session) || manualAuth);
       setGmailConnected(false);
       setGmailEmail(undefined);
       setCsrfToken(undefined);
+      setSubscription(undefined);
     } finally {
-      if (!isBackgroundRefresh) {
-        setIsLoading(false);
-      }
+      if (!isBackgroundRefresh) setIsLoading(false);
     }
   }, [manualAuth]);
 
   useEffect(() => {
     void refreshSession();
   }, [refreshSession]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      void refreshSession({ background: true });
-    }, 60_000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [refreshSession]);
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        setIsAuthenticated(true);
-        markDashboardCapturePending();
-        void refreshSession({ background: true });
-      } else {
-        setIsAuthenticated(manualAuth);
-        setGmailConnected(false);
-        setGmailEmail(undefined);
-        setCsrfToken(undefined);
-      }
-    });
-
-    return () => {
-      data.subscription.unsubscribe();
-    };
-  }, [manualAuth, refreshSession]);
 
   const value = useMemo(
     () => ({
@@ -138,59 +81,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       gmailConnected,
       gmailEmail,
       csrfToken,
+      subscription,
+      hasAppAccess: subscription ? ALLOWED_APP_STATUSES.includes(subscription.status) : true,
       loginWithGoogle: async () => {
-        console.log('Starting Supabase Google OAuth sign-in.');
-        console.log('Calling supabase.auth.signInWithOAuth with redirect.', {
-          provider: 'google',
-          redirectTo: `${window.location.origin}/auth/callback`
-        });
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
             scopes: 'https://www.googleapis.com/auth/gmail.readonly',
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'consent'
-            }
-          }
+          },
         });
-        console.log('Supabase Google OAuth response', { data, error });
-        if (error) {
-          console.error('Supabase Google OAuth sign-in failed.', error);
-          throw error;
-        }
+        if (error) throw error;
       },
       loginWithManual: () => {
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem('xproflow-manual-auth', 'true');
-        }
+        window.localStorage.setItem(MANUAL_AUTH_KEY, 'true');
         setManualAuth(true);
         setIsAuthenticated(true);
-        markDashboardCapturePending();
       },
       logout: async () => {
         setIsAuthenticated(false);
         setGmailConnected(false);
         setGmailEmail(undefined);
         setCsrfToken(undefined);
+        setSubscription(undefined);
+        window.localStorage.removeItem(MANUAL_AUTH_KEY);
         setManualAuth(false);
-        clearPersistedAuthState();
-
-        try {
-          await api.post(
-            '/auth/logout',
-            undefined,
-            csrfToken ? { 'x-csrf-token': csrfToken } : undefined
-          );
-        } finally {
-          await supabase.auth.signOut({ scope: 'global' });
-          clearPersistedAuthState();
-        }
+        await supabase.auth.signOut({ scope: 'global' });
       },
-      refreshSession
+      refreshSession,
     }),
-    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken]
+    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken, subscription, refreshSession]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -198,8 +118,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
