@@ -34,9 +34,15 @@ const ProfessionalContextForm = ({ mode }: { mode: 'onboarding' | 'settings' }) 
 
   useEffect(() => {
     const load = async () => {
-      const data = await fetchProfessionalContext();
-      setContext(data);
-      setLoading(false);
+      try {
+        const data = await fetchProfessionalContext();
+        setContext(data);
+      } catch {
+        setContext(DEFAULT_PROFESSIONAL_CONTEXT);
+        setStatus('Using default professional context for now.');
+      } finally {
+        setLoading(false);
+      }
     };
 
     void load();
