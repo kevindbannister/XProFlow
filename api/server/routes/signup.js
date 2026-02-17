@@ -34,6 +34,41 @@ function registerSignupRoutes(app, supabase) {
         throw orgError || new Error('Failed to create organisation');
       }
 
+
+      const { error: profileError } = await supabase.from('profiles').insert({
+        user_id: created.user.id,
+        org_id: organisation.id,
+        display_name: email.split('@')[0],
+      });
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      const { error: contextUserError } = await supabase.from('professional_context_user').insert({
+        user_id: created.user.id,
+        primary_role: 'Accountant (Practice)',
+        job_title_selected: 'Accountant',
+        seniority_level: 'Senior/Qualified',
+        work_setting: 'Accounting Practice (public practice)',
+        audiences: ['Business owners / directors'],
+        writing_style: 'Professional',
+        risk_posture: 'Balanced (professional + pragmatic)',
+      });
+
+      if (contextUserError) {
+        throw contextUserError;
+      }
+
+      const { error: contextOrgError } = await supabase.from('professional_context_org').insert({
+        org_id: organisation.id,
+        firm_name: orgName,
+      });
+
+      if (contextOrgError) {
+        throw contextOrgError;
+      }
+
       const trialStartedAt = new Date();
       const trialEndsAt = calculateTrialEndsAt(trialStartedAt, 14);
 

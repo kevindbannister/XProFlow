@@ -16,6 +16,8 @@ import SettingsDrafts from './pages/SettingsDrafts';
 import WritingStyleSettings from './pages/settings/WritingStyleSettings';
 import SignatureTimeZoneSettings from './pages/settings/SignatureTimeZoneSettings';
 import AccountSettings from './pages/settings/AccountSettings';
+import ProfessionalContextOnboarding from './pages/onboarding/ProfessionalContextOnboarding';
+import ProfessionalContextSettings from './pages/settings/ProfessionalContextSettings';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
@@ -62,6 +64,7 @@ const App = () => {
         <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
         <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
         <Route path="onboarding" element={<RequireProductAccess><Onboarding /></RequireProductAccess>} />
+        <Route path="onboarding/professional-context" element={<RequireProductAccess><ProfessionalContextOnboarding /></RequireProductAccess>} />
         <Route path="labels" element={<RequireProductAccess><Labels /></RequireProductAccess>} />
         <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
         <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
@@ -70,6 +73,7 @@ const App = () => {
         <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
         <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
         <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
+        <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
         <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>

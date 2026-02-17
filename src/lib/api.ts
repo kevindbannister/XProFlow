@@ -46,5 +46,7 @@ const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T
 export const api = {
   get: <T>(endpoint: string) => request<T>(endpoint),
   post: <T>(endpoint: string, body?: unknown, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'POST', body, headers })
+    request<T>(endpoint, { method: 'POST', body, headers }),
+  put: <T>(endpoint: string, body?: unknown, headers?: Record<string, string>) =>
+    request<T>(endpoint, { method: 'PUT', body, headers })
 };
