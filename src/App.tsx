@@ -2,7 +2,6 @@ import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
-import { useFeatureFlags, type FeatureFlags } from './context/FeatureFlagsContext';
 import { supabase } from './lib/supabaseClient';
 import EmailSetup from './pages/EmailSetup';
 import Integrations from './pages/Integrations';
@@ -23,7 +22,6 @@ import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
-import AdminFeatures from './pages/AdminFeatures';
 import { applyThemeMode, getInitialThemeMode } from './lib/theme';
 
 const AppLoadingScreen = () => <div className="flex min-h-screen items-center justify-center">Preparing workspace…</div>;
@@ -38,18 +36,6 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
 const RequireProductAccess = ({ children }: { children: ReactNode }) => {
   const { hasAppAccess } = useAuth();
   if (!hasAppAccess) return <Navigate to="/billing" replace />;
-  return <>{children}</>;
-};
-
-const RequireMaster = ({ children }: { children: ReactNode }) => {
-  const { isMasterUser } = useAuth();
-  if (!isMasterUser) return <Navigate to="/dashboard" replace />;
-  return <>{children}</>;
-};
-
-const RequireFeature = ({ feature, children }: { feature: keyof FeatureFlags; children: ReactNode }) => {
-  const { flags } = useFeatureFlags();
-  if (!flags[feature]) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
@@ -74,22 +60,21 @@ const App = () => {
       <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
         <Route path="billing" element={<Billing />} />
         <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="inbox" element={<RequireProductAccess><RequireFeature feature="inbox"><Inbox /></RequireFeature></RequireProductAccess>} />
-        <Route path="dashboard" element={<RequireProductAccess><RequireFeature feature="dashboard"><Dashboard /></RequireFeature></RequireProductAccess>} />
+        <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
+        <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
         <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
         <Route path="onboarding" element={<RequireProductAccess><Onboarding /></RequireProductAccess>} />
         <Route path="onboarding/professional-context" element={<RequireProductAccess><ProfessionalContextOnboarding /></RequireProductAccess>} />
-        <Route path="labels" element={<RequireProductAccess><RequireFeature feature="labels"><Labels /></RequireFeature></RequireProductAccess>} />
-        <Route path="rules" element={<RequireProductAccess><RequireFeature feature="rules"><Rules /></RequireFeature></RequireProductAccess>} />
-        <Route path="integrations" element={<RequireProductAccess><RequireFeature feature="help"><Integrations /></RequireFeature></RequireProductAccess>} />
+        <Route path="labels" element={<RequireProductAccess><Labels /></RequireProductAccess>} />
+        <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
+        <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
         <Route path="workflows" element={<RequireProductAccess><Workflows /></RequireProductAccess>} />
-        <Route path="settings/drafts" element={<RequireProductAccess><RequireFeature feature="drafting"><SettingsDrafts /></RequireFeature></RequireProductAccess>} />
-        <Route path="writing-style" element={<RequireProductAccess><RequireFeature feature="writingStyle"><WritingStyleSettings /></RequireFeature></RequireProductAccess>} />
-        <Route path="signature-time-zone" element={<RequireProductAccess><RequireFeature feature="signatureTimeZone"><SignatureTimeZoneSettings /></RequireFeature></RequireProductAccess>} />
-        <Route path="account-settings" element={<RequireProductAccess><RequireFeature feature="account"><AccountSettings /></RequireFeature></RequireProductAccess>} />
-        <Route path="settings/professional-context" element={<RequireProductAccess><RequireFeature feature="professionalContext"><ProfessionalContextSettings /></RequireFeature></RequireProductAccess>} />
+        <Route path="settings/drafts" element={<RequireProductAccess><SettingsDrafts /></RequireProductAccess>} />
+        <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
+        <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
+        <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
+        <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
         <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
-        <Route path="admin/features" element={<RequireMaster><AdminFeatures /></RequireMaster>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Route>
     </Routes>

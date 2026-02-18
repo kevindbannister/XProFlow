@@ -12,7 +12,6 @@ const routeMeta: Record<string, { title: string }> = {
   '/onboarding/professional-context': { title: 'Professional Context' },
   '/settings/professional-context': { title: 'Professional Context' },
   '/profile': { title: 'Profile' },
-  '/admin/features': { title: 'Admin Features' },
 };
 
 const AppLayout = () => {

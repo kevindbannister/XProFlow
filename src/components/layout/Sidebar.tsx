@@ -1,31 +1,27 @@
-import { LayoutDashboard, Inbox, GitBranch, CircleHelp, PanelLeftClose, PanelLeftOpen, Tag, PenSquare, Clock3, AtSign, BriefcaseBusiness, Shield } from 'lucide-react';
+import { LayoutDashboard, Inbox, GitBranch, CircleHelp, PanelLeftClose, PanelLeftOpen, Tag, PenSquare, Clock3, AtSign, BriefcaseBusiness } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import { useFeatureFlags, type FeatureFlags } from '../../context/FeatureFlagsContext';
 import { classNames } from '../../lib/utils';
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'xproflow.sidebar.collapsed';
 
-const primaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard; flag: keyof FeatureFlags }> = [
-  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, flag: 'dashboard' },
-  { label: 'Inbox', to: '/inbox', icon: Inbox, flag: 'inbox' },
-  { label: 'Labels', to: '/labels', icon: Tag, flag: 'labels' },
-  { label: 'Rules', to: '/rules', icon: GitBranch, flag: 'rules' },
-  { label: 'Drafting', to: '/settings/drafts', icon: PenSquare, flag: 'drafting' },
-  { label: 'Writing Style', to: '/writing-style', icon: PenSquare, flag: 'writingStyle' },
-  { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3, flag: 'signatureTimeZone' },
-  { label: 'Professional Context', to: '/settings/professional-context', icon: BriefcaseBusiness, flag: 'professionalContext' },
-  { label: 'Account', to: '/account-settings', icon: AtSign, flag: 'account' },
+const primaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [
+  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
+  { label: 'Inbox', to: '/inbox', icon: Inbox },
+  { label: 'Labels', to: '/labels', icon: Tag },
+  { label: 'Rules', to: '/rules', icon: GitBranch },
+  { label: 'Drafting', to: '/settings/drafts', icon: PenSquare },
+  { label: 'Writing Style', to: '/writing-style', icon: PenSquare },
+  { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
+  { label: 'Professional Context', to: '/settings/professional-context', icon: BriefcaseBusiness },
+  { label: 'Account', to: '/account-settings', icon: AtSign },
 ];
 
-const secondaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard; flag: keyof FeatureFlags }> = [
-  { label: 'Help', to: '/integrations', icon: CircleHelp, flag: 'help' },
+const secondaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [
+  { label: 'Help', to: '/integrations', icon: CircleHelp },
 ];
 
 const Sidebar = () => {
-  const { isMasterUser } = useAuth();
-  const { flags } = useFeatureFlags();
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     const savedValue = localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
     return savedValue === 'true';
@@ -68,13 +64,12 @@ const Sidebar = () => {
       data-collapsed={isCollapsed}
     >
       <nav className="flex flex-col gap-1">
-        {primaryNavigation.filter((item) => flags[item.flag]).map((item) => renderItem(item.label, item.to, item.icon))}
+        {primaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
       </nav>
 
       <div className="flex flex-col gap-2">
         <nav className="flex flex-col gap-1">
-          {secondaryNavigation.filter((item) => flags[item.flag]).map((item) => renderItem(item.label, item.to, item.icon))}
-          {isMasterUser ? renderItem('Admin Features', '/admin/features', Shield) : null}
+          {secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
         </nav>
 
         <button
