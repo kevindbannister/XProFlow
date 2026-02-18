@@ -1,4 +1,5 @@
 const { requireUser } = require('../auth/supabaseAuth');
+const { createRequireRole } = require('../middleware/requireRole');
 
 const FIRM_ROLES = ['owner', 'admin', 'staff'];
 
@@ -38,18 +39,15 @@ async function loadMembership(supabase, userId) {
 }
 
 function registerFirmRoutes(app, supabase) {
-  app.post('/api/firm/invite', async (req, res) => {
+  const requireRole = createRequireRole(supabase);
+
+  app.post('/api/firm/invite', requireRole('owner', 'admin'), async (req, res) => {
     try {
-      const user = await requireUser(req, res, supabase);
+      const user = req.user || (await requireUser(req, res, supabase));
       if (!user) return;
 
       const membership = await loadMembership(supabase, user.id);
       if (!membership) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-
-      const isOwner = membership.firm.owner_user_id === user.id;
-      if (!isOwner && !isPrivilegedRole(membership.profile.role)) {
         return res.status(403).json({ error: 'Forbidden' });
       }
 
@@ -169,18 +167,13 @@ function registerFirmRoutes(app, supabase) {
     }
   });
 
-  app.delete('/api/firm/users/:id', async (req, res) => {
+  app.delete('/api/firm/users/:id', requireRole('owner', 'admin'), async (req, res) => {
     try {
-      const user = await requireUser(req, res, supabase);
+      const user = req.user || (await requireUser(req, res, supabase));
       if (!user) return;
 
       const membership = await loadMembership(supabase, user.id);
       if (!membership) {
-        return res.status(403).json({ error: 'Forbidden' });
-      }
-
-      const isOwner = membership.firm.owner_user_id === user.id;
-      if (!isOwner && !isPrivilegedRole(membership.profile.role)) {
         return res.status(403).json({ error: 'Forbidden' });
       }
 
