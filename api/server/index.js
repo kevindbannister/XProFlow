@@ -13,6 +13,7 @@ async function startServer() {
   const { registerFeatureFlagRoutes } = require('./routes/featureFlags');
   const { registerSignupRoutes } = require('./routes/signup');
   const { registerBillingRoutes } = require('./routes/billing');
+  const { registerFirmRoutes } = require('./routes/firm');
   const { registerProfessionalContextRoutes } = require('./routes/professionalContext');
   const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
@@ -29,6 +30,7 @@ async function startServer() {
   registerFeatureFlagRoutes(app, supabase);
   registerSignupRoutes(app, supabase);
   registerBillingRoutes(app, supabase);
+  registerFirmRoutes(app, supabase);
   registerGmailRoutes(app, supabase);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
