@@ -2,7 +2,6 @@ import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
-import { supabase } from './lib/supabaseClient';
 import EmailSetup from './pages/EmailSetup';
 import Integrations from './pages/Integrations';
 import Labels from './pages/Labels';
@@ -24,12 +23,28 @@ import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
 import { applyThemeMode, getInitialThemeMode } from './lib/theme';
 
-const AppLoadingScreen = () => <div className="flex min-h-screen items-center justify-center">Preparing workspace…</div>;
+const AppLoadingScreen = () => (
+  <div className="flex min-h-screen w-full items-center justify-center bg-slate-950 text-sm font-medium text-slate-100">
+    Preparing workspace…
+  </div>
+);
+
+const AppBootGate = ({ children }: { children: ReactNode }) => {
+  const { isBootstrapping } = useAuth();
+  if (isBootstrapping) return <AppLoadingScreen />;
+  return <>{children}</>;
+};
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  if (isLoading) return <AppLoadingScreen />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  const { isAuthenticated, profileReady, isMasterUser } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!profileReady && !isMasterUser) {
+    return <AppLoadingScreen />;
+  }
+
   return <>{children}</>;
 };
 
@@ -40,44 +55,40 @@ const RequireProductAccess = ({ children }: { children: ReactNode }) => {
 };
 
 const App = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     applyThemeMode(isAuthenticated ? getInitialThemeMode() : 'light', false);
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) supabase.auth.setSession(data.session);
-    });
-  }, []);
-
   return (
-    <Routes>
-      <Route path="login" element={isLoading ? <AppLoadingScreen /> : isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
-      <Route path="signup" element={isLoading ? <AppLoadingScreen /> : isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
-      <Route path="auth/callback" element={<AuthCallback />} />
-      <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
-        <Route path="billing" element={<Billing />} />
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
-        <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
-        <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
-        <Route path="onboarding" element={<RequireProductAccess><Onboarding /></RequireProductAccess>} />
-        <Route path="onboarding/professional-context" element={<RequireProductAccess><ProfessionalContextOnboarding /></RequireProductAccess>} />
-        <Route path="labels" element={<RequireProductAccess><Labels /></RequireProductAccess>} />
-        <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
-        <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
-        <Route path="workflows" element={<RequireProductAccess><Workflows /></RequireProductAccess>} />
-        <Route path="settings/drafts" element={<RequireProductAccess><SettingsDrafts /></RequireProductAccess>} />
-        <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
-        <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
-        <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
-        <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
-        <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Route>
-    </Routes>
+    <AppBootGate>
+      <Routes>
+        <Route path="login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route path="signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
+        <Route path="auth/callback" element={<AuthCallback />} />
+        <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+          <Route path="billing" element={<Billing />} />
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
+          <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
+          <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
+          <Route path="onboarding" element={<RequireProductAccess><Onboarding /></RequireProductAccess>} />
+          <Route path="onboarding/professional-context" element={<RequireProductAccess><ProfessionalContextOnboarding /></RequireProductAccess>} />
+          <Route path="labels" element={<RequireProductAccess><Labels /></RequireProductAccess>} />
+          <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
+          <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
+          <Route path="workflows" element={<RequireProductAccess><Workflows /></RequireProductAccess>} />
+          <Route path="settings/drafts" element={<RequireProductAccess><SettingsDrafts /></RequireProductAccess>} />
+          <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
+          <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
+          <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
+          <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
+          <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Route>
+      </Routes>
+    </AppBootGate>
   );
 };
 
