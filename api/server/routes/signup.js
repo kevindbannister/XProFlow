@@ -39,6 +39,7 @@ function registerSignupRoutes(app, supabase) {
         user_id: created.user.id,
         org_id: organisation.id,
         display_name: email.split('@')[0],
+        role: 'owner',
       });
 
       if (profileError) {
