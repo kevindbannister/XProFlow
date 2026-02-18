@@ -72,8 +72,7 @@ export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshFlags = useCallback(async () => {
     if (!isAuthenticated) {
-      setFlags(defaultFlags);
-      persistFlags(defaultFlags);
+      setFlags(getStoredFlags());
       setIsLoading(false);
       return;
     }
