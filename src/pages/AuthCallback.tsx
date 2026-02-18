@@ -12,35 +12,51 @@ const AuthCallback = () => {
     (async () => {
       setMsg('Exchanging OAuth for session…');
 
-      const { data, error } = await supabase.auth.getSession();
-      console.log('callback getSession:', { data, error });
+      try {
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('error') || searchParams.get('error_description')) {
+          navigate('/login?error=oauth_callback', { replace: true });
+          return;
+        }
 
-      if (error) {
-        console.error('OAuth callback error:', error);
-        setMsg('OAuth error. Returning to login…');
-        navigate('/login?error=oauth_callback', { replace: true });
-        return;
-      }
+        const code = searchParams.get('code');
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          if (exchangeError) {
+            console.error('OAuth code exchange failed:', exchangeError);
+            navigate('/login?error=oauth_exchange', { replace: true });
+            return;
+          }
+        }
 
-      if (data?.session) {
-        setMsg('Signed in. Redirecting…');
-        await refreshSession();
-        navigate('/dashboard', { replace: true });
-        return;
-      }
+        const { data, error } = await supabase.auth.getSession();
 
-      setMsg('Finalising session…');
-      setTimeout(async () => {
+        if (error) {
+          console.error('OAuth callback session fetch failed:', error);
+          navigate('/login?error=oauth_callback', { replace: true });
+          return;
+        }
+
+        if (data?.session) {
+          setMsg('Signed in. Redirecting…');
+          await refreshSession();
+          navigate('/dashboard', { replace: true });
+          return;
+        }
+
+        setMsg('Finalising session…');
         const retry = await supabase.auth.getSession();
-        console.log('callback retry getSession:', retry);
-
         if (retry.data?.session) {
           await refreshSession();
           navigate('/dashboard', { replace: true });
-        } else {
-          navigate('/login?error=no_session', { replace: true });
+          return;
         }
-      }, 800);
+
+        navigate('/login?error=no_session', { replace: true });
+      } catch (callbackError) {
+        console.error('Unexpected OAuth callback failure:', callbackError);
+        navigate('/login?error=oauth_callback', { replace: true });
+      }
     })();
   }, [navigate, refreshSession]);
 
