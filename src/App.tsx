@@ -36,13 +36,18 @@ const AppBootGate = ({ children }: { children: ReactNode }) => {
 };
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, profileReady, isMasterUser } = useAuth();
-  if (!isAuthenticated) {
+  const { hasSession, isLoading, profileReady, appUserProfile } = useAuth();
+
+  if (isLoading || !profileReady) {
+    return <AppLoadingScreen />;
+  }
+
+  if (!hasSession) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!profileReady && !isMasterUser) {
-    return <AppLoadingScreen />;
+  if (!appUserProfile) {
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
@@ -55,7 +60,7 @@ const RequireProductAccess = ({ children }: { children: ReactNode }) => {
 };
 
 const App = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasSession } = useAuth();
 
   useEffect(() => {
     applyThemeMode(isAuthenticated ? getInitialThemeMode() : 'light', false);
@@ -64,8 +69,8 @@ const App = () => {
   return (
     <AppBootGate>
       <Routes>
-        <Route path="login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="signup" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Signup />} />
+        <Route path="login" element={hasSession ? <Navigate to="/dashboard" replace /> : <Login />} />
+        <Route path="signup" element={hasSession ? <Navigate to="/dashboard" replace /> : <Signup />} />
         <Route path="auth/callback" element={<AuthCallback />} />
         <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route path="billing" element={<Billing />} />

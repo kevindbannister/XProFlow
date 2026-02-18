@@ -10,6 +10,7 @@ type AppUserProfile = {
 };
 
 type AuthContextValue = {
+  hasSession: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
   isBootstrapping: boolean;
@@ -68,6 +69,7 @@ const loadAppUserProfile = async (userId: string): Promise<AppUserProfile | null
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [hasSession, setHasSession] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [gmailConnected, setGmailConnected] = useState(false);
@@ -100,6 +102,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
       const isManualSession = manualAuth && !hasSession;
+      setHasSession(hasSession);
 
       if (hasSession && manualAuth) {
         clearManualAuth();
@@ -112,6 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (hasSession && !nextProfile && !isManualSession) {
         await supabase.auth.signOut({ scope: 'global' });
+        setHasSession(false);
         setIsAuthenticated(false);
         setProfileReady(false);
         setAppUserProfile(null);
@@ -136,6 +140,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to refresh application session state:', sessionError);
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSession = Boolean(sessionData.session);
+      setHasSession(hasSession);
       setIsAuthenticated(hasSession || manualAuth);
       setProfileReady(manualAuth && !hasSession);
       setAppUserProfile(null);
@@ -163,9 +168,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value = useMemo(
     () => ({
+      hasSession,
       isAuthenticated,
       isLoading,
-      isBootstrapping: isLoading || (isAuthenticated && !profileReady),
+      isBootstrapping: isLoading || (hasSession && !profileReady),
       gmailConnected,
       gmailEmail,
       csrfToken,
@@ -207,7 +213,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
       refreshSession,
     }),
-    [isAuthenticated, isLoading, profileReady, gmailConnected, gmailEmail, csrfToken, subscription, isMasterUser, appUserProfile, refreshSession, clearManualAuth]
+    [hasSession, isAuthenticated, isLoading, profileReady, gmailConnected, gmailEmail, csrfToken, subscription, isMasterUser, appUserProfile, refreshSession, clearManualAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
