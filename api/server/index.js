@@ -26,7 +26,7 @@ async function startServer() {
 
   registerGoogleAuth(app, supabase);
   registerSessionRoutes(app, supabase);
-  registerFeatureFlagRoutes(app);
+  registerFeatureFlagRoutes(app, supabase);
   registerSignupRoutes(app, supabase);
   registerBillingRoutes(app, supabase);
   registerGmailRoutes(app, supabase);

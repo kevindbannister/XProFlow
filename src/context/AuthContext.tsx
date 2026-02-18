@@ -24,6 +24,7 @@ type MeResponse = {
   user?: { id: string; email?: string };
   gmail?: { connected: boolean; email?: string; scopes?: string };
   subscription?: SubscriptionSnapshot;
+  isMasterUser?: boolean;
 };
 
 const ALLOWED_APP_STATUSES: SubscriptionStatus[] = ['trial', 'active', 'past_due'];
@@ -38,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [gmailEmail, setGmailEmail] = useState<string | undefined>(undefined);
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
   const [subscription, setSubscription] = useState<SubscriptionSnapshot | undefined>(undefined);
+  const [isMasterUser, setIsMasterUser] = useState(false);
   const [manualAuth, setManualAuth] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -70,6 +72,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setGmailConnected(Boolean(data.gmail?.connected));
       setGmailEmail(data.gmail?.email);
       setSubscription(data.subscription);
+      setIsMasterUser(Boolean(data.isMasterUser) || isManualSession);
     } catch {
       const { data: sessionData } = await supabase.auth.getSession();
       setIsAuthenticated(Boolean(sessionData.session) || manualAuth);
@@ -77,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setGmailEmail(undefined);
       setCsrfToken(undefined);
       setSubscription(undefined);
+      setIsMasterUser(manualAuth && !Boolean(sessionData.session));
     } finally {
       if (!isBackgroundRefresh) setIsLoading(false);
     }
@@ -95,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       csrfToken,
       subscription,
       hasAppAccess: subscription ? ALLOWED_APP_STATUSES.includes(subscription.status) : true,
-      isMasterUser: manualAuth,
+      isMasterUser,
       loginWithGoogle: async () => {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
@@ -110,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await supabase.auth.signOut({ scope: 'global' });
         window.localStorage.setItem(MANUAL_AUTH_KEY, 'true');
         setManualAuth(true);
+        setIsMasterUser(true);
         setIsAuthenticated(true);
       },
       logout: async () => {
@@ -118,12 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setGmailEmail(undefined);
         setCsrfToken(undefined);
         setSubscription(undefined);
+        setIsMasterUser(false);
         clearManualAuth();
         await supabase.auth.signOut({ scope: 'global' });
       },
       refreshSession,
     }),
-    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken, subscription, refreshSession, manualAuth, clearManualAuth]
+    [isAuthenticated, isLoading, gmailConnected, gmailEmail, csrfToken, subscription, isMasterUser, refreshSession, manualAuth, clearManualAuth]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
