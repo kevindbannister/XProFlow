@@ -222,7 +222,11 @@ body {
 .app-shell-bg {
   position: relative;
   isolation: isolate;
-  background: var(--app-shell-gradient);
+  background-color: var(--main-bg-color);
+  background-image: var(--main-bg-image), var(--app-shell-gradient);
+  background-position: center top, center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: cover, cover;
 }
 
 .app-shell-bg::before {
@@ -249,11 +253,7 @@ body {
 }
 
 .app-main-bg {
-  background-color: var(--main-bg-color);
-  background-image: var(--main-bg-image);
-  background-position: center top;
-  background-repeat: no-repeat;
-  background-size: cover;
+  background: transparent;
 }
 
 .glass-card {
