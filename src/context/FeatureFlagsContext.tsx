@@ -101,6 +101,7 @@ export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
       isLoading,
       refreshFlags,
       updateFlags: async (nextFlags: FeatureFlags) => {
+        const previousFlags = flags;
         const normalizedFlags = { ...defaultFlags, ...nextFlags };
         setFlags(normalizedFlags);
         persistFlags(normalizedFlags);
@@ -111,6 +112,8 @@ export const FeatureFlagsProvider = ({ children }: { children: ReactNode }) => {
           setFlags(serverFlags);
           persistFlags(serverFlags);
         } catch {
+          setFlags(previousFlags);
+          persistFlags(previousFlags);
           throw new Error('Failed to save feature settings. Please try again.');
         }
       },
