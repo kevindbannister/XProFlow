@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
 const { requireUser } = require('../auth/supabaseAuth');
+const { createRequireRole } = require('../middleware/requireRole');
 const {
   mapStripeSubscriptionStatus,
   calculateTrialDaysRemaining,
@@ -41,9 +42,10 @@ async function upsertSubscriptionFromStripe(supabase, organisationId, subscripti
 }
 
 function registerBillingRoutes(app, supabase) {
-  app.post('/api/billing/checkout-session', async (req, res) => {
+  const requireRole = createRequireRole(supabase);
+  app.post('/api/billing/checkout-session', requireRole('owner'), async (req, res) => {
     try {
-      const user = await requireUser(req, res, supabase);
+      const user = req.user || (await requireUser(req, res, supabase));
       if (!user) return;
 
       const { data: organisation, error: orgError } = await supabase
@@ -122,9 +124,9 @@ function registerBillingRoutes(app, supabase) {
     }
   });
 
-  app.get('/api/billing/subscription', async (req, res) => {
+  app.get('/api/billing/subscription', requireRole('owner'), async (req, res) => {
     try {
-      const user = await requireUser(req, res, supabase);
+      const user = req.user || (await requireUser(req, res, supabase));
       if (!user) return;
 
       const { data, error } = await supabase
