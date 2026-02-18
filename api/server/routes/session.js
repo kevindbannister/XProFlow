@@ -1,5 +1,6 @@
 const { getUserFromRequest, requireUser } = require('../auth/supabaseAuth');
 const { calculateTrialDaysRemaining } = require('../services/subscriptions');
+const { isMasterUserEmail } = require('./featureFlags');
 
 function registerSessionRoutes(app, supabase) {
   app.get('/api/me', async (req, res) => {
@@ -25,6 +26,7 @@ function registerSessionRoutes(app, supabase) {
 
       res.json({
         authenticated: true,
+        isMasterUser: isMasterUserEmail(user.email),
         user: { id: user.id, email: user.email },
         gmail: gmailData ? { connected: true, email: gmailData.email } : { connected: false },
         organisation: orgData ? { id: orgData.id, name: orgData.name } : undefined,
