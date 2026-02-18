@@ -73,7 +73,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setGmailEmail(data.gmail?.email);
       setSubscription(data.subscription);
       setIsMasterUser(Boolean(data.isMasterUser) || isManualSession);
-    } catch {
+    } catch (sessionError) {
+      console.error('Failed to refresh application session state:', sessionError);
       const { data: sessionData } = await supabase.auth.getSession();
       setIsAuthenticated(Boolean(sessionData.session) || manualAuth);
       setGmailConnected(false);

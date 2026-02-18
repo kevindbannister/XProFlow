@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 
 const GoogleSignInButton = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { loginWithGoogle } = useAuth();
 
   const handleGoogleSignIn = async () => {
-    console.log('Google clicked');
     setErrorMessage(null);
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` }
-    });
-    console.log('OAuth result', { data, error });
-    if (error) {
-      console.error('Supabase Google OAuth sign-in failed.', error);
-      setErrorMessage(error.message || 'Google sign-in failed. Please try again.');
+
+    try {
+      await loginWithGoogle();
+      console.info('Google OAuth redirect initiated.');
+    } catch (oauthError) {
+      console.error('Supabase Google OAuth sign-in failed.', oauthError);
+      const message = oauthError instanceof Error ? oauthError.message : 'Google sign-in failed. Please try again.';
+      setErrorMessage(message);
     }
   };
 

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import GoogleSignInButton from '../components/GoogleSignInButton';
@@ -9,10 +9,39 @@ import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loginWithManual } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+
+  const callbackErrorMessage = useMemo(() => {
+    const callbackError = new URLSearchParams(location.search).get('error');
+    if (!callbackError) {
+      return '';
+    }
+
+    const decodedError = decodeURIComponent(callbackError);
+    switch (decodedError) {
+      case 'oauth_exchange':
+        return 'Google sign-in failed while exchanging the OAuth code for a session.';
+      case 'oauth_callback':
+        return 'Google sign-in failed in the callback step.';
+      case 'no_session':
+        return 'Google sign-in did not return a valid session. Please retry.';
+      case 'app_user_fetch':
+        return 'Signed in with Google, but your workspace user record is not ready yet. Please retry in a moment.';
+      default:
+        return `Google sign-in failed: ${decodedError}`;
+    }
+  }, [location.search]);
+
+  useEffect(() => {
+    if (callbackErrorMessage) {
+      setError(callbackErrorMessage);
+    }
+  }, [callbackErrorMessage]);
 
   const handleLogin = async () => {
     // Keeps legacy local dev/demo login working.
