@@ -11,6 +11,7 @@ import {
   AtSign,
   BriefcaseBusiness,
   Settings,
+  Building2,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
@@ -29,6 +30,7 @@ const primaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutD
   { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
   { label: 'Professional Context', to: '/settings/professional-context', icon: BriefcaseBusiness },
   { label: 'Account', to: '/account-settings', icon: AtSign },
+  { label: 'Firm Settings', to: '/settings/firm', icon: Building2 },
 ];
 
 const secondaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [

@@ -17,6 +17,7 @@ import SignatureTimeZoneSettings from './pages/settings/SignatureTimeZoneSetting
 import AccountSettings from './pages/settings/AccountSettings';
 import ProfessionalContextOnboarding from './pages/onboarding/ProfessionalContextOnboarding';
 import ProfessionalContextSettings from './pages/settings/ProfessionalContextSettings';
+import FirmSettings from './pages/settings/FirmSettings';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
@@ -66,6 +67,7 @@ const App = () => {
           <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
           <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
           <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
+          <Route path="settings/firm" element={<RequireProductAccess><FirmSettings /></RequireProductAccess>} />
           <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>

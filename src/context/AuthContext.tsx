@@ -59,9 +59,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return window.localStorage.getItem(MANUAL_AUTH_KEY) === 'true';
   });
+
   const manualAuthRef = useRef(manualAuth);
   const isRefreshingRef = useRef(false);
-  const hasBootstrappedRef = useRef(false);
+  const hasRefreshed = useRef(false);
+  const autoRefreshBlockedRef = useRef(false);
+  const refreshSessionRef = useRef<(options?: { background?: boolean }) => Promise<void>>(async () => {});
 
   useEffect(() => {
     manualAuthRef.current = manualAuth;
@@ -88,9 +91,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    if (autoRefreshBlockedRef.current && options?.background) {
+      return;
+    }
+
     isRefreshingRef.current = true;
     const isBackgroundRefresh = options?.background ?? false;
-    if (!isBackgroundRefresh) setIsLoading(true);
+
+    if (!isBackgroundRefresh) {
+      setIsLoading(true);
+    }
 
     try {
       await refreshAppContext();
@@ -104,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const data = await api.get<MeResponse>('/api/me');
 
+      autoRefreshBlockedRef.current = false;
       setIsAuthenticated(data.authenticated || hasActiveSession);
       setCsrfToken(data.csrfToken);
       setGmailConnected(Boolean(data.gmail?.connected));
@@ -112,35 +123,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsMasterUser(Boolean(data.isMasterUser) || isManualSession);
     } catch (sessionError) {
       console.error('Failed to refresh application session state:', sessionError);
-      const hasSupabaseSession = Boolean(session);
-      const isManualSession = manualAuthRef.current && !hasSupabaseSession;
+      autoRefreshBlockedRef.current = true;
 
-      if (hasSupabaseSession && !isManualSession) {
-        await supabase.auth.signOut({ scope: 'global' });
-        resetSignedOutState();
-      } else {
-        setIsAuthenticated(isManualSession);
-        setGmailConnected(false);
-        setGmailEmail(undefined);
-        setCsrfToken(undefined);
-        setSubscription(undefined);
-        setIsMasterUser(isManualSession);
-      }
+      // Force session to null by signing out and syncing app context.
+      await supabase.auth.signOut({ scope: 'global' });
+      await refreshAppContext();
+      clearManualAuth();
+      resetSignedOutState();
     } finally {
-      if (!isBackgroundRefresh) setIsLoading(false);
+      setIsLoading(false);
       isRefreshingRef.current = false;
     }
   }, [clearManualAuth, refreshAppContext, resetSignedOutState, session]);
 
   useEffect(() => {
-    if (!hasBootstrappedRef.current) {
-      hasBootstrappedRef.current = true;
-      void refreshSession();
+    refreshSessionRef.current = refreshSession;
+  }, [refreshSession]);
+
+  useEffect(() => {
+    if (hasRefreshed.current) {
       return;
     }
 
-    void refreshSession({ background: true });
-  }, [session?.access_token, refreshSession]);
+    hasRefreshed.current = true;
+    void refreshSessionRef.current();
+  }, []);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'INITIAL_SESSION') {
+        return;
+      }
+
+      if (autoRefreshBlockedRef.current) {
+        return;
+      }
+
+      void refreshSessionRef.current({ background: true });
+    });
+
+    return () => {
+      data.subscription.unsubscribe();
+    };
+  }, []);
 
   const hasSession = Boolean(session) || manualAuth;
   const appUserProfile = manualAuth && !user
@@ -173,6 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       appUserProfile,
       profileReady,
       loginWithGoogle: async () => {
+        autoRefreshBlockedRef.current = false;
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -183,11 +209,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (error) throw error;
       },
       loginWithManual: async () => {
+        autoRefreshBlockedRef.current = false;
         await supabase.auth.signOut({ scope: 'global' });
         window.localStorage.setItem(MANUAL_AUTH_KEY, 'true');
         setManualAuth(true);
         setIsMasterUser(true);
         setIsAuthenticated(true);
+        setIsLoading(false);
       },
       logout: async () => {
         clearManualAuth();

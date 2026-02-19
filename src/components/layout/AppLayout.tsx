@@ -11,6 +11,7 @@ const routeMeta: Record<string, { title: string }> = {
   '/account-settings': { title: 'Account' },
   '/onboarding/professional-context': { title: 'Professional Context' },
   '/settings/professional-context': { title: 'Professional Context' },
+  '/settings/firm': { title: 'Firm Settings' },
   '/profile': { title: 'Profile' },
 };
 
