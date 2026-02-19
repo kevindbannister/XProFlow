@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabaseClient';
@@ -25,8 +25,15 @@ const AuthCallback = () => {
   const navigate = useNavigate();
   const { refreshSession } = useAuth();
   const [msg, setMsg] = useState('Completing Google sign-in…');
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
+    if (hasProcessedRef.current) {
+      return;
+    }
+
+    hasProcessedRef.current = true;
+
     (async () => {
       setMsg('Exchanging OAuth for session…');
 
