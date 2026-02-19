@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api } from '../lib/api';
 import { supabase } from '../lib/supabaseClient';
 import type { SubscriptionSnapshot, SubscriptionStatus } from '../types/billing';
@@ -60,6 +60,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     return window.localStorage.getItem(MANUAL_AUTH_KEY) === 'true';
   });
+  const manualAuthRef = useRef(manualAuth);
+  const isRefreshingRef = useRef(false);
+  const hasBootstrappedRef = useRef(false);
+
+  useEffect(() => {
+    manualAuthRef.current = manualAuth;
+  }, [manualAuth]);
 
   const clearManualAuth = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -81,18 +88,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const refreshSession = useCallback(async (options?: { background?: boolean }) => {
+    if (isRefreshingRef.current) {
+      return;
+    }
+
+    isRefreshingRef.current = true;
     const isBackgroundRefresh = options?.background ?? false;
     if (!isBackgroundRefresh) setIsLoading(true);
 
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSupabaseSession = Boolean(sessionData.session);
-      const isManualSession = manualAuth && !hasSupabaseSession;
+      const isManualSession = manualAuthRef.current && !hasSupabaseSession;
       const hasActiveSession = hasSupabaseSession || isManualSession;
 
       setHasSession(hasActiveSession);
 
-      if (hasSupabaseSession && manualAuth) {
+      if (hasSupabaseSession && manualAuthRef.current) {
         clearManualAuth();
       }
 
@@ -123,7 +135,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.error('Failed to refresh application session state:', sessionError);
       const { data: sessionData } = await supabase.auth.getSession();
       const hasSupabaseSession = Boolean(sessionData.session);
-      const isManualSession = manualAuth && !hasSupabaseSession;
+      const isManualSession = manualAuthRef.current && !hasSupabaseSession;
       const hasActiveSession = hasSupabaseSession || isManualSession;
 
       if (hasSupabaseSession && !isManualSession) {
@@ -150,13 +162,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } finally {
       if (!isBackgroundRefresh) setIsLoading(false);
+      isRefreshingRef.current = false;
     }
-  }, [manualAuth, clearManualAuth, resetSignedOutState]);
+  }, [clearManualAuth, resetSignedOutState]);
 
   useEffect(() => {
-    void refreshSession();
+    if (!hasBootstrappedRef.current) {
+      hasBootstrappedRef.current = true;
+      void refreshSession();
+    }
 
-    const { data } = supabase.auth.onAuthStateChange(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'INITIAL_SESSION') {
+        return;
+      }
+
       void refreshSession({ background: true });
     });
 

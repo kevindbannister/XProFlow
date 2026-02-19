@@ -7,11 +7,25 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   console.warn('Missing Supabase env vars. Falling back to placeholder client config.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: false,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-  },
-});
+const createSupabaseClient = () =>
+  createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  });
+
+type GlobalWithSupabase = typeof globalThis & {
+  __xproflowSupabaseClient?: ReturnType<typeof createSupabaseClient>;
+};
+
+const globalWithSupabase = globalThis as GlobalWithSupabase;
+
+export const supabase =
+  globalWithSupabase.__xproflowSupabaseClient ?? createSupabaseClient();
+
+if (!globalWithSupabase.__xproflowSupabaseClient) {
+  globalWithSupabase.__xproflowSupabaseClient = supabase;
+}
