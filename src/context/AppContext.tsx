@@ -27,6 +27,8 @@ type AppContextValue = {
 const AppContext = createContext<AppContextValue | undefined>(undefined);
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const PROFILE_RETRY_DELAY_MS = 500;
+const HYDRATION_TIMEOUT_MS = 3000;
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -39,6 +41,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const isMountedRef = useRef(true);
   const inFlightHydrationRef = useRef<Promise<void> | null>(null);
   const queuedSessionRef = useRef<Session | null | undefined>(undefined);
+  const hydrationTimeoutRef = useRef<number | null>(null);
+
+  const clearHydrationTimeout = () => {
+    if (hydrationTimeoutRef.current !== null) {
+      window.clearTimeout(hydrationTimeoutRef.current);
+      hydrationTimeoutRef.current = null;
+    }
+  };
+
+  const startHydrationTimeout = () => {
+    clearHydrationTimeout();
+    hydrationTimeoutRef.current = window.setTimeout(() => {
+      console.warn('[AppProvider] Hydration exceeded 3 seconds; forcing loading=false.');
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
+    }, HYDRATION_TIMEOUT_MS);
+  };
 
   const hydrateState = useCallback(async (incomingSession?: Session | null) => {
     if (inFlightHydrationRef.current) {
@@ -51,6 +71,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
+      startHydrationTimeout();
       setLoading(true);
       setError(null);
 
@@ -58,6 +79,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         const sessionToUse = typeof requestedSession === 'undefined'
           ? (await supabase.auth.getSession()).data.session
           : requestedSession;
+
+        console.log('[AppProvider] session', sessionToUse?.user?.id ?? null);
 
         if (!isMountedRef.current) {
           return;
@@ -69,6 +92,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setUser(null);
           setFirm(null);
           setRole(null);
+          console.log('[AppProvider] profile', null);
+          console.log('[AppProvider] firm', null);
           return;
         }
 
@@ -86,12 +111,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           return data as AppUser | null;
         };
 
-        let appUser = await fetchAppUser();
+        let appUser: AppUser | null = null;
+
+        try {
+          appUser = await fetchAppUser();
+        } catch (profileFetchError) {
+          console.error('[AppProvider] profile fetch failed; retrying once in 500ms.', profileFetchError);
+          await delay(PROFILE_RETRY_DELAY_MS);
+          appUser = await fetchAppUser();
+        }
 
         if (!appUser) {
-          // First-login race condition: profile row can appear moments after auth succeeds.
-          await delay(300);
-          appUser = await fetchAppUser();
+          console.error('[AppProvider] profile missing after retry; proceeding without profile.');
+          setUser(null);
+          setFirm(null);
+          setRole(null);
+          console.log('[AppProvider] profile', null);
+          console.log('[AppProvider] firm', null);
+          return;
         }
 
         if (!isMountedRef.current) {
@@ -100,9 +137,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
         setUser(appUser);
         setRole(appUser?.role ?? null);
+        console.log('[AppProvider] profile', appUser);
 
         if (!appUser?.firm_id) {
           setFirm(null);
+          console.log('[AppProvider] firm', null);
           return;
         }
 
@@ -113,7 +152,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           .maybeSingle();
 
         if (firmError) {
-          throw firmError;
+          console.error('[AppProvider] firm fetch failed; proceeding without firm.', firmError);
+          setFirm(null);
+          console.log('[AppProvider] firm', null);
+          return;
         }
 
         if (!isMountedRef.current) {
@@ -121,6 +163,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
 
         setFirm((firmData as Firm | null) ?? null);
+        console.log('[AppProvider] firm', (firmData as Firm | null) ?? null);
       } catch (hydrateError) {
         if (!isMountedRef.current) {
           return;
@@ -132,6 +175,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setFirm(null);
         setRole(null);
       } finally {
+        clearHydrationTimeout();
         if (isMountedRef.current) {
           setLoading(false);
         }
@@ -163,21 +207,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       isMountedRef.current = false;
+      clearHydrationTimeout();
       data.subscription.unsubscribe();
     };
   }, [hydrateState]);
-
-
-
-  useEffect(() => {
-    console.log('[AppProvider] state snapshot', {
-      session: session?.user?.id ?? null,
-      profile: user,
-      firm,
-      loading,
-      error,
-    });
-  }, [session, user, firm, loading, error]);
 
   const value = useMemo(() => ({
     session,
