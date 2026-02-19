@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 
 const app = express();
 
@@ -22,17 +23,14 @@ async function startServer() {
   const supabase = getSupabaseClient();
 
 
-  app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const corsOptions = {
+    origin: 'https://app.xproflow.com',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  };
 
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(200);
-    }
-
-    return next();
-  });
+  app.use(cors(corsOptions));
+  app.options('*', cors(corsOptions));
 
   // Stripe signature validation needs the raw body.
   app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
