@@ -193,14 +193,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     },
   }), [session, user, firm, role, loading, error, hydrateState]);
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-slate-950 text-sm font-medium text-slate-100">
-        Preparing workspace…
-      </div>
-    );
-  }
-
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
