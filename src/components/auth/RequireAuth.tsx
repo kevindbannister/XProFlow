@@ -9,13 +9,13 @@ const AppLoadingScreen = () => (
 );
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { loading, session, user, firm } = useAppContext();
+  const { loading, session, user } = useAppContext();
 
   if (loading) {
     return <AppLoadingScreen />;
   }
 
-  if (!session || !user || !firm) {
+  if (!session || !user) {
     return <Navigate to="/login" replace />;
   }
 
