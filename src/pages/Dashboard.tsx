@@ -36,15 +36,15 @@ const Dashboard = () => {
   return (
     <section
       aria-label="Dashboard main content"
-      className="relative overflow-hidden rounded-3xl border border-white/25 bg-slate-950/80 p-5 shadow-[0_30px_70px_rgba(15,23,42,0.45)] sm:p-7"
+      className="relative -mx-6 -mb-6 -mt-2 min-h-[calc(100vh-9rem)] overflow-hidden px-6 pb-10 pt-4"
     >
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-70"
+        className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url('/FlowBackground.svg')" }}
         aria-hidden
       />
       <div
-        className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-indigo-950/55 to-slate-950/80"
+        className="absolute inset-0 bg-gradient-to-b from-slate-900/55 via-indigo-950/50 to-slate-950/70"
         aria-hidden
       />
 
