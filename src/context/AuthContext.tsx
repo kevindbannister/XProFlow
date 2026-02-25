@@ -104,7 +104,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       await refreshAppContext();
-      const hasSupabaseSession = Boolean(session);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const hasSupabaseSession = Boolean(sessionData.session);
       const isManualSession = manualAuthRef.current && !hasSupabaseSession;
       const hasActiveSession = hasSupabaseSession || isManualSession;
 
@@ -123,18 +124,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsMasterUser(Boolean(data.isMasterUser) || isManualSession);
     } catch (sessionError) {
       console.error('Failed to refresh application session state:', sessionError);
-      autoRefreshBlockedRef.current = true;
+      const { data: fallbackSessionData } = await supabase.auth.getSession();
+      const hasFallbackSupabaseSession = Boolean(fallbackSessionData.session);
+      const isFallbackManualSession = manualAuthRef.current && !hasFallbackSupabaseSession;
 
-      // Force session to null by signing out and syncing app context.
-      await supabase.auth.signOut({ scope: 'global' });
-      await refreshAppContext();
-      clearManualAuth();
-      resetSignedOutState();
+      if (hasFallbackSupabaseSession || isFallbackManualSession) {
+        // Keep authenticated state when `/api/me` fails but a local session still exists.
+        autoRefreshBlockedRef.current = false;
+        setIsAuthenticated(true);
+        setCsrfToken(undefined);
+        setGmailConnected(false);
+        setGmailEmail(undefined);
+        setSubscription(undefined);
+        setIsMasterUser(isFallbackManualSession);
+      } else {
+        autoRefreshBlockedRef.current = true;
+
+        // Force session to null by signing out and syncing app context.
+        await supabase.auth.signOut({ scope: 'global' });
+        await refreshAppContext();
+        clearManualAuth();
+        resetSignedOutState();
+      }
     } finally {
       setIsLoading(false);
       isRefreshingRef.current = false;
     }
-  }, [clearManualAuth, refreshAppContext, resetSignedOutState, session]);
+  }, [clearManualAuth, refreshAppContext, resetSignedOutState]);
 
   useEffect(() => {
     refreshSessionRef.current = refreshSession;
