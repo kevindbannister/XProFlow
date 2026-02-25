@@ -64,31 +64,43 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6 py-12 dark:bg-slate-950">
-      <Card className="w-full max-w-md space-y-4 text-center">
+    <div
+      className="flex min-h-screen items-center justify-center bg-slate-950 bg-cover bg-center bg-no-repeat px-6 py-12"
+      style={{ backgroundImage: "url('/FlowBackground.svg')" }}
+    >
+      <Card
+        variant="glass"
+        className="w-full max-w-md space-y-4 border-white/30 bg-white/15 text-center shadow-[0_20px_60px_rgba(15,23,42,0.35)] backdrop-blur-2xl"
+      >
         <div className="mb-3 flex justify-center"><AppLogo className="h-10 w-auto" /></div>
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Welcome back</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Sign in to continue to your workspace.</p>
+        <h1 className="text-2xl font-semibold text-slate-950">Welcome back</h1>
+        <p className="text-sm text-slate-700">Sign in to continue to your workspace.</p>
         <div className="space-y-3 text-left">
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-900/30"
+            className="mt-2 w-full rounded-xl border border-white/45 bg-white/70 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
             type="text"
             placeholder="Email or master"
           />
           <input
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-blue-500 dark:focus:ring-blue-900/30"
+            className="mt-2 w-full rounded-xl border border-white/45 bg-white/70 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-fuchsia-400 focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
             type="password"
             placeholder="Password"
           />
           {error ? <p className="text-xs text-red-500">{error}</p> : null}
-          <Button type="button" className="w-full" onClick={handleLogin}>Sign in with password</Button>
-          <p className="text-xs text-slate-500">No account? <Link className="text-blue-600" to="/signup">Create one</Link></p>
+          <Button
+            type="button"
+            className="w-full border border-fuchsia-300/50 bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white shadow-[0_14px_30px_rgba(109,40,217,0.35)] hover:brightness-110"
+            onClick={handleLogin}
+          >
+            Sign in with password
+          </Button>
+          <p className="text-xs text-slate-700">No account? <Link className="font-medium text-fuchsia-700 hover:text-fuchsia-800" to="/signup">Create one</Link></p>
         </div>
-        <GoogleSignInButton />
+        <GoogleSignInButton className="border border-indigo-300/50 bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 text-white shadow-[0_14px_30px_rgba(37,99,235,0.3)] hover:brightness-110" />
       </Card>
     </div>
   );

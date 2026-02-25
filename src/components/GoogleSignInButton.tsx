@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from './ui/Button';
 
-const GoogleSignInButton = () => {
+type GoogleSignInButtonProps = {
+  className?: string;
+};
+
+const GoogleSignInButton = ({ className }: GoogleSignInButtonProps) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { loginWithGoogle } = useAuth();
 
@@ -21,7 +25,7 @@ const GoogleSignInButton = () => {
 
   return (
     <div className="flex w-full flex-col gap-2">
-      <Button type="button" className="w-full" onClick={() => void handleGoogleSignIn()}>
+      <Button type="button" className={`w-full ${className ?? ''}`} onClick={() => void handleGoogleSignIn()}>
         Sign in with Google
       </Button>
       {errorMessage ? (
