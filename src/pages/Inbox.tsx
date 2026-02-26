@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
+import { supabase } from '../lib/supabaseClient';
 import type { GroupedInboxResponse, InboxFolder, InboxMessage } from '../../shared/types/inbox';
 
 const folders: { id: InboxFolder; label: string }[] = [
@@ -199,8 +200,25 @@ const Inbox = () => {
           <button
             type="button"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-            onClick={() => {
-              window.location.href = `${apiBaseUrl}/api/gmail/oauth/start`;
+            onClick={async () => {
+              const {
+                data: { session }
+              } = await supabase.auth.getSession();
+
+              if (!session?.access_token) {
+                return;
+              }
+
+              const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/start`, {
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`
+                }
+              });
+
+              const data = await response.json();
+              if (data?.url) {
+                window.location.href = data.url;
+              }
             }}
           >
             Connect Gmail

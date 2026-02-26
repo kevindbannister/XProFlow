@@ -195,7 +195,7 @@ function registerGmailRoutes(app, supabase) {
       oauthUrl.searchParams.set('include_granted_scopes', 'true');
       oauthUrl.searchParams.set('state', nonce);
 
-      res.redirect(oauthUrl.toString());
+      res.json({ url: oauthUrl.toString() });
     } catch (error) {
       console.error('Gmail OAuth start error:', error);
       res.status(500).json({ error: 'Failed to start Gmail OAuth.' });
