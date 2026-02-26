@@ -1,4 +1,6 @@
 import Card from '../ui/Card';
+import { apiBaseUrl } from '../../config/api';
+import { supabase } from '../../lib/supabaseClient';
 
 const ConnectEmailPanel = () => {
   return (
@@ -11,8 +13,16 @@ const ConnectEmailPanel = () => {
         <button
           type="button"
           className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-          onClick={() => {
-            window.location.href = 'https://api.xproflow.com/auth/google';
+          onClick={async () => {
+            const { data } = await supabase.auth.getSession();
+            const token = data.session?.access_token;
+
+            if (!token) {
+              alert('Not authenticated');
+              return;
+            }
+
+            window.location.href = `${apiBaseUrl}/auth/google?token=${token}`;
           }}
         >
           Connect Gmail
