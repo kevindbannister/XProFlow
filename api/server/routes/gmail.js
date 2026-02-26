@@ -1,11 +1,9 @@
-const crypto = require('crypto');
 const { encrypt, decrypt } = require('../encryption');
 const { requireUser } = require('../auth/supabaseAuth');
-const { exchangeCode, refreshAccessToken } = require('../google/oauth');
+const { refreshAccessToken } = require('../google/oauth');
 const {
   listMessages,
-  getMessageMetadata,
-  fetchProfile
+  getMessageMetadata
 } = require('../google/gmail');
 
 const STATUS_MAP = {
@@ -14,14 +12,6 @@ const STATUS_MAP = {
 };
 
 
-function getGmailOAuthEnv() {
-  return {
-    clientId: process.env.GMAIL_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GMAIL_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET,
-    // Gmail redirect URI should point to API callback endpoint: https://api.xproflow.com/api/gmail/oauth/callback
-    redirectUri: process.env.GMAIL_GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI
-  };
-}
 
 function parseFromHeader(fromHeader) {
   if (!fromHeader) {
@@ -97,34 +87,6 @@ async function upsertAccount(supabase, account) {
 }
 
 function registerGmailRoutes(app, supabase) {
-  const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
-
-  const getSafeRelativePath = (candidate, fallback = '/dashboard') => {
-    if (typeof candidate !== 'string' || !candidate.startsWith('/') || candidate.startsWith('//')) {
-      return fallback;
-    }
-
-    return candidate;
-  };
-
-  const getSafeReturnToFromReferer = (referer) => {
-    if (!referer) {
-      return '/dashboard';
-    }
-
-    try {
-      const refererUrl = new URL(referer);
-      const appUrl = new URL(appBaseUrl);
-      if (refererUrl.origin !== appUrl.origin) {
-        return '/dashboard';
-      }
-
-      return getSafeRelativePath(`${refererUrl.pathname}${refererUrl.search}${refererUrl.hash}`);
-    } catch (_error) {
-      return '/dashboard';
-    }
-  };
-
   app.get('/api/gmail/status', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
@@ -145,179 +107,6 @@ function registerGmailRoutes(app, supabase) {
     }
   });
 
-  const handleGmailOAuthUrl = async (req, res) => {
-    try {
-      const user = await requireUser(req, res, supabase);
-      if (!user) {
-        return;
-      }
-
-      const { clientId, clientSecret, redirectUri } = getGmailOAuthEnv();
-      const missingVars = [];
-      if (!clientId) {
-        missingVars.push('GMAIL_GOOGLE_CLIENT_ID');
-      }
-      if (!clientSecret) {
-        missingVars.push('GMAIL_GOOGLE_CLIENT_SECRET');
-      }
-      if (!redirectUri) {
-        missingVars.push('GMAIL_GOOGLE_REDIRECT_URI');
-      }
-      if (missingVars.length > 0) {
-        res.status(500).json({
-          error: `Missing required Gmail OAuth env vars: ${missingVars.join(', ')}`
-        });
-        return;
-      }
-
-      console.info(`[gmail] oauth url requested for user ${user.id}`);
-
-      const returnTo = getSafeReturnToFromReferer(req.get('referer'));
-      const nonce = crypto.randomBytes(16).toString('hex');
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-      const { error: insertStateError } = await supabase.from('oauth_states').insert({
-        provider: 'gmail',
-        user_id: user.id,
-        nonce,
-        return_to: returnTo,
-        expires_at: expiresAt
-      });
-
-      if (insertStateError) {
-        throw insertStateError;
-      }
-
-      const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      oauthUrl.searchParams.set('client_id', clientId);
-      oauthUrl.searchParams.set('redirect_uri', redirectUri);
-      oauthUrl.searchParams.set('response_type', 'code');
-      oauthUrl.searchParams.set(
-        'scope',
-        'openid email profile https://www.googleapis.com/auth/gmail.readonly'
-      );
-      oauthUrl.searchParams.set('access_type', 'offline');
-      oauthUrl.searchParams.set('prompt', 'consent');
-      oauthUrl.searchParams.set('include_granted_scopes', 'true');
-      oauthUrl.searchParams.set('state', nonce);
-
-      res.json({ url: oauthUrl.toString() });
-    } catch (error) {
-      console.error('Gmail OAuth URL error:', error);
-      res.status(500).json({ error: 'Failed to create Gmail OAuth URL.' });
-    }
-  };
-
-  app.get('/api/gmail/oauth/url', handleGmailOAuthUrl);
-  app.get('/api/gmail/oauth/start', handleGmailOAuthUrl);
-  app.get('/gmail/oauth/start', handleGmailOAuthUrl);
-
-  const handleGmailOAuthCallback = async (req, res) => {
-    const integrationRedirect = new URL('/dashboard', appBaseUrl);
-    const callbackErrorRedirect = (errorCode) => {
-      const errorRedirect = new URL(integrationRedirect.toString());
-      errorRedirect.searchParams.set('error', errorCode);
-      return errorRedirect.toString();
-    };
-
-    try {
-      const code = typeof req.query.code === 'string' ? req.query.code : null;
-      const state = typeof req.query.state === 'string' ? req.query.state : null;
-      if (!code) {
-        res.redirect(callbackErrorRedirect('gmail_code'));
-        return;
-      }
-
-      if (!state) {
-        res.redirect(callbackErrorRedirect('gmail_state'));
-        return;
-      }
-
-      const nowIso = new Date().toISOString();
-      const { data: oauthState, error: oauthStateError } = await supabase
-        .from('oauth_states')
-        .select('*')
-        .eq('provider', 'gmail')
-        .eq('nonce', state)
-        .gt('expires_at', nowIso)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (oauthStateError) {
-        throw oauthStateError;
-      }
-
-      if (!oauthState) {
-        res.redirect(callbackErrorRedirect('gmail_state'));
-        return;
-      }
-
-      const { tokens } = await exchangeCode(code);
-      const accessToken = tokens.access_token;
-      if (!accessToken) {
-        res.status(400).json({ error: 'Missing access token' });
-        return;
-      }
-
-      const { emailAddress } = await fetchProfile(accessToken);
-      if (!emailAddress) {
-        res.status(400).json({ error: 'Missing Gmail profile email' });
-        return;
-      }
-
-      const existing = await getStoredAccount(supabase, oauthState.user_id, emailAddress);
-      const encryptedAccessToken = encrypt(accessToken);
-      const refreshToken = tokens.refresh_token
-        ? encrypt(tokens.refresh_token)
-        : existing?.refresh_token || null;
-
-      if (!refreshToken) {
-        res.status(400).json({
-          error: 'Missing refresh token. Reconnect with consent.'
-        });
-        return;
-      }
-
-      const expiresIn = typeof tokens.expires_in === 'number' ? tokens.expires_in : null;
-      const expiryTimestamp = tokens.expiry_date
-        ? tokens.expiry_date
-        : Date.now() + (expiresIn || 3600) * 1000;
-      const tokenExpiry = new Date(expiryTimestamp).toISOString();
-
-      await upsertAccount(supabase, {
-        user_id: oauthState.user_id,
-        email: emailAddress,
-        provider: 'gmail',
-        access_token: encryptedAccessToken,
-        refresh_token: refreshToken,
-        expiry_ts: tokenExpiry
-      });
-
-      const { error: deleteStateError } = await supabase
-        .from('oauth_states')
-        .delete()
-        .eq('provider', 'gmail')
-        .eq('nonce', state);
-
-      if (deleteStateError) {
-        throw deleteStateError;
-      }
-
-      console.info(`[gmail] oauth callback completed for user ${oauthState.user_id}`);
-      const successPath = getSafeRelativePath(oauthState.return_to, '/dashboard');
-      const successRedirect = new URL(successPath, appBaseUrl);
-      successRedirect.searchParams.set('connected', 'gmail');
-
-      res.redirect(successRedirect.toString());
-    } catch (error) {
-      console.error('Gmail OAuth callback error:', error);
-      res.status(500).json({ error: 'Failed to complete Gmail OAuth callback.' });
-    }
-  };
-
-  app.get('/api/gmail/oauth/callback', handleGmailOAuthCallback);
-  app.get('/gmail/oauth/callback', handleGmailOAuthCallback);
 
   app.post('/api/gmail/sync', async (req, res) => {
     try {

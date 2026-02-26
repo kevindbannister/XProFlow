@@ -1,6 +1,5 @@
 import Card from '../ui/Card';
 import { apiBaseUrl } from '../../config/api';
-import { getAuthHeaders } from '../../lib/authHeaders';
 
 const ConnectEmailPanel = () => {
   return (
@@ -13,21 +12,8 @@ const ConnectEmailPanel = () => {
         <button
           type="button"
           className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-          onClick={async () => {
-            const authHeaders = await getAuthHeaders();
-
-            if (!authHeaders.Authorization) {
-              return;
-            }
-
-            const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/url`, {
-              headers: authHeaders
-            });
-
-            const data = await response.json();
-            if (data?.url) {
-              window.location.href = data.url;
-            }
+          onClick={() => {
+            window.location.href = `${apiBaseUrl}/auth/google`;
           }}
         >
           Connect Gmail

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
@@ -55,6 +56,7 @@ async function startServer() {
   app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
 
   app.use(express.json());
+  app.use(cookieParser());
 
   // ============================================
   // ROUTES

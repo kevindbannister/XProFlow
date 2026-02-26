@@ -4,7 +4,6 @@ import { integrationDefinitions } from '../lib/settingsData';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
-import { getAuthHeaders } from '../lib/authHeaders';
 
 const statusStyles = {
   connected: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40',
@@ -15,21 +14,8 @@ const statusStyles = {
 const Integrations = () => {
   const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
 
-  const handleConnect = async () => {
-    const authHeaders = await getAuthHeaders();
-
-    if (!authHeaders.Authorization) {
-      return;
-    }
-
-    const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/url`, {
-      headers: authHeaders
-    });
-
-    const data = await response.json();
-    if (data?.url) {
-      window.location.href = data.url;
-    }
+  const handleConnect = () => {
+    window.location.href = `${apiBaseUrl}/auth/google`;
   };
 
   const handleDisconnect = async () => {

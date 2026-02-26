@@ -1,4 +1,5 @@
 const { OAuth2Client } = require('google-auth-library');
+const crypto = require('crypto');
 const { encrypt } = require('../encryption');
 
 const GOOGLE_SCOPES = [
@@ -21,24 +22,53 @@ function registerGoogleAuth(app, supabase) {
     throw new Error('Supabase client is not initialized.');
   }
 
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+
   app.get('/auth/google', async (req, res) => {
     try {
+      const state = crypto.randomBytes(32).toString('hex');
+
+      res.cookie('gmail_oauth_state', state, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000
+      });
+
       const oauthClient = createOAuthClient();
       const authUrl = oauthClient.generateAuthUrl({
-        scope: GOOGLE_SCOPES
+        scope: GOOGLE_SCOPES,
+        access_type: 'offline',
+        include_granted_scopes: true,
+        prompt: 'consent',
+        state
       });
       return res.redirect(authUrl);
     } catch (error) {
       console.error('Google OAuth start error:', error);
-      return res.status(500).json({ error: 'Google OAuth start failed' });
+      return res.redirect(`${frontendUrl}/integrations?error=gmail_start`);
     }
   });
 
   app.get('/auth/google/callback', async (req, res) => {
+    const callbackErrorRedirect = (errorCode) => `${frontendUrl}/integrations?error=${errorCode}`;
+
     try {
-      const { code } = req.query;
+      const code = typeof req.query.code === 'string' ? req.query.code : null;
+      const state = typeof req.query.state === 'string' ? req.query.state : null;
+      const storedState = req.cookies?.gmail_oauth_state;
+
+      if (!state || !storedState || state !== storedState) {
+        res.clearCookie('gmail_oauth_state', {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'lax'
+        });
+        return res.redirect(callbackErrorRedirect('gmail_state'));
+      }
+
       if (!code) {
-        throw new Error('Missing OAuth code');
+        return res.redirect(callbackErrorRedirect('gmail_code'));
       }
 
       const oauthClient = createOAuthClient();
@@ -92,17 +122,21 @@ function registerGoogleAuth(app, supabase) {
         throw new Error('Failed to store Google account tokens.');
       }
 
-      return res.json({
-        message: 'Google account connected',
-        email,
-        provider: 'google'
+      res.clearCookie('gmail_oauth_state', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax'
       });
+
+      return res.redirect(`${frontendUrl}/integrations?success=gmail_connected`);
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      return res.status(500).json({
-        error: 'Google OAuth callback failed',
-        message: error.message
+      res.clearCookie('gmail_oauth_state', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax'
       });
+      return res.redirect(callbackErrorRedirect('gmail_callback'));
     }
   });
 }
