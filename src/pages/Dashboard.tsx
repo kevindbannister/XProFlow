@@ -45,6 +45,7 @@ const metrics: MetricCard[] = [
 const Dashboard = () => {
   const [isStatusLoading, setIsStatusLoading] = useState(true);
   const [isGmailConnected, setIsGmailConnected] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -54,11 +55,12 @@ const Dashboard = () => {
         const response = await api.get<{ connected: boolean; email?: string }>('/api/gmail/status');
         if (isMounted) {
           setIsGmailConnected(response.connected);
+          setStatusError(null);
         }
-      } catch (error) {
-        console.error('Failed to check Gmail status', error);
+      } catch (_error) {
         if (isMounted) {
           setIsGmailConnected(false);
+          setStatusError('Unable to load Gmail connection status right now.');
         }
       } finally {
         if (isMounted) {
@@ -85,6 +87,12 @@ const Dashboard = () => {
           <ChevronDown className="h-4 w-4" />
         </button>
       </div>
+
+      {statusError ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          {statusError}
+        </div>
+      ) : null}
 
       {isStatusLoading ? (
         <div className="grid gap-4 lg:grid-cols-3">

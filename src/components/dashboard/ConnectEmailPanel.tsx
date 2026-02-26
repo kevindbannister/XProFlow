@@ -1,6 +1,6 @@
 import Card from '../ui/Card';
 import { apiBaseUrl } from '../../config/api';
-import { supabase } from '../../lib/supabaseClient';
+import { getAuthHeaders } from '../../lib/authHeaders';
 
 const ConnectEmailPanel = () => {
   return (
@@ -14,18 +14,14 @@ const ConnectEmailPanel = () => {
           type="button"
           className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           onClick={async () => {
-            const {
-              data: { session }
-            } = await supabase.auth.getSession();
+            const authHeaders = await getAuthHeaders();
 
-            if (!session?.access_token) {
+            if (!authHeaders.Authorization) {
               return;
             }
 
-            const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/start`, {
-              headers: {
-                Authorization: `Bearer ${session.access_token}`
-              }
+            const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/url`, {
+              headers: authHeaders
             });
 
             const data = await response.json();
