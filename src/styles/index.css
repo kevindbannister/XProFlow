@@ -170,10 +170,10 @@
   --panel-shadow: 0 14px 32px rgba(120, 145, 200, 0.18);
   --overlay: rgba(148, 163, 184, 0.25);
   --accent: #2f6df6;
-  --text-primary: #1f2a44;
-  --text-secondary: #4b5b74;
-  --text-muted: #6b7a96;
-  --text-subtle: #94a3b8;
+  --text-primary: #121d31;
+  --text-secondary: #121d31;
+  --text-muted: #121d31;
+  --text-subtle: #121d31;
   --nav-shadow: 0 10px 20px rgba(120, 145, 200, 0.2);
   --outline-border: rgba(198, 216, 250, 0.9);
   --outline-bg: rgba(255, 255, 255, 0.92);
