@@ -105,21 +105,46 @@ function registerGoogleAuth(app, supabase) {
         ? new Date(tokens.expiry_date).toISOString()
         : null;
 
-      const { error } = await supabase.from('connected_accounts').upsert(
-        {
-          user_email: email,
-          provider: 'google',
-          provider_user_id: id,
-          scopes: scopesGranted,
-          access_token: encryptedAccessToken,
-          refresh_token: encryptedRefreshToken,
-          token_expiry: tokenExpiry
-        },
-        { onConflict: 'provider,provider_user_id' }
-      );
+      // 🔐 Get Supabase user from cookie session
+      const accessTokenFromCookie =
+        req.cookies?.['sb-access-token'] ||
+        req.cookies?.['sb:token'] ||
+        null;
+
+      if (!accessTokenFromCookie) {
+        throw new Error('No Supabase session cookie found');
+      }
+
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser(accessTokenFromCookie);
+
+      if (userError || !user) {
+        console.error('Failed to get Supabase user:', userError);
+        throw new Error('User not authenticated');
+      }
+
+      // 🗄️ Upsert connected account
+      const { error } = await supabase
+        .from('connected_accounts')
+        .upsert(
+          {
+            user_id: user.id,
+            user_email: email,
+            provider: 'google',
+            provider_user_id: id,
+            scopes: scopesGranted,
+            access_token: encryptedAccessToken,
+            refresh_token: encryptedRefreshToken,
+            token_expiry: tokenExpiry
+          },
+          { onConflict: 'provider,provider_user_id' }
+        );
 
       if (error) {
-        throw new Error('Failed to store Google account tokens.');
+        console.error('Supabase insert error:', error);
+        throw error;
       }
 
       res.clearCookie('gmail_oauth_state', {
