@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { encrypt, decrypt } = require('../encryption');
 const { requireUser } = require('../auth/supabaseAuth');
 const {
@@ -93,6 +94,32 @@ async function upsertAccount(supabase, account) {
 function registerGmailRoutes(app, supabase) {
   const appBaseUrl = process.env.APP_BASE_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
 
+  const getSafeRelativePath = (candidate, fallback = '/inbox') => {
+    if (typeof candidate !== 'string' || !candidate.startsWith('/') || candidate.startsWith('//')) {
+      return fallback;
+    }
+
+    return candidate;
+  };
+
+  const getSafeReturnToFromReferer = (referer) => {
+    if (!referer) {
+      return '/inbox';
+    }
+
+    try {
+      const refererUrl = new URL(referer);
+      const appUrl = new URL(appBaseUrl);
+      if (refererUrl.origin !== appUrl.origin) {
+        return '/inbox';
+      }
+
+      return getSafeRelativePath(`${refererUrl.pathname}${refererUrl.search}${refererUrl.hash}`);
+    } catch (_error) {
+      return '/inbox';
+    }
+  };
+
   app.get('/api/gmail/status', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
@@ -120,13 +147,10 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } = process.env;
+      const { GOOGLE_CLIENT_ID, GOOGLE_REDIRECT_URI } = process.env;
       const missingVars = [];
       if (!GOOGLE_CLIENT_ID) {
         missingVars.push('GOOGLE_CLIENT_ID');
-      }
-      if (!GOOGLE_CLIENT_SECRET) {
-        missingVars.push('GOOGLE_CLIENT_SECRET');
       }
       if (!GOOGLE_REDIRECT_URI) {
         missingVars.push('GOOGLE_REDIRECT_URI');
@@ -142,12 +166,36 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const googleOAuthUrl = generateAuthUrl({
-        prompt: 'consent',
-        includeGrantedScopes: true
+      const returnTo = getSafeReturnToFromReferer(req.get('referer'));
+      const nonce = crypto.randomBytes(16).toString('hex');
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+
+      const { error: insertStateError } = await supabase.from('oauth_states').insert({
+        provider: 'gmail',
+        user_id: user.id,
+        nonce,
+        return_to: returnTo,
+        expires_at: expiresAt
       });
 
-      res.redirect(googleOAuthUrl);
+      if (insertStateError) {
+        throw insertStateError;
+      }
+
+      const oauthUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+      oauthUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
+      oauthUrl.searchParams.set('redirect_uri', GOOGLE_REDIRECT_URI);
+      oauthUrl.searchParams.set('response_type', 'code');
+      oauthUrl.searchParams.set(
+        'scope',
+        'openid email profile https://www.googleapis.com/auth/gmail.readonly'
+      );
+      oauthUrl.searchParams.set('access_type', 'offline');
+      oauthUrl.searchParams.set('prompt', 'consent');
+      oauthUrl.searchParams.set('include_granted_scopes', 'true');
+      oauthUrl.searchParams.set('state', nonce);
+
+      res.redirect(oauthUrl.toString());
     } catch (error) {
       console.error('Gmail OAuth start error:', error);
       res.status(500).json({ error: 'Failed to start Gmail OAuth.' });
@@ -158,18 +206,43 @@ function registerGmailRoutes(app, supabase) {
   app.get('/gmail/oauth/start', handleGmailOAuthStart);
 
   const handleGmailOAuthCallback = async (req, res) => {
-    const successRedirect = new URL('/dashboard', appBaseUrl);
-    successRedirect.searchParams.set('connected', 'gmail');
+    const integrationRedirect = new URL('/integrations', appBaseUrl);
+    const callbackErrorRedirect = (errorCode) => {
+      const errorRedirect = new URL(integrationRedirect.toString());
+      errorRedirect.searchParams.set('error', errorCode);
+      return errorRedirect.toString();
+    };
 
     try {
-      const user = await requireUser(req, res, supabase);
-      if (!user) {
+      const code = typeof req.query.code === 'string' ? req.query.code : null;
+      const state = typeof req.query.state === 'string' ? req.query.state : null;
+      if (!code) {
+        res.redirect(callbackErrorRedirect('gmail_code'));
         return;
       }
 
-      const code = typeof req.query.code === 'string' ? req.query.code : null;
-      if (!code) {
-        res.status(400).json({ error: 'Missing OAuth code' });
+      if (!state) {
+        res.redirect(callbackErrorRedirect('gmail_state'));
+        return;
+      }
+
+      const nowIso = new Date().toISOString();
+      const { data: oauthState, error: oauthStateError } = await supabase
+        .from('oauth_states')
+        .select('*')
+        .eq('provider', 'gmail')
+        .eq('nonce', state)
+        .gt('expires_at', nowIso)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (oauthStateError) {
+        throw oauthStateError;
+      }
+
+      if (!oauthState) {
+        res.redirect(callbackErrorRedirect('gmail_state'));
         return;
       }
 
@@ -186,7 +259,7 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const existing = await getStoredAccount(supabase, user.id, emailAddress);
+      const existing = await getStoredAccount(supabase, oauthState.user_id, emailAddress);
       const encryptedAccessToken = encrypt(accessToken);
       const refreshToken = tokens.refresh_token
         ? encrypt(tokens.refresh_token)
@@ -206,13 +279,27 @@ function registerGmailRoutes(app, supabase) {
       const tokenExpiry = new Date(expiryTimestamp).toISOString();
 
       await upsertAccount(supabase, {
-        user_id: user.id,
+        user_id: oauthState.user_id,
         email: emailAddress,
         provider: 'gmail',
         access_token: encryptedAccessToken,
         refresh_token: refreshToken,
         expiry_ts: tokenExpiry
       });
+
+      const { error: deleteStateError } = await supabase
+        .from('oauth_states')
+        .delete()
+        .eq('provider', 'gmail')
+        .eq('nonce', state);
+
+      if (deleteStateError) {
+        throw deleteStateError;
+      }
+
+      const successPath = getSafeRelativePath(oauthState.return_to, '/inbox');
+      const successRedirect = new URL(successPath, appBaseUrl);
+      successRedirect.searchParams.set('connected', 'gmail');
 
       res.redirect(successRedirect.toString());
     } catch (error) {
