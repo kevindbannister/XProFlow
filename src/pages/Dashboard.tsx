@@ -1,4 +1,4 @@
-import { Clock3, Coins, Mail, TrendingUp } from 'lucide-react';
+import { ChevronDown, Clock3, Coins, Mail, PoundSterling, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
 
 type MetricCard = {
@@ -7,8 +7,8 @@ type MetricCard = {
   title: string;
   value: string;
   subtitle: string;
-  footerLabel: string;
-  footerValue: string;
+  footerPrefix?: string;
+  footerHighlight?: string;
 };
 
 const metrics: MetricCard[] = [
@@ -17,9 +17,7 @@ const metrics: MetricCard[] = [
     icon: Mail,
     title: 'Emails Processed',
     value: '1,284',
-    subtitle: '19% vs previous period',
-    footerLabel: 'Weekly trend',
-    footerValue: 'Steady increase'
+    subtitle: '18% vs previous period'
   },
   {
     id: 'time',
@@ -27,54 +25,56 @@ const metrics: MetricCard[] = [
     title: 'Time Saved',
     value: '26h 15m',
     subtitle: 'Saved time this week',
-    footerLabel: 'Efficiency boost',
-    footerValue: '4h 30m'
+    footerPrefix: 'Efficiency Boost',
+    footerHighlight: '+4h 30m'
   },
   {
     id: 'cost',
-    icon: Coins,
+    icon: PoundSterling,
     title: 'Cost Saved',
     value: '£1,975',
     subtitle: 'Estimated savings',
-    footerLabel: 'Savings rate',
-    footerValue: '£75 / hour'
+    footerPrefix: 'Savings Rate',
+    footerHighlight: '£75 / hour'
   }
 ];
 
 const Dashboard = () => {
   return (
-    <section aria-label="Dashboard main content" className="space-y-6 lg:space-y-8">
+    <section aria-label="Dashboard main content" className="space-y-8 lg:space-y-10">
       <div className="flex justify-center">
         <button
           type="button"
-          className="chip-surface theme-text-secondary rounded-full border px-4 py-2 text-sm font-semibold shadow-sm transition hover:brightness-105"
+          className="inline-flex items-center gap-1 rounded-full border border-[var(--outline-border)] bg-[var(--outline-bg)] px-4 py-1.5 text-sm font-medium text-[var(--text-muted)]"
         >
-          Selected Period: Last 7 Days ▾
+          <span>Selected Period: Last 7 Days</span>
+          <ChevronDown className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
+      <div className="grid gap-4 lg:grid-cols-3">
         {metrics.map((metric) => {
           const Icon = metric.icon;
 
           return (
-            <Card key={metric.id} className="space-y-5 p-5 lg:p-6">
+            <Card
+              key={metric.id}
+              className="space-y-4 rounded-lg border border-slate-200/80 bg-white/80 p-5 shadow-[0_10px_30px_rgba(148,163,184,0.2)]"
+            >
               <div className="flex justify-center">
-                <span className="rounded-2xl border border-[var(--outline-border)] bg-[var(--soft-bg)] p-3">
-                  <Icon className="h-8 w-8 text-[var(--accent)]" strokeWidth={2.1} />
-                </span>
+                <Icon className="h-12 w-12 text-[#60a5fa]" strokeWidth={1.8} />
               </div>
 
               <div className="space-y-3 text-center">
-                <h2 className="theme-text-primary text-xl font-semibold">{metric.title}</h2>
+                <h2 className="text-2xl font-semibold leading-tight text-[var(--text-secondary)]">
+                  {metric.title}
+                </h2>
                 <div className="border-t border-[var(--table-divider)]" />
-                <p className="theme-text-primary text-4xl font-semibold tracking-tight lg:text-5xl">
+                <p className="text-5xl font-semibold leading-none tracking-tight text-[#5b667a] lg:text-6xl">
                   {metric.value}
                 </p>
-                <p className="theme-text-secondary flex items-center justify-center gap-1.5 text-sm">
-                  {metric.id === 'emails' ? (
-                    <TrendingUp className="h-4 w-4 text-emerald-500" />
-                  ) : null}
+                <p className="flex items-center justify-center gap-1.5 text-xl text-[var(--text-muted)]">
+                  {metric.id === 'emails' ? <TrendingUp className="h-4 w-4 text-emerald-500" /> : null}
                   <span>{metric.subtitle}</span>
                 </p>
               </div>
@@ -83,29 +83,54 @@ const Dashboard = () => {
                 {metric.id === 'emails' ? (
                   <svg
                     aria-hidden="true"
-                    className="h-14 w-full text-[var(--accent)]"
+                    className="mb-2 h-14 w-full text-[#3b82f6]"
                     viewBox="0 0 260 70"
                     fill="none"
                   >
+                    <defs>
+                      <linearGradient id="emailBars" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="currentColor" stopOpacity="0.22" />
+                        <stop offset="100%" stopColor="currentColor" stopOpacity="0.04" />
+                      </linearGradient>
+                    </defs>
+                    <path d="M3 66H257" stroke="currentColor" strokeWidth="1.25" opacity="0.35" />
+                    <rect x="14" y="46" width="18" height="20" fill="url(#emailBars)" rx="3" />
+                    <rect x="38" y="41" width="18" height="25" fill="url(#emailBars)" rx="3" />
+                    <rect x="62" y="37" width="18" height="29" fill="url(#emailBars)" rx="3" />
+                    <rect x="86" y="45" width="18" height="21" fill="url(#emailBars)" rx="3" />
+                    <rect x="110" y="39" width="18" height="27" fill="url(#emailBars)" rx="3" />
+                    <rect x="134" y="35" width="18" height="31" fill="url(#emailBars)" rx="3" />
+                    <rect x="158" y="42" width="18" height="24" fill="url(#emailBars)" rx="3" />
+                    <rect x="182" y="31" width="18" height="35" fill="url(#emailBars)" rx="3" />
+                    <rect x="206" y="33" width="18" height="33" fill="url(#emailBars)" rx="3" />
                     <path
-                      d="M3 56C18 58 24 46 39 44C54 42 58 60 74 55C90 50 100 30 116 35C132 40 136 54 150 48C164 42 166 26 179 27C192 28 195 40 209 33C223 26 240 32 257 18"
+                      d="M3 53C18 54 24 43 39 41C54 39 58 57 74 52C90 47 100 27 116 32C132 37 136 51 150 45C164 39 166 23 179 24C192 25 195 37 209 30C223 23 240 29 257 15"
                       stroke="currentColor"
                       strokeWidth="3"
                       strokeLinecap="round"
                     />
-                    <path d="M3 66H257" stroke="currentColor" strokeWidth="1.25" opacity="0.35" />
                   </svg>
-                ) : null}
-
-                <div className="theme-text-secondary flex items-center justify-between text-sm">
-                  <span>{metric.footerLabel}</span>
-                  <span className="theme-text-primary font-semibold">{metric.footerValue}</span>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-lg text-[var(--text-secondary)]">
+                    {metric.id === 'time' ? (
+                      <Clock3 className="h-6 w-6 shrink-0 text-[var(--text-muted)]" />
+                    ) : (
+                      <Coins className="h-6 w-6 shrink-0 text-[var(--text-muted)]" />
+                    )}
+                    <span>{metric.footerPrefix}</span>
+                    <span className="font-semibold text-emerald-500">{metric.footerHighlight}</span>
+                  </div>
+                )}
               </div>
             </Card>
           );
         })}
       </div>
+
+      <p className="pt-2 text-center text-2xl text-[var(--text-secondary)] lg:text-4xl">
+        Since joining XProFlow you've saved <span className="font-bold">184 hours</span> and{' '}
+        <span className="font-bold text-emerald-500">£12,880.</span>
+      </p>
     </section>
   );
 };
