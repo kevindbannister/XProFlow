@@ -22,19 +22,43 @@ async function startServer() {
   const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
   const supabase = getSupabaseClient();
 
+  // ============================================
+  // ✅ PRODUCTION SAFE CORS CONFIG
+  // ============================================
+
+  const allowedOrigin = process.env.FRONTEND_URL || 'https://app.xproflow.com';
 
   const corsOptions = {
-    origin: 'https://app.xproflow.com',
+    origin: function (origin, callback) {
+      // Allow no-origin requests (like curl or server-to-server)
+      if (!origin) return callback(null, true);
+
+      if (origin === allowedOrigin) {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   };
 
   app.use(cors(corsOptions));
   app.options('*', cors(corsOptions));
 
-  // Stripe signature validation needs the raw body.
+  // ============================================
+  // BODY PARSING
+  // ============================================
+
+  // Stripe signature validation needs raw body
   app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
+
   app.use(express.json());
+
+  // ============================================
+  // ROUTES
+  // ============================================
 
   registerGoogleAuth(app, supabase);
   registerSessionRoutes(app, supabase);
@@ -45,6 +69,10 @@ async function startServer() {
   registerGmailRoutes(app, supabase);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
+
+  // ============================================
+  // HEALTH
+  // ============================================
 
   app.get('/health', (req, res) => {
     return res.status(200).json({ status: 'ok' });
@@ -68,10 +96,15 @@ async function startServer() {
     }
   });
 
+  // ============================================
+  // START SERVER
+  // ============================================
+
   app.listen(port, () => {
     console.log(`API server listening on :${port}`);
   });
 
   return app;
 }
+
 module.exports = { app, startServer };
