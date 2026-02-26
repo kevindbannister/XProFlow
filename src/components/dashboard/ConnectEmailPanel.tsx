@@ -1,5 +1,4 @@
 import Card from '../ui/Card';
-import { apiBaseUrl } from '../../config/api';
 
 const ConnectEmailPanel = () => {
   return (
@@ -13,7 +12,7 @@ const ConnectEmailPanel = () => {
           type="button"
           className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           onClick={() => {
-            window.location.href = `${apiBaseUrl}/auth/google`;
+            window.location.href = 'https://api.xproflow.com/auth/google';
           }}
         >
           Connect Gmail
