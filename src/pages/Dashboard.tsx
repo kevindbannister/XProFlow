@@ -111,7 +111,7 @@ const Dashboard = () => {
                     />
                   </svg>
                 ) : (
-                  <div className="flex items-center gap-2 text-lg text-[var(--text-secondary)]">
+                  <div className="flex items-center justify-center gap-2 text-lg text-[var(--text-secondary)]">
                     {metric.id === 'time' ? (
                       <Clock3 className="h-6 w-6 shrink-0 text-[var(--text-muted)]" />
                     ) : (
@@ -127,7 +127,7 @@ const Dashboard = () => {
         })}
       </div>
 
-      <p className="pt-2 text-center text-2xl text-[var(--text-secondary)] lg:text-4xl">
+      <p className="pt-1 text-center text-lg text-[var(--text-secondary)] lg:text-2xl">
         Since joining XProFlow you've saved <span className="font-bold">184 hours</span> and{' '}
         <span className="font-bold text-emerald-500">£12,880.</span>
       </p>
