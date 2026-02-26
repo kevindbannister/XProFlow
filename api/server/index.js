@@ -24,39 +24,37 @@ async function startServer() {
   const supabase = getSupabaseClient();
 
   // ============================================
-  // ✅ PRODUCTION SAFE CORS CONFIG
+  // ✅ CLEAN PRODUCTION CORS
   // ============================================
 
-  const allowedOrigin = process.env.FRONTEND_URL || 'https://app.xproflow.com';
+  const allowedOrigin =
+    process.env.FRONTEND_URL || 'https://app.xproflow.com';
 
-  const corsOptions = {
-    origin: function (origin, callback) {
-      // Allow no-origin requests (like curl or server-to-server)
-      if (!origin) return callback(null, true);
+  app.use(
+    cors({
+      origin: allowedOrigin,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+  );
 
-      if (origin === allowedOrigin) {
-        return callback(null, true);
-      }
-
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  };
-
-  app.use(cors(corsOptions));
-  app.options('*', cors(corsOptions));
+  // Explicit preflight handler
+  app.options('*', cors());
 
   // ============================================
   // BODY PARSING
   // ============================================
 
-  // Stripe signature validation needs raw body
-  app.use('/api/billing/webhook', express.raw({ type: 'application/json' }));
+  app.use(cookieParser());
+
+  // Stripe raw body must come before json parser
+  app.use(
+    '/api/billing/webhook',
+    express.raw({ type: 'application/json' })
+  );
 
   app.use(express.json());
-  app.use(cookieParser());
 
   // ============================================
   // ROUTES
@@ -93,7 +91,8 @@ async function startServer() {
         success: decrypted === original,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Encryption test failed';
+      const message =
+        error instanceof Error ? error.message : 'Encryption test failed';
       return res.status(500).json({ error: message });
     }
   });
@@ -103,7 +102,7 @@ async function startServer() {
   // ============================================
 
   app.listen(port, () => {
-    console.log(`API server listening on :${port}`);
+    console.log(`🚀 API server running on port ${port}`);
   });
 
   return app;
