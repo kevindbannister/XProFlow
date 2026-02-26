@@ -8,11 +8,12 @@ const GOOGLE_SCOPES = [
 ];
 
 function createOAuthClient() {
-  return new OAuth2Client(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
-  );
+  const clientId = process.env.GMAIL_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GMAIL_GOOGLE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
+  // Gmail OAuth callback URI should be API-side, e.g. https://api.xproflow.com/api/gmail/oauth/callback
+  const redirectUri = process.env.GMAIL_GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI;
+
+  return new OAuth2Client(clientId, clientSecret, redirectUri);
 }
 
 function generateAuthUrl({ prompt, includeGrantedScopes } = {}) {

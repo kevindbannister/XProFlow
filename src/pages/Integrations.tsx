@@ -4,7 +4,7 @@ import { integrationDefinitions } from '../lib/settingsData';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
-import { supabase } from '../lib/supabaseClient';
+import { getAuthHeaders } from '../lib/authHeaders';
 
 const statusStyles = {
   connected: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40',
@@ -16,18 +16,14 @@ const Integrations = () => {
   const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
 
   const handleConnect = async () => {
-    const {
-      data: { session }
-    } = await supabase.auth.getSession();
+    const authHeaders = await getAuthHeaders();
 
-    if (!session?.access_token) {
+    if (!authHeaders.Authorization) {
       return;
     }
 
-    const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/start`, {
-      headers: {
-        Authorization: `Bearer ${session.access_token}`
-      }
+    const response = await fetch(`${apiBaseUrl}/api/gmail/oauth/url`, {
+      headers: authHeaders
     });
 
     const data = await response.json();
