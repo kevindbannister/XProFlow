@@ -100,10 +100,10 @@ const Sidebar = () => {
       to={to}
       className={({ isActive }: { isActive: boolean }) =>
         classNames(
-          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 transition hover:bg-slate-900/90 hover:text-white',
+          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 transition hover:bg-white hover:text-[#121D31] dark:hover:bg-slate-900/90 dark:hover:text-white',
           isCollapsed ? 'justify-center' : 'justify-start gap-2',
           isActive
-            ? 'border-slate-300/40 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
+            ? 'border-slate-300/60 bg-white text-[#121D31] hover:bg-white hover:text-[#121D31] dark:border-slate-300/40 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-900 dark:hover:text-white'
             : 'theme-text-muted'
         )
       }
