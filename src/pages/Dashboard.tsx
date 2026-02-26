@@ -70,10 +70,10 @@ const Dashboard = () => {
                   {metric.title}
                 </h2>
                 <div className="border-t border-[var(--table-divider)]" />
-                <p className="text-5xl font-semibold leading-none tracking-tight text-[#5b667a] lg:text-6xl">
+                <p className="text-5xl font-semibold leading-none tracking-tight text-[#121D31] lg:text-6xl">
                   {metric.value}
                 </p>
-                <p className="flex items-center justify-center gap-1.5 text-xl text-[var(--text-muted)]">
+                <p className="flex items-center justify-center gap-1.5 text-xl text-[#121D31]">
                   {metric.id === 'emails' ? <TrendingUp className="h-4 w-4 text-emerald-500" /> : null}
                   <span>{metric.subtitle}</span>
                 </p>
@@ -111,7 +111,7 @@ const Dashboard = () => {
                     />
                   </svg>
                 ) : (
-                  <div className="flex items-center justify-center gap-2 text-lg text-[var(--text-secondary)]">
+                  <div className="flex items-center justify-center gap-2 text-lg text-[#121D31]">
                     {metric.id === 'time' ? (
                       <Clock3 className="h-6 w-6 shrink-0 text-[var(--text-muted)]" />
                     ) : (
