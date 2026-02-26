@@ -170,10 +170,10 @@
   --panel-shadow: 0 14px 32px rgba(120, 145, 200, 0.18);
   --overlay: rgba(148, 163, 184, 0.25);
   --accent: #2f6df6;
-  --text-primary: #1f2a44;
-  --text-secondary: #4b5b74;
-  --text-muted: #6b7a96;
-  --text-subtle: #94a3b8;
+  --text-primary: #121D31;
+  --text-secondary: #121D31;
+  --text-muted: #121D31;
+  --text-subtle: #121D31;
   --nav-shadow: 0 10px 20px rgba(120, 145, 200, 0.2);
   --outline-border: rgba(198, 216, 250, 0.9);
   --outline-bg: rgba(255, 255, 255, 0.92);
@@ -205,6 +205,16 @@
   --thread-empty-border: rgba(203, 213, 225, 0.7);
   --thread-callout-bg: rgba(241, 245, 249, 0.9);
   --thread-callout-border: rgba(226, 232, 240, 0.9);
+}
+
+
+.theme-light,
+.theme-light :is(p, span, a, li, dt, dd, label, small, strong, em, h1, h2, h3, h4, h5, h6, button, input, textarea, select) {
+  color: #121D31;
+}
+
+.theme-light .auth-page button {
+  color: #ffffff;
 }
 
 body {

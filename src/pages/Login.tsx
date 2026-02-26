@@ -65,7 +65,7 @@ const Login = () => {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center bg-slate-950 bg-cover bg-center bg-no-repeat px-6 py-12"
+      className="auth-page flex min-h-screen items-center justify-center bg-slate-950 bg-cover bg-center bg-no-repeat px-6 py-12"
       style={{ backgroundImage: "url('/FlowBackground.svg')" }}
     >
       <Card
