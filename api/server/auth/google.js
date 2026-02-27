@@ -18,12 +18,14 @@ function createOAuthClient() {
 }
 
 function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
-  if (!supabase) {
-    throw new Error('Supabase client is not initialized.');
+  if (!supabaseAdmin || !supabaseAuth) {
+    throw new Error('Supabase clients not initialized.');
   }
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const frontendUrl =
+    process.env.FRONTEND_URL || 'https://app.xproflow.com';
 
+  // START OAUTH
   app.get('/auth/google', async (req, res) => {
     try {
       const accessToken = req.query.token;
@@ -51,6 +53,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         secure: true,
         sameSite: 'none',
         domain: '.xproflow.com',
+        path: '/',
         maxAge: 10 * 60 * 1000
       });
 
@@ -61,6 +64,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         secure: true,
         sameSite: 'none',
         domain: '.xproflow.com',
+        path: '/',
         maxAge: 10 * 60 * 1000
       });
 
@@ -75,37 +79,40 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       });
 
       return res.redirect(authUrl);
-
     } catch (error) {
       console.error('Google OAuth start error:', error);
       return res.status(500).send('OAuth start failed');
     }
   });
 
+  // CALLBACK
   app.get('/auth/google/callback', async (req, res) => {
-    const callbackErrorRedirect = (errorCode) => `${frontendUrl}/integrations?error=${errorCode}`;
+    const callbackErrorRedirect = (errorCode) =>
+      `${frontendUrl}/integrations?error=${errorCode}`;
 
     try {
+      console.log('=== GOOGLE CALLBACK HIT ===');
+
       const userId = req.cookies?.gmail_oauth_user;
 
       if (!userId) {
-        return res.redirect(`${frontendUrl}/integrations?error=no_user`);
+        console.error('Missing user cookie');
+        return res.redirect(callbackErrorRedirect('no_user'));
       }
 
-      const code = typeof req.query.code === 'string' ? req.query.code : null;
-      const state = typeof req.query.state === 'string' ? req.query.state : null;
+      const code =
+        typeof req.query.code === 'string' ? req.query.code : null;
+      const state =
+        typeof req.query.state === 'string' ? req.query.state : null;
       const storedState = req.cookies?.gmail_oauth_state;
 
       if (!state || !storedState || state !== storedState) {
-        res.clearCookie('gmail_oauth_state', {
-          httpOnly: true,
-          secure: true,
-          sameSite: 'lax'
-        });
+        console.error('State mismatch');
         return res.redirect(callbackErrorRedirect('gmail_state'));
       }
 
       if (!code) {
+        console.error('Missing code');
         return res.redirect(callbackErrorRedirect('gmail_code'));
       }
 
@@ -113,11 +120,17 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       const { tokens } = await oauthClient.getToken(code);
       oauthClient.setCredentials(tokens);
 
+      console.log('Tokens received:', {
+        access: !!tokens.access_token,
+        refresh: !!tokens.refresh_token,
+        expiry: tokens.expiry_date
+      });
+
       const userInfoResponse = await oauthClient.request({
         url: 'https://www.googleapis.com/oauth2/v2/userinfo'
       });
 
-      const { email, name, id } = userInfoResponse.data || {};
+      const { email, id } = userInfoResponse.data || {};
 
       if (!tokens.access_token) {
         throw new Error('Missing access token from Google.');
@@ -127,23 +140,18 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         throw new Error('Missing Google user information.');
       }
 
-      let scopesGranted = [];
-      if (tokens.scope) {
-        scopesGranted = tokens.scope.split(' ');
-      } else if (tokens.access_token) {
-        const tokenInfo = await oauthClient.getTokenInfo(tokens.access_token);
-        scopesGranted = tokenInfo.scopes || [];
-      }
-
       const encryptedAccessToken = encrypt(tokens.access_token);
       const encryptedRefreshToken = tokens.refresh_token
         ? encrypt(tokens.refresh_token)
         : null;
+
       const tokenExpiry = tokens.expiry_date
         ? new Date(tokens.expiry_date).toISOString()
         : null;
 
-      const { data, error } = await supabase
+      console.log('About to upsert into Supabase');
+
+      const { data, error } = await supabaseAdmin
         .from('connected_accounts')
         .upsert(
           {
@@ -153,9 +161,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
             provider_user_id: id,
             access_token: encryptedAccessToken,
             refresh_token: encryptedRefreshToken,
-            token_expiry: tokens.expiry_date
-              ? new Date(tokens.expiry_date).toISOString()
-              : null
+            token_expiry: tokenExpiry
           },
           { onConflict: 'provider,provider_user_id' }
         )
@@ -170,23 +176,24 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       res.clearCookie('gmail_oauth_state', {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax'
+        sameSite: 'none',
+        domain: '.xproflow.com',
+        path: '/'
       });
 
       res.clearCookie('gmail_oauth_user', {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax'
+        sameSite: 'none',
+        domain: '.xproflow.com',
+        path: '/'
       });
 
-      return res.redirect(`${frontendUrl}/integrations?success=gmail_connected`);
+      return res.redirect(
+        `${frontendUrl}/integrations?success=gmail_connected`
+      );
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      res.clearCookie('gmail_oauth_state', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax'
-      });
       return res.redirect(callbackErrorRedirect('gmail_callback'));
     }
   });
