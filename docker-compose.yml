@@ -5,6 +5,11 @@ services:
       - n8n_data:/home/node/.n8n
     networks:
       - xproflow
+    environment:
+      - N8N_HOST=n8n.xproflow.com
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.xproflow.com/
+      - N8N_EDITOR_BASE_URL=https://n8n.xproflow.com/
 
   nginx:
     image: nginx:latest
@@ -35,3 +40,5 @@ networks:
 
 volumes:
   n8n_data:
+    external: true
+    name: n8n_data
