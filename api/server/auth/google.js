@@ -143,8 +143,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         ? new Date(tokens.expiry_date).toISOString()
         : null;
 
-      // 🗄️ Upsert connected account
-      const { error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from('connected_accounts')
         .upsert(
           {
@@ -152,16 +151,19 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
             user_email: email,
             provider: 'google',
             provider_user_id: id,
-            scopes: scopesGranted,
             access_token: encryptedAccessToken,
             refresh_token: encryptedRefreshToken,
-            token_expiry: tokenExpiry
+            token_expiry: tokens.expiry_date
+              ? new Date(tokens.expiry_date).toISOString()
+              : null
           },
           { onConflict: 'provider,provider_user_id' }
-        );
+        )
+        .select();
+
+      console.log('Supabase upsert result:', { data, error });
 
       if (error) {
-        console.error('Supabase insert error:', error);
         throw error;
       }
 
