@@ -5,6 +5,25 @@ const {
 
 let secretsLoaded = false;
 
+function applySecretsToEnv(secrets) {
+  const keys = [];
+
+  for (const [key, value] of Object.entries(secrets)) {
+    process.env[key] = value == null ? '' : String(value);
+    keys.push(key);
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(secrets, 'SUPABASE_ANON_KEY')) {
+    const fallbackAnonKey = secrets.VITE_SUPABASE_ANON_KEY;
+    if (fallbackAnonKey != null) {
+      process.env.SUPABASE_ANON_KEY = String(fallbackAnonKey);
+      keys.push('SUPABASE_ANON_KEY');
+    }
+  }
+
+  return keys;
+}
+
 async function loadSecrets() {
   if (secretsLoaded) {
     return;
@@ -45,11 +64,7 @@ async function loadSecrets() {
     );
   }
 
-  const keys = [];
-  for (const [key, value] of Object.entries(secrets)) {
-    process.env[key] = value == null ? '' : String(value);
-    keys.push(key);
-  }
+  const keys = applySecretsToEnv(secrets);
 
   console.log(
     `Loaded ${keys.length} secrets from AWS Secrets Manager: ${keys.join(', ')}`
@@ -58,4 +73,4 @@ async function loadSecrets() {
   secretsLoaded = true;
 }
 
-module.exports = { loadSecrets };
+module.exports = { loadSecrets, applySecretsToEnv };
