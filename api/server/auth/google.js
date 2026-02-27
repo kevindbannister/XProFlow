@@ -49,7 +49,7 @@ function registerGoogleAuth(app, supabase) {
       res.cookie('gmail_oauth_user', user.id, {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 10 * 60 * 1000
       });
 
@@ -58,7 +58,7 @@ function registerGoogleAuth(app, supabase) {
       res.cookie('gmail_oauth_state', state, {
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         maxAge: 10 * 60 * 1000
       });
 
