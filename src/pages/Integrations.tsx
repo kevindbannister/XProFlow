@@ -4,6 +4,7 @@ import { integrationDefinitions } from '../lib/settingsData';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
+import { supabase } from '../lib/supabaseClient';
 
 const statusStyles = {
   connected: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40',
@@ -14,8 +15,16 @@ const statusStyles = {
 const Integrations = () => {
   const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
 
-  const handleConnect = () => {
-    window.location.href = `${apiBaseUrl}/auth/google`;
+  const handleConnect = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+
+    if (!token) {
+      alert('Not authenticated');
+      return;
+    }
+
+    window.location.href = `${apiBaseUrl}/auth/google?token=${token}`;
   };
 
   const handleDisconnect = async () => {
