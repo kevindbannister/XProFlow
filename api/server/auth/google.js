@@ -161,7 +161,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         )
         .select();
 
-      console.log('Supabase upsert result:', { data, error });
+      console.log('SUPABASE RESULT:', { data, error });
 
       if (error) {
         throw error;
