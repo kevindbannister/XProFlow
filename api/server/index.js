@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
@@ -17,11 +18,18 @@ async function startServer() {
   const { registerBillingRoutes } = require('./routes/billing');
   const { registerFirmRoutes } = require('./routes/firm');
   const { registerProfessionalContextRoutes } = require('./routes/professionalContext');
-  const { getSupabaseClient } = require('./supabaseClient');
   const { encrypt, decrypt } = require('./encryption');
 
   const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
-  const supabase = getSupabaseClient();
+  const supabaseAdmin = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+  const supabaseAuth = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+  const supabase = supabaseAdmin;
 
   // ============================================
   // ✅ CLEAN PRODUCTION CORS
@@ -60,7 +68,7 @@ async function startServer() {
   // ROUTES
   // ============================================
 
-  registerGoogleAuth(app, supabase);
+  registerGoogleAuth(app, supabaseAdmin, supabaseAuth);
   registerSessionRoutes(app, supabase);
   registerFeatureFlagRoutes(app, supabase);
   registerSignupRoutes(app, supabase);
