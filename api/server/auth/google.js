@@ -164,6 +164,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
             user_email: email,
             provider: 'google',
             provider_user_id: id,
+            provider_account_id: id,
             access_token: encryptedAccessToken,
             refresh_token: encryptedRefreshToken,
             token_expiry: tokenExpiry
