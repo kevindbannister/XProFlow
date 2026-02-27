@@ -1,6 +1,5 @@
 const { OAuth2Client } = require('google-auth-library');
 const crypto = require('crypto');
-const { encrypt } = require('../encryption');
 
 const GOOGLE_SCOPES = [
   'openid',
@@ -120,56 +119,85 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         return res.redirect(callbackErrorRedirect('gmail_code'));
       }
 
-      const oauthClient = createOAuthClient();
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+      const redirectUri = process.env.GOOGLE_REDIRECT_URI;
 
-      const { tokens } = await oauthClient.getToken(code);
-      oauthClient.setCredentials(tokens);
-
-      console.log('Tokens received:', {
-        access: !!tokens.access_token,
-        refresh: !!tokens.refresh_token,
-        expiry: tokens.expiry_date
-      });
-
-      if (!tokens.access_token) {
-        throw new Error('Missing access token from Google.');
+      if (!clientId || !clientSecret || !redirectUri) {
+        throw new Error('Missing Google OAuth environment configuration.');
       }
 
-      const userInfoResponse = await oauthClient.request({
-        url: 'https://www.googleapis.com/oauth2/v2/userinfo'
+      const tokenRequestBody = new URLSearchParams({
+        // These values must match the OAuth app and redirect URL used when
+        // generating the original consent-screen URL.
+        client_id: clientId,
+        client_secret: clientSecret,
+        code,
+        redirect_uri: redirectUri,
+        grant_type: 'authorization_code'
       });
 
-      const { email, id } = userInfoResponse.data || {};
+      const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: tokenRequestBody
+      });
 
-      if (!email || !id) {
-        throw new Error('Missing Google user information.');
+      const tokenPayload = await tokenResponse.json();
+
+      console.log('Google token response payload:', tokenPayload);
+
+      if (!tokenResponse.ok) {
+        const tokenError = tokenPayload?.error || 'token_exchange_failed';
+        throw new Error(`Google token exchange failed: ${tokenError}`);
       }
 
-      const encryptedAccessToken = encrypt(tokens.access_token);
-      const encryptedRefreshToken = tokens.refresh_token
-        ? encrypt(tokens.refresh_token)
-        : null;
+      const accessToken = tokenPayload?.access_token;
+      const refreshToken = tokenPayload?.refresh_token || null;
+      const scopes = tokenPayload?.scope || '';
 
-      const tokenExpiry = tokens.expiry_date
-        ? new Date(tokens.expiry_date).toISOString()
-        : null;
+      if (!accessToken || !accessToken.startsWith('ya29.')) {
+        throw new Error('Google returned an invalid access token format.');
+      }
 
-      console.log('About to upsert into Supabase');
+      const expiresInSeconds = Number(tokenPayload?.expires_in || 0);
+      // Persist as an ISO timestamp so downstream code can compare dates
+      // without needing to know Google's token payload format.
+      const tokenExpiry = new Date(
+        Date.now() + expiresInSeconds * 1000
+      ).toISOString();
+
+      // Resolve Google account email for existing gmail_accounts constraints.
+      const userInfoResponse = await fetch(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+      const userInfoPayload = await userInfoResponse.json();
+      const email = userInfoPayload?.email;
+      if (!userInfoResponse.ok || !email) {
+        throw new Error('Failed to resolve Google account email.');
+      }
 
       const { data, error } = await supabaseAdmin
-        .from('connected_accounts')
+        .from('gmail_accounts')
         .upsert(
           {
             user_id: userId,
-            user_email: email,
+            email,
             provider: 'google',
-            provider_user_id: id,
-            provider_account_id: id,
-            access_token: encryptedAccessToken,
-            refresh_token: encryptedRefreshToken,
-            token_expiry: tokenExpiry
+            access_token: accessToken,
+            refresh_token: refreshToken,
+            expiry_ts: tokenExpiry,
+            token_expiry: tokenExpiry,
+            scopes
           },
-          { onConflict: 'provider,provider_user_id' }
+          { onConflict: 'user_id,email' }
         )
         .select();
 
@@ -195,12 +223,26 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         path: '/'
       });
 
-      return res.redirect(
-        `${frontendUrl}/integrations?success=gmail_connected`
-      );
+      if (req.headers.accept && req.headers.accept.includes('text/html')) {
+        return res.redirect(
+          `${frontendUrl}/integrations?success=gmail_connected`
+        );
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Gmail account connected successfully.',
+        token_expiry: tokenExpiry
+      });
     } catch (error) {
       console.error('Google OAuth callback error:', error);
-      return res.redirect(callbackErrorRedirect('gmail_callback'));
+      if (req.headers.accept && req.headers.accept.includes('text/html')) {
+        return res.redirect(callbackErrorRedirect('gmail_callback'));
+      }
+
+      const message =
+        error instanceof Error ? error.message : 'OAuth callback failed';
+      return res.status(400).json({ success: false, error: message });
     }
   });
 }
