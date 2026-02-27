@@ -50,6 +50,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        domain: '.xproflow.com',
         maxAge: 10 * 60 * 1000
       });
 
@@ -59,6 +60,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
+        domain: '.xproflow.com',
         maxAge: 10 * 60 * 1000
       });
 
