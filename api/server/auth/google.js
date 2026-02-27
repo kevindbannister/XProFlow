@@ -25,7 +25,9 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
   const frontendUrl =
     process.env.FRONTEND_URL || 'https://app.xproflow.com';
 
-  // START OAUTH
+  /**
+   * START GOOGLE OAUTH
+   */
   app.get('/auth/google', async (req, res) => {
     try {
       const accessToken = req.query.token;
@@ -85,7 +87,9 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
     }
   });
 
-  // CALLBACK
+  /**
+   * GOOGLE CALLBACK
+   */
   app.get('/auth/google/callback', async (req, res) => {
     const callbackErrorRedirect = (errorCode) =>
       `${frontendUrl}/integrations?error=${errorCode}`;
@@ -117,6 +121,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       }
 
       const oauthClient = createOAuthClient();
+
       const { tokens } = await oauthClient.getToken(code);
       oauthClient.setCredentials(tokens);
 
@@ -126,15 +131,15 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         expiry: tokens.expiry_date
       });
 
+      if (!tokens.access_token) {
+        throw new Error('Missing access token from Google.');
+      }
+
       const userInfoResponse = await oauthClient.request({
         url: 'https://www.googleapis.com/oauth2/v2/userinfo'
       });
 
       const { email, id } = userInfoResponse.data || {};
-
-      if (!tokens.access_token) {
-        throw new Error('Missing access token from Google.');
-      }
 
       if (!email || !id) {
         throw new Error('Missing Google user information.');
