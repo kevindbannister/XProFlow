@@ -16,15 +16,16 @@ const Integrations = () => {
   const { gmailConnected, gmailEmail, csrfToken, refreshSession } = useAuth();
 
   const handleConnect = async () => {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+    const {
+      data: { session }
+    } = await supabase.auth.getSession();
 
-    if (!token) {
+    if (!session?.access_token) {
       alert('Not authenticated');
       return;
     }
 
-    window.location.href = `${apiBaseUrl}/auth/google?token=${token}`;
+    window.location.href = `${apiBaseUrl}/auth/google?token=${session.access_token}`;
   };
 
   const handleDisconnect = async () => {

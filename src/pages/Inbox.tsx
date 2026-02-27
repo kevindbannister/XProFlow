@@ -201,15 +201,16 @@ const Inbox = () => {
             type="button"
             className="mt-6 inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:bg-slate-300 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
             onClick={async () => {
-              const { data } = await supabase.auth.getSession();
-              const token = data.session?.access_token;
+              const {
+                data: { session }
+              } = await supabase.auth.getSession();
 
-              if (!token) {
+              if (!session?.access_token) {
                 alert('Not authenticated');
                 return;
               }
 
-              window.location.href = `${apiBaseUrl}/auth/google?token=${token}`;
+              window.location.href = `${apiBaseUrl}/auth/google?token=${session.access_token}`;
             }}
           >
             Connect Gmail
