@@ -17,7 +17,7 @@ function createOAuthClient() {
   );
 }
 
-function registerGoogleAuth(app, supabase) {
+function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
   if (!supabase) {
     throw new Error('Supabase client is not initialized.');
   }
@@ -36,7 +36,7 @@ function registerGoogleAuth(app, supabase) {
       const {
         data: { user },
         error: userError
-      } = await supabase.auth.getUser(accessToken);
+      } = await supabaseAuth.auth.getUser(accessToken);
 
       if (userError || !user) {
         console.error('Invalid Supabase token', userError);
@@ -142,7 +142,7 @@ function registerGoogleAuth(app, supabase) {
         : null;
 
       // 🗄️ Upsert connected account
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('connected_accounts')
         .upsert(
           {
