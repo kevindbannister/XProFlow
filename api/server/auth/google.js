@@ -26,10 +26,11 @@ function registerGoogleAuth(app, supabase) {
 
   app.get('/auth/google', async (req, res) => {
     try {
-      const accessToken = typeof req.query.token === 'string' ? req.query.token : null;
+      const accessToken = req.query.token;
 
       if (!accessToken) {
-        return res.status(401).send('Unauthorized');
+        console.error('Missing Supabase token');
+        return res.status(401).send('Missing token');
       }
 
       const {
@@ -38,9 +39,13 @@ function registerGoogleAuth(app, supabase) {
       } = await supabase.auth.getUser(accessToken);
 
       if (userError || !user) {
-        return res.status(401).send('Unauthorized');
+        console.error('Invalid Supabase token', userError);
+        return res.status(401).send('Invalid token');
       }
 
+      console.log('Supabase user validated:', user.id);
+
+      // Store Supabase user ID for callback
       res.cookie('gmail_oauth_user', user.id, {
         httpOnly: true,
         secure: true,
@@ -58,6 +63,7 @@ function registerGoogleAuth(app, supabase) {
       });
 
       const oauthClient = createOAuthClient();
+
       const authUrl = oauthClient.generateAuthUrl({
         scope: GOOGLE_SCOPES,
         access_type: 'offline',
@@ -65,10 +71,12 @@ function registerGoogleAuth(app, supabase) {
         prompt: 'consent',
         state
       });
+
       return res.redirect(authUrl);
+
     } catch (error) {
       console.error('Google OAuth start error:', error);
-      return res.redirect(`${frontendUrl}/integrations?error=gmail_start`);
+      return res.status(500).send('OAuth start failed');
     }
   });
 
