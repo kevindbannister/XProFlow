@@ -26,6 +26,28 @@ function registerGoogleAuth(app, supabase) {
 
   app.get('/auth/google', async (req, res) => {
     try {
+      const accessToken = typeof req.query.token === 'string' ? req.query.token : null;
+
+      if (!accessToken) {
+        return res.status(401).send('Unauthorized');
+      }
+
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser(accessToken);
+
+      if (userError || !user) {
+        return res.status(401).send('Unauthorized');
+      }
+
+      res.cookie('gmail_oauth_user', user.id, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: 10 * 60 * 1000
+      });
+
       const state = crypto.randomBytes(32).toString('hex');
 
       res.cookie('gmail_oauth_state', state, {
@@ -54,6 +76,12 @@ function registerGoogleAuth(app, supabase) {
     const callbackErrorRedirect = (errorCode) => `${frontendUrl}/integrations?error=${errorCode}`;
 
     try {
+      const userId = req.cookies?.gmail_oauth_user;
+
+      if (!userId) {
+        return res.redirect(`${frontendUrl}/integrations?error=no_user`);
+      }
+
       const code = typeof req.query.code === 'string' ? req.query.code : null;
       const state = typeof req.query.state === 'string' ? req.query.state : null;
       const storedState = req.cookies?.gmail_oauth_state;
@@ -105,32 +133,12 @@ function registerGoogleAuth(app, supabase) {
         ? new Date(tokens.expiry_date).toISOString()
         : null;
 
-      // 🔐 Get Supabase user from cookie session
-      const accessTokenFromCookie =
-        req.cookies?.['sb-access-token'] ||
-        req.cookies?.['sb:token'] ||
-        null;
-
-      if (!accessTokenFromCookie) {
-        throw new Error('No Supabase session cookie found');
-      }
-
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser(accessTokenFromCookie);
-
-      if (userError || !user) {
-        console.error('Failed to get Supabase user:', userError);
-        throw new Error('User not authenticated');
-      }
-
       // 🗄️ Upsert connected account
       const { error } = await supabase
         .from('connected_accounts')
         .upsert(
           {
-            user_id: user.id,
+            user_id: userId,
             user_email: email,
             provider: 'google',
             provider_user_id: id,
@@ -148,6 +156,12 @@ function registerGoogleAuth(app, supabase) {
       }
 
       res.clearCookie('gmail_oauth_state', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax'
+      });
+
+      res.clearCookie('gmail_oauth_user', {
         httpOnly: true,
         secure: true,
         sameSite: 'lax'
