@@ -183,21 +183,20 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
         throw new Error('Failed to resolve Google account identity.');
       }
 
+      const payload = {
+        user_id: userId,
+        provider: 'google',
+        provider_account_id: providerAccountId,
+        email,
+        access_token_encrypted: encrypt(accessToken),
+        refresh_token_encrypted: refreshToken ? encrypt(refreshToken) : null,
+        token_expires_at: tokenExpiresAt,
+        last_sync_at: null
+      };
+
       const { data, error } = await supabaseAdmin
         .from('connected_accounts')
-        .upsert(
-          {
-            user_id: userId,
-            provider: 'google',
-            provider_account_id: providerAccountId,
-            email,
-            access_token_encrypted: encrypt(accessToken),
-            refresh_token_encrypted: refreshToken ? encrypt(refreshToken) : null,
-            token_expires_at: tokenExpiresAt,
-            last_sync_at: null
-          },
-          { onConflict: 'user_id,provider' }
-        )
+        .upsert(payload, { onConflict: 'provider,provider_account_id' })
         .select();
 
       console.log('SUPABASE RESULT:', { data, error });
