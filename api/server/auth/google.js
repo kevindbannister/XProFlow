@@ -1,5 +1,6 @@
 const { OAuth2Client } = require('google-auth-library');
 const crypto = require('crypto');
+const { encrypt } = require('../encryption');
 
 const GOOGLE_SCOPES = [
   'openid',
@@ -156,22 +157,18 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
 
       const accessToken = tokenPayload?.access_token;
       const refreshToken = tokenPayload?.refresh_token || null;
-      const scopes = tokenPayload?.scope || '';
 
       if (!accessToken || !accessToken.startsWith('ya29.')) {
         throw new Error('Google returned an invalid access token format.');
       }
 
       const expiresInSeconds = Number(tokenPayload?.expires_in || 0);
-      // Persist as an ISO timestamp so downstream code can compare dates
-      // without needing to know Google's token payload format.
-      const tokenExpiry = new Date(
+      const tokenExpiresAt = new Date(
         Date.now() + expiresInSeconds * 1000
       ).toISOString();
 
-      // Resolve Google account email for existing gmail_accounts constraints.
       const userInfoResponse = await fetch(
-        'https://www.googleapis.com/oauth2/v2/userinfo',
+        'https://openidconnect.googleapis.com/v1/userinfo',
         {
           headers: {
             Authorization: `Bearer ${accessToken}`
@@ -180,24 +177,26 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       );
       const userInfoPayload = await userInfoResponse.json();
       const email = userInfoPayload?.email;
-      if (!userInfoResponse.ok || !email) {
-        throw new Error('Failed to resolve Google account email.');
+      const providerAccountId = userInfoPayload?.sub;
+
+      if (!userInfoResponse.ok || !email || !providerAccountId) {
+        throw new Error('Failed to resolve Google account identity.');
       }
 
       const { data, error } = await supabaseAdmin
-        .from('gmail_accounts')
+        .from('connected_accounts')
         .upsert(
           {
             user_id: userId,
-            email,
             provider: 'google',
-            access_token: accessToken,
-            refresh_token: refreshToken,
-            expiry_ts: tokenExpiry,
-            token_expiry: tokenExpiry,
-            scopes
+            provider_account_id: providerAccountId,
+            email,
+            access_token_encrypted: encrypt(accessToken),
+            refresh_token_encrypted: refreshToken ? encrypt(refreshToken) : null,
+            token_expires_at: tokenExpiresAt,
+            last_sync_at: null
           },
-          { onConflict: 'user_id,email' }
+          { onConflict: 'user_id,provider' }
         )
         .select();
 
@@ -232,7 +231,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       return res.status(200).json({
         success: true,
         message: 'Gmail account connected successfully.',
-        token_expiry: tokenExpiry
+        token_expiry: tokenExpiresAt
       });
     } catch (error) {
       console.error('Google OAuth callback error:', error);
