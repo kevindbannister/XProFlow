@@ -29,6 +29,7 @@ services:
     environment:
       AWS_SECRET_NAME: xproflow-secret
       AWS_REGION: eu-north-1
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY}
     expose:
       - "3001"
     networks:
