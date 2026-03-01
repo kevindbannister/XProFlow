@@ -27,8 +27,25 @@ function isTokenExpired(tokenExpiresAt) {
 router.get('/token/:accountId', async (req, res) => {
   try {
     const supabase = req.app.locals.supabase;
-    const user = await requireUser(req, res, supabase);
-    if (!user) {
+    const authHeader = req.headers.authorization;
+    const internalKey = req.headers['x-internal-key'];
+    let user = null;
+    let isInternalRequest = false;
+
+    if (authHeader) {
+      user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+    } else if (internalKey) {
+      if (internalKey !== process.env.INTERNAL_API_KEY) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      isInternalRequest = true;
+    } else {
+      res.status(401).json({ error: 'Unauthorized' });
       return;
     }
 
@@ -49,7 +66,7 @@ router.get('/token/:accountId', async (req, res) => {
       throw error;
     }
 
-    if (!account || account.user_id !== user.id) {
+    if (!account || (!isInternalRequest && account.user_id !== user.id)) {
       res.status(404).json({ error: 'Connected account not found' });
       return;
     }
@@ -78,15 +95,20 @@ router.get('/token/:accountId', async (req, res) => {
         ? encrypt(credentials.refresh_token)
         : account.refresh_token_encrypted;
 
-      const { error: updateError } = await supabase
+      let updateQuery = supabase
         .from('connected_accounts')
         .update({
           access_token_encrypted: encrypt(accessToken),
           refresh_token_encrypted: updatedRefreshTokenEncrypted,
           token_expires_at: expiresAt
         })
-        .eq('id', account.id)
-        .eq('user_id', user.id);
+        .eq('id', account.id);
+
+      if (!isInternalRequest) {
+        updateQuery = updateQuery.eq('user_id', user.id);
+      }
+
+      const { error: updateError } = await updateQuery;
 
       if (updateError) {
         throw updateError;
