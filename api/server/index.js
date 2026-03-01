@@ -11,7 +11,7 @@ async function startServer() {
 
   const { registerGoogleAuth } = require('./auth/google');
   const { registerGmailRoutes } = require('./routes/gmail');
-  const { registerEmailRoutes } = require('./routes/email');
+  const emailRoutes = require('./routes/email');
   const { registerInboxRoutes } = require('./routes/inbox');
   const { registerSessionRoutes } = require('./routes/session');
   const { registerFeatureFlagRoutes } = require('./routes/featureFlags');
@@ -31,6 +31,8 @@ async function startServer() {
     process.env.SUPABASE_ANON_KEY
   );
   const supabase = supabaseAdmin;
+
+  app.locals.supabase = supabase;
 
   // ============================================
   // ✅ CLEAN PRODUCTION CORS
@@ -76,7 +78,7 @@ async function startServer() {
   registerBillingRoutes(app, supabase);
   registerFirmRoutes(app, supabase);
   registerGmailRoutes(app, supabase);
-  registerEmailRoutes(app, supabase);
+  app.use('/api/email', emailRoutes);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
 
