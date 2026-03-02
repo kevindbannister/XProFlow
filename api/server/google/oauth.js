@@ -16,12 +16,12 @@ function createOAuthClient() {
   return new OAuth2Client(clientId, clientSecret, redirectUri);
 }
 
-function generateAuthUrl({ prompt, includeGrantedScopes } = {}) {
+function generateAuthUrl({ includeGrantedScopes } = {}) {
   const oauthClient = createOAuthClient();
   return oauthClient.generateAuthUrl({
     scope: GOOGLE_SCOPES,
     access_type: 'offline',
-    prompt,
+    prompt: 'consent',
     include_granted_scopes: includeGrantedScopes
   });
 }
