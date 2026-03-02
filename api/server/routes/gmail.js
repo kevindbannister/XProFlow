@@ -177,7 +177,6 @@ async function fetchGmailMessageFull(accessToken, messageId) {
 
 function normalizeGmailMessage(account, message) {
   const headers = message.payload?.headers || [];
-  const internalDate = message.internalDate ? Number(message.internalDate) : null;
 
   return {
     user_id: account.user_id,
@@ -186,7 +185,7 @@ function normalizeGmailMessage(account, message) {
     message_id: message.id,
     thread_id: message.threadId || null,
     snippet: message.snippet || null,
-    internal_date: internalDate,
+    internal_date: new Date(Number(message.internalDate)).toISOString(),
     subject: getHeaderValue(headers, 'Subject'),
     from_email: getHeaderValue(headers, 'From'),
     body_text: extractTextPlainBody(message.payload)
