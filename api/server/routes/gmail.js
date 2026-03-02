@@ -11,6 +11,9 @@ const STATUS_MAP = {
   READ: 'READ'
 };
 
+const GMAIL_BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
+const INTERNAL_KEY_HEADERS = ['internal_api_key', 'x-internal-key', 'internal-api-key'];
+
 
 
 function parseFromHeader(fromHeader) {
@@ -86,7 +89,239 @@ async function upsertAccount(supabase, account) {
   }
 }
 
+function getInternalApiKey(req) {
+  for (const headerName of INTERNAL_KEY_HEADERS) {
+    const value = req.headers[headerName];
+    if (typeof value === 'string' && value) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function chunk(array, size) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function getHeaderValue(headers, name) {
+  return headers.find((header) => header.name?.toLowerCase() === name.toLowerCase())?.value || null;
+}
+
+function decodeBase64Url(value) {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+  return Buffer.from(padded, 'base64').toString('utf8');
+}
+
+function extractTextPlainBody(payload) {
+  if (!payload) {
+    return null;
+  }
+
+  if (payload.mimeType === 'text/plain' && payload.body?.data) {
+    return decodeBase64Url(payload.body.data);
+  }
+
+  if (!Array.isArray(payload.parts)) {
+    return null;
+  }
+
+  for (const part of payload.parts) {
+    const text = extractTextPlainBody(part);
+    if (text) {
+      return text;
+    }
+  }
+
+  return null;
+}
+
+async function fetchGmailMessagesList(accessToken, lastSyncTimestamp) {
+  const params = new URLSearchParams();
+  params.set('q', `after:${lastSyncTimestamp}`);
+  params.set('maxResults', '20');
+
+  const response = await fetch(`${GMAIL_BASE_URL}/users/me/messages?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to list Gmail messages: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.messages || [];
+}
+
+async function fetchGmailMessageFull(accessToken, messageId) {
+  const response = await fetch(
+    `${GMAIL_BASE_URL}/users/me/messages/${messageId}?format=full`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch Gmail message ${messageId}: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+function normalizeGmailMessage(account, message) {
+  const headers = message.payload?.headers || [];
+  const internalDate = message.internalDate ? Number(message.internalDate) : null;
+
+  return {
+    user_id: account.user_id,
+    connected_account_id: account.id,
+    provider: 'google',
+    message_id: message.id,
+    thread_id: message.threadId || null,
+    snippet: message.snippet || null,
+    internal_date: internalDate,
+    subject: getHeaderValue(headers, 'Subject'),
+    from_email: getHeaderValue(headers, 'From'),
+    body_text: extractTextPlainBody(message.payload)
+  };
+}
+
+function resolveExpiryDate(credentials) {
+  if (credentials?.expiry_date) {
+    const parsed = new Date(credentials.expiry_date);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  return new Date(Date.now() + 3600 * 1000).toISOString();
+}
+
+function isTokenExpired(tokenExpiresAt) {
+  const expiry = new Date(tokenExpiresAt).getTime();
+  return Number.isNaN(expiry) || expiry <= Date.now();
+}
+
 function registerGmailRoutes(app, supabase) {
+  app.get('/api/gmail/fetch-new', async (req, res) => {
+    try {
+      const internalApiKey = getInternalApiKey(req);
+      if (!internalApiKey || internalApiKey !== process.env.INTERNAL_API_KEY) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { data: accounts, error: accountsError } = await supabase
+        .from('connected_accounts')
+        .select('id,user_id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at,last_sync_timestamp')
+        .eq('provider', 'google')
+        .not('access_token_encrypted', 'is', null);
+
+      if (accountsError) {
+        throw accountsError;
+      }
+
+      let usersProcessed = 0;
+      let messagesFetched = 0;
+
+      for (const account of accounts || []) {
+        try {
+          usersProcessed += 1;
+
+          let accessToken = decrypt(account.access_token_encrypted);
+          if (isTokenExpired(account.token_expires_at)) {
+            if (!account.refresh_token_encrypted) {
+              console.error(`Gmail fetch-new skipped: missing refresh token for account ${account.id}`);
+              continue;
+            }
+
+            const refreshToken = decrypt(account.refresh_token_encrypted);
+            const { credentials } = await refreshAccessToken(refreshToken);
+            if (!credentials?.access_token) {
+              console.error(`Gmail fetch-new skipped: refresh failed for account ${account.id}`);
+              continue;
+            }
+
+            accessToken = credentials.access_token;
+
+            const { error: updateTokenError } = await supabase
+              .from('connected_accounts')
+              .update({
+                access_token_encrypted: encrypt(accessToken),
+                refresh_token_encrypted: credentials.refresh_token
+                  ? encrypt(credentials.refresh_token)
+                  : account.refresh_token_encrypted,
+                token_expires_at: resolveExpiryDate(credentials)
+              })
+              .eq('id', account.id);
+
+            if (updateTokenError) {
+              throw updateTokenError;
+            }
+          }
+
+          const lastSyncTimestamp = account.last_sync_timestamp
+            ? Math.floor(new Date(account.last_sync_timestamp).getTime() / 1000)
+            : Math.floor((Date.now() - 24 * 3600 * 1000) / 1000);
+
+          const messageRefs = await fetchGmailMessagesList(accessToken, lastSyncTimestamp);
+          if (messageRefs.length === 0) {
+            await supabase
+              .from('connected_accounts')
+              .update({ last_sync_timestamp: new Date().toISOString() })
+              .eq('id', account.id);
+            continue;
+          }
+
+          const fullMessages = [];
+          for (const messageBatch of chunk(messageRefs, 5)) {
+            const batchData = await Promise.all(
+              messageBatch.map((message) => fetchGmailMessageFull(accessToken, message.id))
+            );
+            fullMessages.push(...batchData);
+          }
+
+          const normalizedMessages = fullMessages.map((message) => normalizeGmailMessage(account, message));
+
+          if (normalizedMessages.length > 0) {
+            const { error: insertError } = await supabase
+              .from('gmail_messages')
+              .upsert(normalizedMessages, { onConflict: 'connected_account_id,message_id' });
+
+            if (insertError) {
+              throw insertError;
+            }
+          }
+
+          const { error: syncUpdateError } = await supabase
+            .from('connected_accounts')
+            .update({ last_sync_timestamp: new Date().toISOString() })
+            .eq('id', account.id);
+
+          if (syncUpdateError) {
+            throw syncUpdateError;
+          }
+
+          messagesFetched += normalizedMessages.length;
+        } catch (accountError) {
+          console.error(`Gmail fetch-new error for account ${account.id}:`, accountError);
+        }
+      }
+
+      res.json({ users_processed: usersProcessed, messages_fetched: messagesFetched });
+    } catch (error) {
+      console.error('Gmail fetch-new error:', error);
+      res.status(500).json({ error: 'Failed to fetch new Gmail messages' });
+    }
+  });
+
   app.get('/api/gmail/status', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
