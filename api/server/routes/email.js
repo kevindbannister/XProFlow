@@ -3,6 +3,7 @@ const router = require('express').Router();
 const { requireUser } = require('../auth/supabaseAuth');
 const { decrypt, encrypt } = require('../encryption');
 const { refreshAccessToken } = require('../google/oauth');
+const { requireInternalApiKey } = require('../middleware/requireInternalApiKey');
 
 function resolveExpiryDate(credentials) {
   if (credentials?.expiry_date) {
@@ -38,17 +39,12 @@ router.get('/token/:accountId', async (req, res) => {
         return;
       }
     } else if (internalKey) {
-      const receivedKey = (req.headers['x-internal-api-key'] || '').trim();
-      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
-
-      console.log('Auth check:', {
-        receivedLength: receivedKey.length,
-        expectedLength: expectedKey.length,
-        match: receivedKey === expectedKey
+      let isAuthorizedInternalRequest = false;
+      requireInternalApiKey(req, res, () => {
+        isAuthorizedInternalRequest = true;
       });
 
-      if (!receivedKey || receivedKey !== expectedKey) {
-        res.status(401).json({ error: 'Unauthorized' });
+      if (!isAuthorizedInternalRequest) {
         return;
       }
 

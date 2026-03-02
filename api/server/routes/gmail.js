@@ -5,6 +5,7 @@ const {
   listMessages,
   getMessageMetadata
 } = require('../google/gmail');
+const { requireInternalApiKey } = require('../middleware/requireInternalApiKey');
 
 const STATUS_MAP = {
   NONE: 'NONE',
@@ -12,9 +13,6 @@ const STATUS_MAP = {
 };
 
 const GMAIL_BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
-const INTERNAL_KEY_HEADERS = ['x-internal-api-key', 'internal-api-key', 'internal_api_key', 'x-api-key'];
-
-
 
 function parseFromHeader(fromHeader) {
   if (!fromHeader) {
@@ -87,17 +85,6 @@ async function upsertAccount(supabase, account) {
   if (error) {
     throw error;
   }
-}
-
-function getInternalApiKey(req) {
-  for (const headerName of INTERNAL_KEY_HEADERS) {
-    const value = req.headers[headerName];
-    if (typeof value === 'string' && value.trim()) {
-      return value.trim();
-    }
-  }
-
-  return null;
 }
 
 function chunk(array, size) {
@@ -209,18 +196,9 @@ function isTokenExpired(tokenExpiresAt) {
 }
 
 function registerGmailRoutes(app, supabase) {
-  app.post('/api/gmail/move', async (req, res) => {
+  app.post('/api/gmail/move', requireInternalApiKey, async (req, res) => {
     try {
       const requestId = req.requestId || 'unknown';
-      const receivedKey = getInternalApiKey(req);
-      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
-
-      if (!receivedKey || receivedKey !== expectedKey) {
-        res.locals.errorStack = 'Unauthorized internal API key';
-        res.status(401).json({ error: 'Unauthorized', request_id: requestId });
-        return;
-      }
-
       const { message_id: messageId, connected_account_id: connectedAccountId, label } = req.body || {};
 
       console.log('Gmail move request', {
@@ -335,22 +313,8 @@ function registerGmailRoutes(app, supabase) {
     }
   });
 
-  app.get('/api/gmail/fetch-new', async (req, res) => {
+  app.get('/api/gmail/fetch-new', requireInternalApiKey, async (req, res) => {
     try {
-      const receivedKey = getInternalApiKey(req);
-      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
-
-      console.log('Auth check:', {
-        receivedLength: receivedKey ? receivedKey.length : 0,
-        expectedLength: expectedKey.length,
-        match: receivedKey === expectedKey
-      });
-
-      if (!receivedKey || receivedKey !== expectedKey) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-
       const { data: accounts, error: accountsError } = await supabase
         .from('connected_accounts')
         .select('id,user_id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at,last_sync_timestamp')
