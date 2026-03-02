@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
 import { ChevronDown, Clock3, Coins, Mail, PoundSterling, TrendingUp } from 'lucide-react';
 import Card from '../components/ui/Card';
 import ConnectEmailPanel from '../components/dashboard/ConnectEmailPanel';
-import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 type MetricCard = {
   id: 'emails' | 'time' | 'cost';
@@ -43,38 +42,7 @@ const metrics: MetricCard[] = [
 ];
 
 const Dashboard = () => {
-  const [isStatusLoading, setIsStatusLoading] = useState(true);
-  const [isGmailConnected, setIsGmailConnected] = useState(false);
-  const [statusError, setStatusError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchGmailStatus = async () => {
-      try {
-        const response = await api.get<{ connected: boolean; email?: string }>('/api/gmail/status');
-        if (isMounted) {
-          setIsGmailConnected(response.connected);
-          setStatusError(null);
-        }
-      } catch (_error) {
-        if (isMounted) {
-          setIsGmailConnected(false);
-          setStatusError('Unable to load Gmail connection status right now.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsStatusLoading(false);
-        }
-      }
-    };
-
-    void fetchGmailStatus();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { gmailConnected, isLoading: isAuthLoading } = useAuth();
 
   return (
     <section aria-label="Dashboard main content" className="space-y-8 lg:space-y-10">
@@ -88,13 +56,7 @@ const Dashboard = () => {
         </button>
       </div>
 
-      {statusError ? (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          {statusError}
-        </div>
-      ) : null}
-
-      {isStatusLoading ? (
+      {isAuthLoading ? (
         <div className="grid gap-4 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <Card
@@ -105,7 +67,7 @@ const Dashboard = () => {
             </Card>
           ))}
         </div>
-      ) : isGmailConnected ? (
+      ) : gmailConnected ? (
         <>
           <div className="grid gap-4 lg:grid-cols-3">
             {metrics.map((metric) => {

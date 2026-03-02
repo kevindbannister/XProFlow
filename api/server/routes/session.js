@@ -11,14 +11,22 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const [{ data: gmailData }, { data: orgData }] = await Promise.all([
+      const [{ data: gmailData }, { data: connectedAccountData }, { data: orgData }] = await Promise.all([
         supabase.from('gmail_accounts').select('email').eq('user_id', user.id).maybeSingle(),
+        supabase
+          .from('connected_accounts')
+          .select('email')
+          .eq('user_id', user.id)
+          .eq('provider', 'google')
+          .maybeSingle(),
         supabase
           .from('organisations')
           .select('id, name, subscriptions(status, trial_ends_at, current_period_end, cancel_at_period_end)')
           .eq('owner_user_id', user.id)
           .maybeSingle(),
       ]);
+
+      const connectedGmailEmail = gmailData?.email || connectedAccountData?.email;
 
       const subscription = Array.isArray(orgData?.subscriptions)
         ? orgData?.subscriptions[0]
@@ -28,7 +36,7 @@ function registerSessionRoutes(app, supabase) {
         authenticated: true,
         isMasterUser: isMasterUserEmail(user.email),
         user: { id: user.id, email: user.email },
-        gmail: gmailData ? { connected: true, email: gmailData.email } : { connected: false },
+        gmail: connectedGmailEmail ? { connected: true, email: connectedGmailEmail } : { connected: false },
         organisation: orgData ? { id: orgData.id, name: orgData.name } : undefined,
         subscription: subscription
           ? {
@@ -53,10 +61,13 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const { error } = await supabase.from('gmail_accounts').delete().eq('user_id', user.id);
+      const [{ error: gmailError }, { error: connectedAccountError }] = await Promise.all([
+        supabase.from('gmail_accounts').delete().eq('user_id', user.id),
+        supabase.from('connected_accounts').delete().eq('user_id', user.id).eq('provider', 'google'),
+      ]);
 
-      if (error) {
-        throw error;
+      if (gmailError || connectedAccountError) {
+        throw gmailError || connectedAccountError;
       }
 
       res.status(204).send();
