@@ -1,6 +1,6 @@
 const { encrypt, decrypt } = require('../encryption');
 const { requireUser } = require('../auth/supabaseAuth');
-const { refreshAccessToken } = require('../google/oauth');
+const { createOAuthClient, refreshAccessToken } = require('../google/oauth');
 const {
   listMessages,
   getMessageMetadata
@@ -277,6 +277,14 @@ function registerGmailRoutes(app, supabase) {
         if (updateTokenError) {
           throw updateTokenError;
         }
+      }
+
+      const oauth2Client = createOAuthClient();
+      const tokenInfo = await oauth2Client.getTokenInfo(accessToken);
+      console.log('ACCESS TOKEN SCOPES:', tokenInfo.scopes);
+
+      if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/gmail.modify')) {
+        throw new Error('Access token missing gmail.modify scope');
       }
 
       const gmailResponse = await fetch(
