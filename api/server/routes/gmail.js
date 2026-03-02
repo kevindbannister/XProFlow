@@ -209,6 +209,94 @@ function isTokenExpired(tokenExpiresAt) {
 }
 
 function registerGmailRoutes(app, supabase) {
+  app.post('/api/gmail/move', async (req, res) => {
+    try {
+      const internalApiKey = req.get('INTERNAL_API_KEY');
+      if (!internalApiKey || internalApiKey !== process.env.INTERNAL_API_KEY) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+      }
+
+      const { message_id: messageId, connected_account_id: connectedAccountId, label } = req.body || {};
+      if (!messageId || !connectedAccountId || !label) {
+        res.status(400).json({ error: 'message_id, connected_account_id, and label are required' });
+        return;
+      }
+
+      const { data: account, error: accountError } = await supabase
+        .from('connected_accounts')
+        .select('id,access_token_encrypted,refresh_token_encrypted,token_expires_at')
+        .eq('id', connectedAccountId)
+        .eq('provider', 'google')
+        .maybeSingle();
+
+      if (accountError) {
+        throw accountError;
+      }
+
+      if (!account || !account.access_token_encrypted) {
+        res.status(404).json({ error: 'Connected account not found' });
+        return;
+      }
+
+      let accessToken = decrypt(account.access_token_encrypted);
+      if (isTokenExpired(account.token_expires_at)) {
+        if (!account.refresh_token_encrypted) {
+          res.status(400).json({ error: 'Connected account is missing refresh token' });
+          return;
+        }
+
+        const refreshToken = decrypt(account.refresh_token_encrypted);
+        const { credentials } = await refreshAccessToken(refreshToken);
+        if (!credentials?.access_token) {
+          res.status(500).json({ error: 'Failed to refresh access token' });
+          return;
+        }
+
+        accessToken = credentials.access_token;
+
+        const { error: updateTokenError } = await supabase
+          .from('connected_accounts')
+          .update({
+            access_token_encrypted: encrypt(accessToken),
+            refresh_token_encrypted: credentials.refresh_token
+              ? encrypt(credentials.refresh_token)
+              : account.refresh_token_encrypted,
+            token_expires_at: resolveExpiryDate(credentials)
+          })
+          .eq('id', account.id);
+
+        if (updateTokenError) {
+          throw updateTokenError;
+        }
+      }
+
+      const gmailResponse = await fetch(
+        `${GMAIL_BASE_URL}/users/me/messages/${encodeURIComponent(messageId)}/modify`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ addLabelIds: [label] })
+        }
+      );
+
+      if (!gmailResponse.ok) {
+        const errorText = await gmailResponse.text();
+        console.error('Gmail move error:', gmailResponse.status, errorText);
+        res.status(502).json({ error: 'Failed to move Gmail message' });
+        return;
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Gmail move route error:', error);
+      res.status(500).json({ error: 'Failed to move Gmail message' });
+    }
+  });
+
   app.get('/api/gmail/fetch-new', async (req, res) => {
     try {
       const internalApiKey = getInternalApiKey(req);
