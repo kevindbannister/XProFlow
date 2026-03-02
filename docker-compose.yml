@@ -29,7 +29,11 @@ services:
     environment:
       AWS_SECRET_NAME: xproflow-secret
       AWS_REGION: eu-north-1
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
       INTERNAL_API_KEY: ${INTERNAL_API_KEY}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     expose:
       - "3001"
     networks:
