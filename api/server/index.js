@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
@@ -67,6 +68,51 @@ async function startServer() {
 
   app.use(express.json());
 
+  app.use((req, res, next) => {
+    const requestId = crypto.randomBytes(4).toString('hex');
+    req.requestId = requestId;
+    res.locals.requestId = requestId;
+    const start = Date.now();
+    let responseBody;
+
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      responseBody = body;
+      return originalJson(body);
+    };
+
+    const originalSend = res.send.bind(res);
+    res.send = (body) => {
+      responseBody = body;
+      return originalSend(body);
+    };
+
+    res.on('finish', () => {
+      const durationMs = Date.now() - start;
+      const logPayload = {
+        request_id: requestId,
+        method: req.method,
+        path: req.path,
+        host: req.headers.host || null,
+        status_code: res.statusCode,
+        duration_ms: durationMs
+      };
+
+      if (res.statusCode >= 400) {
+        logPayload.response_body = responseBody;
+        if (res.locals.errorStack) {
+          logPayload.error_stack = res.locals.errorStack;
+        }
+        console.error('API request failed', logPayload);
+        return;
+      }
+
+      console.log('API request', logPayload);
+    });
+
+    next();
+  });
+
   // ============================================
   // ROUTES
   // ============================================
@@ -90,6 +136,14 @@ async function startServer() {
     return res.status(200).json({ status: 'ok' });
   });
 
+  app.get('/api/health', (req, res) => {
+    return res.status(200).json({
+      ok: true,
+      service: 'xproflow-api',
+      time: new Date().toISOString()
+    });
+  });
+
   app.get('/debug/encryption-test', (req, res) => {
     try {
       const original = 'hello';
@@ -107,6 +161,17 @@ async function startServer() {
         error instanceof Error ? error.message : 'Encryption test failed';
       return res.status(500).json({ error: message });
     }
+  });
+
+  app.use((err, req, res, next) => {
+    res.locals.errorStack = err?.stack || String(err);
+    console.error('Unhandled API error', {
+      request_id: req.requestId,
+      method: req.method,
+      path: req.path,
+      stack: res.locals.errorStack
+    });
+    res.status(500).json({ error: 'Internal Server Error', request_id: req.requestId });
   });
 
   // ============================================
