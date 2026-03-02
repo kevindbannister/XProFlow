@@ -28,7 +28,7 @@ router.get('/token/:accountId', async (req, res) => {
   try {
     const supabase = req.app.locals.supabase;
     const authHeader = req.headers.authorization;
-    const internalKey = req.headers['x-internal-key'];
+    const internalKey = req.headers['x-internal-api-key'];
     let user = null;
     let isInternalRequest = false;
 
@@ -38,7 +38,16 @@ router.get('/token/:accountId', async (req, res) => {
         return;
       }
     } else if (internalKey) {
-      if (internalKey !== process.env.INTERNAL_API_KEY) {
+      const receivedKey = (req.headers['x-internal-api-key'] || '').trim();
+      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
+
+      console.log('Auth check:', {
+        receivedLength: receivedKey.length,
+        expectedLength: expectedKey.length,
+        match: receivedKey === expectedKey
+      });
+
+      if (!receivedKey || receivedKey !== expectedKey) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }

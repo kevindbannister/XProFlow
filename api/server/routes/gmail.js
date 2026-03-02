@@ -12,7 +12,7 @@ const STATUS_MAP = {
 };
 
 const GMAIL_BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
-const INTERNAL_KEY_HEADERS = ['internal_api_key', 'x-internal-key', 'internal-api-key'];
+const INTERNAL_KEY_HEADERS = ['x-internal-api-key', 'internal_api_key', 'x-internal-key', 'internal-api-key'];
 
 
 
@@ -211,8 +211,16 @@ function isTokenExpired(tokenExpiresAt) {
 function registerGmailRoutes(app, supabase) {
   app.post('/api/gmail/move', async (req, res) => {
     try {
-      const internalApiKey = req.get('INTERNAL_API_KEY');
-      if (!internalApiKey || internalApiKey !== process.env.INTERNAL_API_KEY) {
+      const receivedKey = (req.headers['x-internal-api-key'] || '').trim();
+      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
+
+      console.log('Auth check:', {
+        receivedLength: receivedKey.length,
+        expectedLength: expectedKey.length,
+        match: receivedKey === expectedKey
+      });
+
+      if (!receivedKey || receivedKey !== expectedKey) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
@@ -299,8 +307,16 @@ function registerGmailRoutes(app, supabase) {
 
   app.get('/api/gmail/fetch-new', async (req, res) => {
     try {
-      const internalApiKey = getInternalApiKey(req);
-      if (!internalApiKey || internalApiKey !== process.env.INTERNAL_API_KEY) {
+      const receivedKey = (req.headers['x-internal-api-key'] || '').trim();
+      const expectedKey = (process.env.INTERNAL_API_KEY || '').trim();
+
+      console.log('Auth check:', {
+        receivedLength: receivedKey.length,
+        expectedLength: expectedKey.length,
+        match: receivedKey === expectedKey
+      });
+
+      if (!receivedKey || receivedKey !== expectedKey) {
         res.status(401).json({ error: 'Unauthorized' });
         return;
       }
