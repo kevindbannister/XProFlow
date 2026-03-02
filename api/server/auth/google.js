@@ -75,7 +75,7 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
       const authUrl = oauthClient.generateAuthUrl({
         scope: GOOGLE_SCOPES,
         access_type: 'offline',
-        include_granted_scopes: true,
+        include_granted_scopes: false,
         prompt: 'consent',
         state
       });
