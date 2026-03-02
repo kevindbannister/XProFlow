@@ -219,7 +219,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           provider: 'google',
           options: {
             redirectTo: `${window.location.origin}/auth/callback`,
-            scopes: 'https://www.googleapis.com/auth/gmail.readonly',
+            scopes: 'https://www.googleapis.com/auth/gmail.modify',
           },
         });
         if (error) throw error;

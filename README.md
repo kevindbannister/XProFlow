@@ -32,5 +32,5 @@
 - The UI reads from `/api/inbox`, which is backed by Supabase data (not Gmail directly).
 
 ### OAuth scopes
-- `https://www.googleapis.com/auth/gmail.readonly` is required.
+- `https://www.googleapis.com/auth/gmail.modify` is required.
 - Add `https://www.googleapis.com/auth/gmail.modify` only if write access is needed.
