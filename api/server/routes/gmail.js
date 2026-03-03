@@ -212,13 +212,13 @@ function registerGmailRoutes(app, supabase) {
   app.post('/api/gmail/move', requireInternalApiAuth, async (req, res) => {
     const {
       connected_account_id: connectedAccountId,
-      message_id: messageId,
+      gmail_message_id: gmailMessageId,
       label
     } = req.body || {};
 
     try {
-      if (!connectedAccountId || !messageId || !label) {
-        res.status(400).json({ error: 'connected_account_id, message_id, and label are required' });
+      if (!connectedAccountId || !gmailMessageId || !label) {
+        res.status(400).json({ error: 'connected_account_id, gmail_message_id, and label are required' });
         return;
       }
 
@@ -271,7 +271,7 @@ function registerGmailRoutes(app, supabase) {
       }
 
       console.log('[DEBUG][MOVE] connected_account_id:', connectedAccountId);
-      console.log('[DEBUG][MOVE] message_id:', messageId);
+      console.log('[DEBUG][MOVE] gmail_message_id:', gmailMessageId);
       console.log('[DEBUG][MOVE] label_name:', label);
 
       const gmail = getGmailClient(accessToken);
@@ -281,7 +281,7 @@ function registerGmailRoutes(app, supabase) {
       try {
         await gmail.users.messages.modify({
           userId: 'me',
-          id: messageId,
+          id: gmailMessageId,
           requestBody: {
             addLabelIds: [labelId],
             removeLabelIds: ['INBOX']
@@ -302,7 +302,7 @@ function registerGmailRoutes(app, supabase) {
           last_seen_at: moveTimestamp
         })
         .eq('connected_account_id', connectedAccountId)
-        .eq('gmail_message_id', messageId);
+        .eq('gmail_message_id', gmailMessageId);
 
       if (inboxUpdateError) {
         throw inboxUpdateError;
@@ -310,7 +310,7 @@ function registerGmailRoutes(app, supabase) {
 
       await logGmailAction(supabase, {
         connected_account_id: connectedAccountId,
-        gmail_message_id: messageId,
+        gmail_message_id: gmailMessageId,
         action_type: 'MOVE_LABEL',
         status: 'success'
       });
@@ -319,10 +319,10 @@ function registerGmailRoutes(app, supabase) {
     } catch (error) {
       console.error('Gmail move route error', error);
 
-      if (connectedAccountId && messageId) {
+      if (connectedAccountId && gmailMessageId) {
         await logGmailAction(supabase, {
           connected_account_id: connectedAccountId,
-          gmail_message_id: messageId,
+          gmail_message_id: gmailMessageId,
           action_type: 'MOVE_LABEL',
           status: 'failed'
         });
