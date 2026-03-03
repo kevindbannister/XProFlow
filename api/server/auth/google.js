@@ -148,6 +148,16 @@ function registerGoogleAuth(app, supabaseAdmin, supabaseAuth) {
 
       const tokenPayload = await tokenResponse.json();
 
+      console.log('[DEBUG][OAUTH] --- GOOGLE TOKEN DEBUG ---');
+      console.log('[DEBUG][OAUTH] Granted scopes:', tokenPayload.scope);
+      console.log(
+        '[DEBUG][OAUTH] Access token first 12 chars:',
+        tokenPayload.access_token?.substring(0, 12)
+      );
+      console.log('[DEBUG][OAUTH] Refresh token present:', !!tokenPayload.refresh_token);
+      console.log('[DEBUG][OAUTH] Expires in (seconds):', tokenPayload.expires_in);
+      console.log('[DEBUG][OAUTH] ---------------------------');
+
       console.log('Google token response payload:', tokenPayload);
 
       if (!tokenResponse.ok) {
