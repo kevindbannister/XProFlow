@@ -6,6 +6,7 @@ const {
   getMessageMetadata,
   getGmailClient
 } = require('../google/gmail');
+const { ensureLabelExists } = require('../google/labels');
 const { requireInternalApiAuth } = require('../middleware/internalApiAuth');
 
 const STATUS_MAP = {
@@ -196,15 +197,26 @@ function isTokenExpired(tokenExpiresAt) {
   return Number.isNaN(expiry) || expiry <= Date.now();
 }
 
+async function logGmailAction(supabase, action) {
+  try {
+    const { error } = await supabase.from('gmail_actions').insert(action);
+    if (error) {
+      console.error('[WARN][MOVE] Failed to write gmail_actions log:', error);
+    }
+  } catch (error) {
+    console.error('[WARN][MOVE] Unexpected gmail_actions logging error:', error);
+  }
+}
+
 function registerGmailRoutes(app, supabase) {
   app.post('/api/gmail/move', requireInternalApiAuth, async (req, res) => {
-    try {
-      const {
-        connected_account_id: connectedAccountId,
-        message_id: messageId,
-        label
-      } = req.body || {};
+    const {
+      connected_account_id: connectedAccountId,
+      message_id: messageId,
+      label
+    } = req.body || {};
 
+    try {
       if (!connectedAccountId || !messageId || !label) {
         res.status(400).json({ error: 'connected_account_id, message_id, and label are required' });
         return;
@@ -258,42 +270,20 @@ function registerGmailRoutes(app, supabase) {
         }
       }
 
-      console.log('[DEBUG][MOVE] --- MOVE DEBUG ---');
-      console.log('[DEBUG][MOVE] Message ID:', messageId);
-      console.log('[DEBUG][MOVE] Connected Account ID:', connectedAccountId);
-      console.log('[DEBUG][MOVE] Target Label:', label);
+      console.log('[DEBUG][MOVE] connected_account_id:', connectedAccountId);
+      console.log('[DEBUG][MOVE] message_id:', messageId);
+      console.log('[DEBUG][MOVE] label_name:', label);
 
       const gmail = getGmailClient(accessToken);
-      console.log('[DEBUG][MOVE] Fetching existing labels...');
-      const { data: labelsData } = await gmail.users.labels.list({ userId: 'me' });
-      let targetLabel = (labelsData.labels || []).find((existingLabel) => existingLabel.name === label);
-
-      if (targetLabel) {
-        console.log('[DEBUG][MOVE] Label already exists:', targetLabel?.id);
-      } else {
-        console.log('[DEBUG][MOVE] Creating new label:', label);
-        try {
-          const created = await gmail.users.labels.create({
-            userId: 'me',
-            requestBody: {
-              name: label,
-              labelListVisibility: 'labelShow',
-              messageListVisibility: 'show'
-            }
-          });
-          targetLabel = created.data;
-        } catch (err) {
-          console.error('[DEBUG][MOVE] LABEL CREATION ERROR:', err?.response?.data || err);
-          throw err;
-        }
-      }
+      const labelId = await ensureLabelExists(gmail, connectedAccountId, label, supabase);
+      console.log('[DEBUG][MOVE] resolved_label_id:', labelId);
 
       try {
         await gmail.users.messages.modify({
           userId: 'me',
           id: messageId,
           requestBody: {
-            addLabelIds: [targetLabel.id],
+            addLabelIds: [labelId],
             removeLabelIds: ['INBOX']
           }
         });
@@ -302,14 +292,45 @@ function registerGmailRoutes(app, supabase) {
         throw err;
       }
 
-      console.log('[DEBUG][MOVE] Message moved successfully.');
-      res.json({ success: true, action: 'move', message_id: messageId });
+      const moveTimestamp = new Date().toISOString();
+      const { error: inboxUpdateError } = await supabase
+        .from('gmail_messages_inbox')
+        .update({
+          processed: true,
+          moved_to_label: label,
+          moved_at: moveTimestamp,
+          last_seen_at: moveTimestamp
+        })
+        .eq('connected_account_id', connectedAccountId)
+        .eq('message_id', messageId);
+
+      if (inboxUpdateError) {
+        throw inboxUpdateError;
+      }
+
+      await logGmailAction(supabase, {
+        connected_account_id: connectedAccountId,
+        message_id: messageId,
+        action_type: 'MOVE_LABEL',
+        status: 'success'
+      });
+
+      res.json({ success: true });
     } catch (error) {
       console.error('Gmail move route error', error);
+
+      if (connectedAccountId && messageId) {
+        await logGmailAction(supabase, {
+          connected_account_id: connectedAccountId,
+          message_id: messageId,
+          action_type: 'MOVE_LABEL',
+          status: 'failed'
+        });
+      }
+
       res.status(500).json({
         success: false,
-        action: 'move',
-        error: error instanceof Error ? error.message : 'Failed to move Gmail message'
+        error: 'Failed to move Gmail message'
       });
     }
   });
