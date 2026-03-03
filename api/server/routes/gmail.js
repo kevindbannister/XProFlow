@@ -1,9 +1,11 @@
 const { encrypt, decrypt } = require('../encryption');
 const { requireUser } = require('../auth/supabaseAuth');
-const { createOAuthClient, refreshAccessToken } = require('../google/oauth');
+const { refreshAccessToken } = require('../google/oauth');
 const {
   listMessages,
-  getMessageMetadata
+  getMessageMetadata,
+  getGmailClient,
+  getOrCreateLabel
 } = require('../google/gmail');
 const { requireInternalApiKey } = require('../middleware/requireInternalApiKey');
 
@@ -198,22 +200,14 @@ function isTokenExpired(tokenExpiresAt) {
 function registerGmailRoutes(app, supabase) {
   app.post('/api/gmail/move', requireInternalApiKey, async (req, res) => {
     try {
-      const requestId = req.requestId || 'unknown';
-      const { message_id: messageId, connected_account_id: connectedAccountId, label } = req.body || {};
-
-      console.log('Gmail move request', {
-        request_id: requestId,
+      const {
         connected_account_id: connectedAccountId,
         message_id: messageId,
         label
-      });
+      } = req.body || {};
 
-      if (!messageId || !connectedAccountId || !label) {
-        res.locals.errorStack = 'Missing required fields: message_id, connected_account_id, label';
-        res.status(400).json({
-          error: 'message_id, connected_account_id, and label are required',
-          request_id: requestId
-        });
+      if (!connectedAccountId || !messageId || !label) {
+        res.status(400).json({ error: 'connected_account_id, message_id, and label are required' });
         return;
       }
 
@@ -229,14 +223,14 @@ function registerGmailRoutes(app, supabase) {
       }
 
       if (!account || !account.access_token_encrypted) {
-        res.status(404).json({ error: 'Connected account not found', request_id: requestId });
+        res.status(404).json({ error: 'Connected account not found' });
         return;
       }
 
       let accessToken = decrypt(account.access_token_encrypted);
       if (isTokenExpired(account.token_expires_at)) {
         if (!account.refresh_token_encrypted) {
-          res.status(400).json({ error: 'Connected account is missing refresh token', request_id: requestId });
+          res.status(400).json({ error: 'Connected account is missing refresh token' });
           return;
         }
 
@@ -265,53 +259,29 @@ function registerGmailRoutes(app, supabase) {
         }
       }
 
-      const oauth2Client = createOAuthClient();
-      const tokenInfo = await oauth2Client.getTokenInfo(accessToken);
-      console.log('ACCESS TOKEN SCOPES:', tokenInfo.scopes);
+      const gmail = getGmailClient(accessToken);
+      const targetLabel = await getOrCreateLabel(gmail, label);
 
-      if (!tokenInfo.scopes.includes('https://www.googleapis.com/auth/gmail.modify')) {
-        throw new Error('Access token missing gmail.modify scope');
-      }
-
-      const gmailResponse = await fetch(
-        `${GMAIL_BASE_URL}/users/me/messages/${encodeURIComponent(messageId)}/modify`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ addLabelIds: [label] })
+      await gmail.users.messages.modify({
+        userId: 'me',
+        id: messageId,
+        requestBody: {
+          addLabelIds: [targetLabel.id],
+          removeLabelIds: ['INBOX']
         }
-      );
-
-      if (!gmailResponse.ok) {
-        const errorText = await gmailResponse.text();
-        const upstreamError = `Gmail move upstream error: ${gmailResponse.status} ${errorText}`;
-        res.locals.errorStack = upstreamError;
-        console.error('Gmail move error', {
-          request_id: requestId,
-          status: gmailResponse.status,
-          response: errorText
-        });
-        res.status(502).json({ error: 'Failed to move Gmail message', request_id: requestId });
-        return;
-      }
-
-      res.json({ success: true, request_id: requestId });
-    } catch (error) {
-      const requestId = req.requestId || 'unknown';
-      const errorMessage = error instanceof Error ? error.message : 'Failed to move Gmail message';
-      res.locals.errorStack = error instanceof Error ? error.stack : String(error);
-      console.error('Gmail move route error', {
-        request_id: requestId,
-        error: errorMessage,
-        stack: res.locals.errorStack,
-        body: req.body
       });
-      res.status(500).json({ error: errorMessage, request_id: requestId });
+
+      res.json({ success: true, action: 'move', message_id: messageId });
+    } catch (error) {
+      console.error('Gmail move route error', error);
+      res.status(500).json({
+        success: false,
+        action: 'move',
+        error: error instanceof Error ? error.message : 'Failed to move Gmail message'
+      });
     }
   });
+
 
   app.get('/api/gmail/fetch-new', requireInternalApiKey, async (req, res) => {
     try {

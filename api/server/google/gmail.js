@@ -75,9 +75,95 @@ async function fetchProfile(accessToken) {
   return response.json();
 }
 
+function getGmailClient(accessToken) {
+  const authHeaders = {
+    Authorization: `Bearer ${accessToken}`,
+    'Content-Type': 'application/json'
+  };
+
+  return {
+    users: {
+      messages: {
+        modify: async ({ userId = 'me', id, requestBody }) => {
+          const response = await fetch(
+            `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/messages/${encodeURIComponent(id)}/modify`,
+            {
+              method: 'POST',
+              headers: authHeaders,
+              body: JSON.stringify(requestBody || {})
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to modify Gmail message: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          return { data };
+        }
+      },
+      labels: {
+        list: async ({ userId = 'me' }) => {
+          const response = await fetch(
+            `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/labels`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to list Gmail labels: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          return { data };
+        },
+        create: async ({ userId = 'me', requestBody }) => {
+          const response = await fetch(
+            `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/labels`,
+            {
+              method: 'POST',
+              headers: authHeaders,
+              body: JSON.stringify(requestBody || {})
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to create Gmail label: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          return { data };
+        }
+      }
+    }
+  };
+}
+
+async function getOrCreateLabel(gmail, labelName) {
+  const { data } = await gmail.users.labels.list({ userId: 'me' });
+  const existing = (data.labels || []).find((label) => label.name === labelName);
+  if (existing) {
+    return existing;
+  }
+
+  const created = await gmail.users.labels.create({
+    userId: 'me',
+    requestBody: {
+      name: labelName,
+      labelListVisibility: 'labelShow',
+      messageListVisibility: 'show'
+    }
+  });
+  return created.data;
+}
+
 module.exports = {
   getFolderQuery,
   listMessages,
   getMessageMetadata,
-  fetchProfile
+  fetchProfile,
+  getGmailClient,
+  getOrCreateLabel
 };
