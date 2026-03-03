@@ -6,7 +6,7 @@ const {
   getMessageMetadata,
   getGmailClient
 } = require('../google/gmail');
-const { requireInternalApiKey } = require('../middleware/requireInternalApiKey');
+const { requireInternalApiAuth } = require('../middleware/internalApiAuth');
 
 const STATUS_MAP = {
   NONE: 'NONE',
@@ -197,7 +197,7 @@ function isTokenExpired(tokenExpiresAt) {
 }
 
 function registerGmailRoutes(app, supabase) {
-  app.post('/api/gmail/move', requireInternalApiKey, async (req, res) => {
+  app.post('/api/gmail/move', requireInternalApiAuth, async (req, res) => {
     try {
       const {
         connected_account_id: connectedAccountId,
@@ -315,7 +315,7 @@ function registerGmailRoutes(app, supabase) {
   });
 
 
-  app.get('/api/gmail/fetch-new', requireInternalApiKey, async (req, res) => {
+  app.get('/api/gmail/fetch-new', requireInternalApiAuth, async (req, res) => {
     try {
       const { data: accounts, error: accountsError } = await supabase
         .from('connected_accounts')
