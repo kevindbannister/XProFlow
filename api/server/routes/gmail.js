@@ -171,7 +171,7 @@ function normalizeGmailMessage(account, message) {
     user_id: account.user_id,
     connected_account_id: account.id,
     provider: 'google',
-    message_id: message.id,
+    gmail_message_id: message.id,
     thread_id: message.threadId || null,
     snippet: message.snippet || null,
     internal_date: new Date(Number(message.internalDate)).toISOString(),
@@ -302,7 +302,7 @@ function registerGmailRoutes(app, supabase) {
           last_seen_at: moveTimestamp
         })
         .eq('connected_account_id', connectedAccountId)
-        .eq('message_id', messageId);
+        .eq('gmail_message_id', messageId);
 
       if (inboxUpdateError) {
         throw inboxUpdateError;
@@ -310,7 +310,7 @@ function registerGmailRoutes(app, supabase) {
 
       await logGmailAction(supabase, {
         connected_account_id: connectedAccountId,
-        message_id: messageId,
+        gmail_message_id: messageId,
         action_type: 'MOVE_LABEL',
         status: 'success'
       });
@@ -322,7 +322,7 @@ function registerGmailRoutes(app, supabase) {
       if (connectedAccountId && messageId) {
         await logGmailAction(supabase, {
           connected_account_id: connectedAccountId,
-          message_id: messageId,
+          gmail_message_id: messageId,
           action_type: 'MOVE_LABEL',
           status: 'failed'
         });
@@ -413,7 +413,7 @@ function registerGmailRoutes(app, supabase) {
           if (normalizedMessages.length > 0) {
             const { error: insertError } = await supabase
               .from('gmail_messages')
-              .upsert(normalizedMessages, { onConflict: 'connected_account_id,message_id' });
+              .upsert(normalizedMessages, { onConflict: 'connected_account_id,gmail_message_id' });
 
             if (insertError) {
               throw insertError;
