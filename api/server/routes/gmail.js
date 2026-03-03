@@ -4,8 +4,7 @@ const { refreshAccessToken } = require('../google/oauth');
 const {
   listMessages,
   getMessageMetadata,
-  getGmailClient,
-  getOrCreateLabel
+  getGmailClient
 } = require('../google/gmail');
 const { requireInternalApiKey } = require('../middleware/requireInternalApiKey');
 
@@ -259,18 +258,51 @@ function registerGmailRoutes(app, supabase) {
         }
       }
 
+      console.log('[DEBUG][MOVE] --- MOVE DEBUG ---');
+      console.log('[DEBUG][MOVE] Message ID:', messageId);
+      console.log('[DEBUG][MOVE] Connected Account ID:', connectedAccountId);
+      console.log('[DEBUG][MOVE] Target Label:', label);
+
       const gmail = getGmailClient(accessToken);
-      const targetLabel = await getOrCreateLabel(gmail, label);
+      console.log('[DEBUG][MOVE] Fetching existing labels...');
+      const { data: labelsData } = await gmail.users.labels.list({ userId: 'me' });
+      let targetLabel = (labelsData.labels || []).find((existingLabel) => existingLabel.name === label);
 
-      await gmail.users.messages.modify({
-        userId: 'me',
-        id: messageId,
-        requestBody: {
-          addLabelIds: [targetLabel.id],
-          removeLabelIds: ['INBOX']
+      if (targetLabel) {
+        console.log('[DEBUG][MOVE] Label already exists:', targetLabel?.id);
+      } else {
+        console.log('[DEBUG][MOVE] Creating new label:', label);
+        try {
+          const created = await gmail.users.labels.create({
+            userId: 'me',
+            requestBody: {
+              name: label,
+              labelListVisibility: 'labelShow',
+              messageListVisibility: 'show'
+            }
+          });
+          targetLabel = created.data;
+        } catch (err) {
+          console.error('[DEBUG][MOVE] LABEL CREATION ERROR:', err?.response?.data || err);
+          throw err;
         }
-      });
+      }
 
+      try {
+        await gmail.users.messages.modify({
+          userId: 'me',
+          id: messageId,
+          requestBody: {
+            addLabelIds: [targetLabel.id],
+            removeLabelIds: ['INBOX']
+          }
+        });
+      } catch (err) {
+        console.error('[DEBUG][MOVE] MESSAGE MODIFY ERROR:', err?.response?.data || err);
+        throw err;
+      }
+
+      console.log('[DEBUG][MOVE] Message moved successfully.');
       res.json({ success: true, action: 'move', message_id: messageId });
     } catch (error) {
       console.error('Gmail move route error', error);
