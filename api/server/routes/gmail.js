@@ -412,7 +412,7 @@ function registerGmailRoutes(app, supabase) {
 
           if (normalizedMessages.length > 0) {
             const { error: insertError } = await supabase
-              .from('gmail_messages')
+              .from('gmail_messages_inbox')
               .upsert(normalizedMessages, { onConflict: 'connected_account_id,gmail_message_id' });
 
             if (insertError) {
@@ -507,12 +507,15 @@ function registerGmailRoutes(app, supabase) {
 
       const normalized = metadata.map((message) => ({
         ...normalizeMessage(message, folder),
-        user_id: user.id
+        user_id: user.id,
+        connected_account_id: account.id,
+        gmail_message_id: message.id,
+        thread_id: message.threadId || null
       }));
 
       if (normalized.length > 0) {
-        const { error } = await supabase.from('inbox_messages').upsert(normalized, {
-          onConflict: 'user_id,provider,external_id'
+        const { error } = await supabase.from('gmail_messages_inbox').upsert(normalized, {
+          onConflict: 'connected_account_id,gmail_message_id'
         });
         if (error) {
           throw error;
