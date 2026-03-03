@@ -20,6 +20,7 @@ async function startServer() {
   const { registerBillingRoutes } = require('./routes/billing');
   const { registerFirmRoutes } = require('./routes/firm');
   const { registerProfessionalContextRoutes } = require('./routes/professionalContext');
+  const { requireInternalApiAuth } = require('./middleware/internalApiAuth');
   const { encrypt, decrypt } = require('./encryption');
 
   const port = Number(process.env.SERVER_PORT || process.env.PORT || 3001);
@@ -71,6 +72,7 @@ async function startServer() {
   app.use((req, res, next) => {
     const requestId = crypto.randomBytes(4).toString('hex');
     req.requestId = requestId;
+    req.request_id = requestId;
     res.locals.requestId = requestId;
     const start = Date.now();
     let responseBody;
@@ -127,6 +129,13 @@ async function startServer() {
   app.use('/api/email', emailRoutes);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
+
+  app.get('/api/internal-auth-check', requireInternalApiAuth, (req, res) => {
+    return res.status(200).json({
+      ok: true,
+      request_id: req.request_id || req.requestId
+    });
+  });
 
   // ============================================
   // HEALTH
