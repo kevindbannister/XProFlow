@@ -166,18 +166,19 @@ async function fetchGmailMessageFull(accessToken, messageId) {
 
 function normalizeGmailMessage(account, message) {
   const headers = message.payload?.headers || [];
+  const internalDate = message.internalDate ? Number(message.internalDate) : null;
 
   return {
-    user_id: account.user_id,
     connected_account_id: account.id,
-    provider: 'google',
     gmail_message_id: message.id,
     thread_id: message.threadId || null,
-    snippet: message.snippet || null,
-    internal_date: new Date(Number(message.internalDate)).toISOString(),
+    provider: 'gmail',
     subject: getHeaderValue(headers, 'Subject'),
     from_email: getHeaderValue(headers, 'From'),
-    body_text: extractTextPlainBody(message.payload)
+    snippet: message.snippet || null,
+    body_text: extractTextPlainBody(message.payload),
+    internal_date: internalDate,
+    label_ids: Array.isArray(message.labelIds) ? message.labelIds : []
   };
 }
 
@@ -340,7 +341,7 @@ function registerGmailRoutes(app, supabase) {
     try {
       const { data: accounts, error: accountsError } = await supabase
         .from('connected_accounts')
-        .select('id,user_id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at,last_sync_timestamp')
+        .select('id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at,last_sync_timestamp')
         .eq('provider', 'google')
         .not('access_token_encrypted', 'is', null);
 
@@ -408,12 +409,12 @@ function registerGmailRoutes(app, supabase) {
             fullMessages.push(...batchData);
           }
 
-          const normalizedMessages = fullMessages.map((message) => normalizeGmailMessage(account, message));
+          const data = fullMessages.map((message) => normalizeGmailMessage(account, message));
 
-          if (normalizedMessages.length > 0) {
+          if (data.length > 0) {
             const { error: insertError } = await supabase
               .from('gmail_messages_inbox')
-              .upsert(normalizedMessages, { onConflict: 'connected_account_id,gmail_message_id' });
+              .upsert(data, { onConflict: 'connected_account_id,gmail_message_id' });
 
             if (insertError) {
               throw insertError;
@@ -429,7 +430,7 @@ function registerGmailRoutes(app, supabase) {
             throw syncUpdateError;
           }
 
-          messagesFetched += normalizedMessages.length;
+          messagesFetched += data.length;
         } catch (accountError) {
           console.error(`Gmail fetch-new error for account ${account.id}:`, accountError);
         }
