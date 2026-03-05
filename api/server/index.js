@@ -12,6 +12,7 @@ async function startServer() {
 
   const { registerGoogleAuth } = require('./auth/google');
   const { registerGmailRoutes } = require('./routes/gmail');
+  const { registerGmailLabelRoutes } = require('./routes/gmail-labels');
   const emailRoutes = require('./routes/email');
   const { registerInboxRoutes } = require('./routes/inbox');
   const { registerSessionRoutes } = require('./routes/session');
@@ -127,6 +128,7 @@ async function startServer() {
   registerBillingRoutes(app, supabase);
   registerFirmRoutes(app, supabase);
   registerGmailRoutes(app, supabase);
+  registerGmailLabelRoutes(app, supabase);
   app.use('/api/email', emailRoutes);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
