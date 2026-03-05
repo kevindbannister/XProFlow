@@ -308,7 +308,9 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
 
       const nextLabelIds = Array.isArray(message.label_ids) ? message.label_ids : [];
       const previousLabelIds = Array.isArray(existing.label_ids) ? existing.label_ids : [];
-      const movedBackToInbox = nextLabelIds.includes('INBOX') && !previousLabelIds.includes('INBOX');
+      const nextLabelSet = new Set(nextLabelIds);
+      const previousLabelSet = new Set(previousLabelIds);
+      const movedBackToInbox = nextLabelSet.has('INBOX') && !previousLabelSet.has('INBOX');
 
       const updatePayload = {
         label_ids: nextLabelIds,
