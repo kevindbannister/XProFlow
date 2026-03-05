@@ -678,7 +678,7 @@ function registerGmailRoutes(app, supabase) {
     try {
       const { data: account, error: accountError } = await supabase
         .from('connected_accounts')
-        .select('id,access_token_encrypted')
+        .select('id,access_token_encrypted,refresh_token_encrypted,token_expires_at')
         .eq('id', connectedAccountId)
         .eq('provider', 'google')
         .maybeSingle();
@@ -692,7 +692,11 @@ function registerGmailRoutes(app, supabase) {
         return;
       }
 
-      const accessToken = decrypt(account.access_token_encrypted);
+      const accessToken = await refreshAccountAccessToken(supabase, account);
+      if (!accessToken) {
+        res.status(500).json({ success: false, error: 'Failed to load Gmail access token' });
+        return;
+      }
       const rawEmail = [
         `To: ${to}`,
         `Subject: ${subject}`,
