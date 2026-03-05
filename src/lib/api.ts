@@ -1,20 +1,10 @@
 import { supabase } from './supabaseClient';
-import { apiBaseUrl, internalApiKey } from '../config/api';
+import { apiBaseUrl } from '../config/api';
 
 type ApiOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
-};
-
-const buildInternalApiHeaders = (): Record<string, string> => {
-  if (!internalApiKey) {
-    return {};
-  }
-
-  return {
-    'x-internal-api-key': internalApiKey
-  };
 };
 
 const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
@@ -34,7 +24,6 @@ const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T
       'Content-Type': 'application/json',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(isMasterSession ? { 'x-master-session': 'true' } : {}),
-      ...buildInternalApiHeaders(),
       ...(options.headers || {})
     },
     body: options.body ? JSON.stringify(options.body) : undefined

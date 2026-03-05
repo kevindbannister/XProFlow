@@ -1,6 +1,7 @@
 const { decrypt, encrypt } = require('../encryption');
 const { refreshAccessToken } = require('../google/oauth');
 const { requireInternalApiAuth } = require('../middleware/internalApiAuth');
+const { requireUser } = require('../auth/supabaseAuth');
 
 const GMAIL_BASE_URL = 'https://gmail.googleapis.com/gmail/v1';
 
@@ -28,13 +29,25 @@ function decryptToken(encryptedToken) {
   return decrypt(encryptedToken);
 }
 
-async function getConnectedAccount(supabase, connectedAccountId) {
-  const { data, error } = await supabase
+async function getConnectedAccount(supabase, userIdOrConnectedAccountId, maybeConnectedAccountId) {
+  const isScopedToUser = Boolean(maybeConnectedAccountId);
+  const userId = isScopedToUser ? userIdOrConnectedAccountId : null;
+  const connectedAccountId = isScopedToUser ? maybeConnectedAccountId : userIdOrConnectedAccountId;
+
+  let query = supabase
     .from('connected_accounts')
     .select('id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at')
-    .eq('id', connectedAccountId)
-    .eq('provider', 'google')
-    .maybeSingle();
+    .eq('provider', 'google');
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  if (connectedAccountId) {
+    query = query.eq('id', connectedAccountId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     throw error;
@@ -117,8 +130,13 @@ function mapLabelRow(connectedAccountId, label) {
 }
 
 function registerGmailLabelRoutes(app, supabase) {
-  app.get('/api/gmail/labels', requireInternalApiAuth, async (req, res) => {
+  app.get('/api/gmail/labels', async (req, res) => {
     try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
       const connectedAccountId = req.query.connected_account_id;
       const includeArchived = String(req.query.include_archived || 'false').toLowerCase() === 'true';
 
@@ -126,10 +144,15 @@ function registerGmailLabelRoutes(app, supabase) {
         return res.status(400).json({ error: 'connected_account_id is required' });
       }
 
+      const account = await getConnectedAccount(supabase, user.id, connectedAccountId);
+      if (!account) {
+        return res.status(404).json({ error: 'Connected account not found' });
+      }
+
       let query = supabase
         .from('gmail_labels')
         .select('*')
-        .eq('connected_account_id', connectedAccountId)
+        .eq('connected_account_id', account.id)
         .order('name', { ascending: true });
 
       if (!includeArchived) {
@@ -148,15 +171,20 @@ function registerGmailLabelRoutes(app, supabase) {
     }
   });
 
-  app.post('/api/gmail/labels/sync', requireInternalApiAuth, async (req, res) => {
+  app.post('/api/gmail/labels/sync', async (req, res) => {
     const { connected_account_id: connectedAccountId } = req.body || {};
 
     try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
       if (!connectedAccountId) {
         return res.status(400).json({ error: 'connected_account_id is required' });
       }
 
-      const account = await getConnectedAccount(supabase, connectedAccountId);
+      const account = await getConnectedAccount(supabase, user.id, connectedAccountId);
       if (!account) {
         return res.status(404).json({ error: 'Connected account not found' });
       }
