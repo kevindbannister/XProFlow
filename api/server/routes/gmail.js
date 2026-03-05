@@ -134,10 +134,10 @@ function extractTextPlainBody(payload) {
   return null;
 }
 
-async function fetchGmailMessagesList(accessToken, lastSyncTimestamp) {
+async function fetchGmailMessagesList(accessToken, lastSyncTimestamp, maxResults = 50) {
   const params = new URLSearchParams();
   params.set('q', `after:${lastSyncTimestamp}`);
-  params.set('maxResults', '20');
+  params.set('maxResults', String(maxResults));
 
   const response = await fetch(`${GMAIL_BASE_URL}/users/me/messages?${params.toString()}`, {
     headers: { Authorization: `Bearer ${accessToken}` }
@@ -339,6 +339,11 @@ function registerGmailRoutes(app, supabase) {
 
   app.get('/api/gmail/fetch-new', requireInternalApiAuth, async (req, res) => {
     try {
+      const maxResults = Math.min(
+        Math.max(parseInt(req.query.max, 10) || 50, 1),
+        200
+      );
+
       const { data: accounts, error: accountsError } = await supabase
         .from('connected_accounts')
         .select('id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at,last_sync_timestamp')
@@ -392,7 +397,7 @@ function registerGmailRoutes(app, supabase) {
             ? Math.floor(new Date(account.last_sync_timestamp).getTime() / 1000)
             : Math.floor((Date.now() - 24 * 3600 * 1000) / 1000);
 
-          const messageRefs = await fetchGmailMessagesList(accessToken, lastSyncTimestamp);
+          const messageRefs = await fetchGmailMessagesList(accessToken, lastSyncTimestamp, maxResults);
           if (messageRefs.length === 0) {
             await supabase
               .from('connected_accounts')
@@ -440,6 +445,108 @@ function registerGmailRoutes(app, supabase) {
     } catch (error) {
       console.error('Gmail fetch-new error:', error);
       res.status(500).json({ error: 'Failed to fetch new Gmail messages' });
+    }
+  });
+
+  app.post('/api/gmail/import-inbox', requireInternalApiAuth, async (req, res) => {
+    try {
+      const { data: accounts, error: accountsError } = await supabase
+        .from('connected_accounts')
+        .select('id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at')
+        .eq('provider', 'google')
+        .not('access_token_encrypted', 'is', null);
+
+      if (accountsError) {
+        throw accountsError;
+      }
+
+      let usersProcessed = 0;
+      let messagesImported = 0;
+
+      for (const account of accounts || []) {
+        try {
+          usersProcessed += 1;
+
+          let accessToken = decrypt(account.access_token_encrypted);
+          if (isTokenExpired(account.token_expires_at)) {
+            if (!account.refresh_token_encrypted) {
+              console.error(`Gmail import-inbox skipped: missing refresh token for account ${account.id}`);
+              continue;
+            }
+
+            const refreshToken = decrypt(account.refresh_token_encrypted);
+            const { credentials } = await refreshAccessToken(refreshToken);
+            if (!credentials?.access_token) {
+              console.error(`Gmail import-inbox skipped: refresh failed for account ${account.id}`);
+              continue;
+            }
+
+            accessToken = credentials.access_token;
+
+            const { error: updateTokenError } = await supabase
+              .from('connected_accounts')
+              .update({
+                access_token_encrypted: encrypt(accessToken),
+                refresh_token_encrypted: credentials.refresh_token
+                  ? encrypt(credentials.refresh_token)
+                  : account.refresh_token_encrypted,
+                token_expires_at: resolveExpiryDate(credentials)
+              })
+              .eq('id', account.id);
+
+            if (updateTokenError) {
+              throw updateTokenError;
+            }
+          }
+
+          const gmail = getGmailClient(accessToken);
+          let pageToken;
+
+          do {
+            const response = await gmail.users.messages.list({
+              userId: 'me',
+              labelIds: ['INBOX'],
+              maxResults: 200,
+              pageToken
+            });
+
+            const messageRefs = response?.data?.messages || [];
+
+            if (messageRefs.length > 0) {
+              const fullMessages = [];
+              for (const messageBatch of chunk(messageRefs, 5)) {
+                const batchData = await Promise.all(
+                  messageBatch.map((message) => fetchGmailMessageFull(accessToken, message.id))
+                );
+                fullMessages.push(...batchData);
+              }
+
+              const data = fullMessages.map((message) => normalizeGmailMessage(account, message));
+
+              if (data.length > 0) {
+                const { error: insertError } = await supabase
+                  .from('gmail_messages_inbox')
+                  .upsert(data, { onConflict: 'connected_account_id,gmail_message_id' });
+
+                if (insertError) {
+                  throw insertError;
+                }
+
+                messagesImported += data.length;
+              }
+            }
+
+            pageToken = response?.data?.nextPageToken || null;
+          } while (pageToken);
+        } catch (accountError) {
+          console.error(`Gmail import-inbox error for account ${account.id}:`, accountError);
+        }
+      }
+
+      res.json({ users_processed: usersProcessed, messages_imported: messagesImported });
+    } catch (error) {
+      console.error('Gmail import-inbox error:', error);
+      res.status(500).json({ error: 'Failed to import Gmail inbox' });
     }
   });
 
