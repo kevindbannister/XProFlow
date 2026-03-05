@@ -1,38 +1,44 @@
 import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { api } from '../lib/api';
-import { useAppContext } from '../context/AppContext';
+import { supabase } from '../lib/supabaseClient';
 
-type GmailLabel = {
-  gmail_label_id: string;
-  name?: string | null;
-  label_name?: string | null;
-  text_color?: string | null;
-  background_color?: string | null;
-  ai_enabled?: boolean | null;
-  ai_description?: string | null;
+type ConnectedAccount = {
+  id: string;
+  email: string | null;
 };
 
-type LabelsResponse = {
-  labels?: GmailLabel[];
+type GmailLabelRow = {
+  gmail_label_id: string;
+  label_name: string;
+  label_type: string | null;
+  is_enabled: boolean;
+  color_background: string | null;
+  color_text: string | null;
 };
 
 const FALLBACK_DOT_COLOR = '#64748B';
 const ERROR_MESSAGE = 'Unable to update label settings.';
 
-const normalizeLabels = (labels: GmailLabel[]) =>
+const logSupabaseError = (context: string, error: { code?: string | null; message?: string | null } | null) => {
+  if (!error) {
+    return;
+  }
+
+  console.error(`${context} (code: ${error.code ?? 'unknown'})`, error);
+};
+
+const normalizeLabels = (labels: GmailLabelRow[]) =>
   labels.map((label) => ({
     ...label,
-    name: label.name || label.label_name || 'Unnamed label',
-    ai_enabled: Boolean(label.ai_enabled),
-    ai_description: label.ai_description || 'No description available.'
+    label_name: label.label_name || 'Unnamed label',
+    is_enabled: Boolean(label.is_enabled)
   }));
 
 const Labels = () => {
-  const { user } = useAppContext();
-  const [labels, setLabels] = useState<GmailLabel[]>([]);
-  const [connectedAccountId, setConnectedAccountId] = useState<string>('');
+  const [labels, setLabels] = useState<GmailLabelRow[]>([]);
+  const [connectedAccounts, setConnectedAccounts] = useState<ConnectedAccount[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,7 +52,80 @@ const Labels = () => {
   }, [toastMessage]);
 
   useEffect(() => {
-    if (!user?.id) {
+    let isMounted = true;
+
+    const loadConnectedAccountsAndLabels = async () => {
+      try {
+        setIsLoading(true);
+        const {
+          data: { user },
+          error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          logSupabaseError('Failed to load current user from Supabase auth', userError);
+          if (isMounted) {
+            setConnectedAccounts([]);
+            setSelectedAccountId('');
+            setLabels([]);
+            setToastMessage(ERROR_MESSAGE);
+          }
+          return;
+        }
+
+        const { data: accounts, error: accountsError } = await supabase
+          .from('connected_accounts')
+          .select('id,email')
+          .eq('provider', 'google')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+
+        if (accountsError) {
+          logSupabaseError('Failed to load connected Google accounts', accountsError);
+          if (isMounted) {
+            setToastMessage(ERROR_MESSAGE);
+          }
+          return;
+        }
+
+        const googleAccounts = (accounts ?? []) as ConnectedAccount[];
+
+        if (!googleAccounts.length) {
+          if (isMounted) {
+            setConnectedAccounts([]);
+            setSelectedAccountId('');
+            setLabels([]);
+          }
+          return;
+        }
+
+        const defaultAccountId = googleAccounts[0].id;
+
+        if (isMounted) {
+          setConnectedAccounts(googleAccounts);
+          setSelectedAccountId((currentSelected) => currentSelected || defaultAccountId);
+        }
+      } catch (error) {
+        console.error('Failed to load label settings prerequisites:', error);
+        if (isMounted) {
+          setToastMessage(ERROR_MESSAGE);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadConnectedAccountsAndLabels();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedAccountId) {
       return;
     }
 
@@ -55,36 +134,24 @@ const Labels = () => {
     const loadLabels = async () => {
       try {
         setIsLoading(true);
-        const meResponse = await api.get<{ gmail?: { connected_account_id?: string } }>('/api/me');
-        const accountId = meResponse.gmail?.connected_account_id;
 
-        if (!accountId) {
+        const { data: storedLabels, error: labelsError } = await supabase
+          .from('gmail_labels')
+          .select('gmail_label_id,label_name,label_type,is_enabled,color_background,color_text')
+          .eq('connected_account_id', selectedAccountId)
+          .neq('label_type', 'system')
+          .order('label_name', { ascending: true });
+
+        if (labelsError) {
+          logSupabaseError('Failed to load Gmail labels from Supabase', labelsError);
           if (isMounted) {
-            setLabels([]);
-            setConnectedAccountId('');
+            setToastMessage(ERROR_MESSAGE);
           }
           return;
         }
 
         if (isMounted) {
-          setConnectedAccountId(accountId);
-        }
-
-        try {
-          await api.post('/api/gmail/labels/sync', { connected_account_id: accountId });
-        } catch (syncError) {
-          console.warn('Failed to sync labels from Gmail, falling back to stored labels:', syncError);
-        }
-
-        const response = await api.get<LabelsResponse>(`/api/gmail/labels?connected_account_id=${encodeURIComponent(accountId)}`);
-        const rawLabels = Array.isArray(response)
-          ? (response as unknown as GmailLabel[])
-          : Array.isArray(response.labels)
-            ? response.labels
-            : [];
-
-        if (isMounted) {
-          setLabels(normalizeLabels(rawLabels));
+          setLabels(normalizeLabels((storedLabels ?? []) as GmailLabelRow[]));
         }
       } catch (error) {
         console.error('Failed to load labels:', error);
@@ -103,30 +170,35 @@ const Labels = () => {
     return () => {
       isMounted = false;
     };
-  }, [user?.id]);
+  }, [selectedAccountId]);
 
   const enabledCount = useMemo(
-    () => labels.filter((label) => Boolean(label.ai_enabled)).length,
+    () => labels.filter((label) => Boolean(label.is_enabled)).length,
     [labels]
   );
 
   const toggleLabel = async (labelId: string, nextEnabled: boolean) => {
     setLabels((currentState) =>
       currentState.map((label) =>
-        label.gmail_label_id === labelId ? { ...label, ai_enabled: nextEnabled } : label
+        label.gmail_label_id === labelId ? { ...label, is_enabled: nextEnabled } : label
       )
     );
 
     try {
-      await api.patch(`/api/gmail/labels/${encodeURIComponent(labelId)}`, {
-        connected_account_id: connectedAccountId,
-        ai_enabled: nextEnabled
-      });
+      const { error } = await supabase
+        .from('gmail_labels')
+        .update({ is_enabled: nextEnabled })
+        .eq('connected_account_id', selectedAccountId)
+        .eq('gmail_label_id', labelId);
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
-      console.error('Failed to update label:', error);
+      logSupabaseError('Failed to update label', error as { code?: string | null; message?: string | null });
       setLabels((currentState) =>
         currentState.map((label) =>
-          label.gmail_label_id === labelId ? { ...label, ai_enabled: !nextEnabled } : label
+          label.gmail_label_id === labelId ? { ...label, is_enabled: !nextEnabled } : label
         )
       );
       setToastMessage(ERROR_MESSAGE);
@@ -135,15 +207,26 @@ const Labels = () => {
 
   const setAllLabels = async (enabled: boolean) => {
     const previousState = labels;
-    setLabels((currentState) => currentState.map((label) => ({ ...label, ai_enabled: enabled })));
+    setLabels((currentState) => currentState.map((label) => ({ ...label, is_enabled: enabled })));
 
     try {
-      await api.patch('/api/gmail/labels/bulk', {
-        connected_account_id: connectedAccountId,
-        ai_enabled: enabled
-      });
+      const labelIds = labels.map((label) => label.gmail_label_id);
+
+      if (!labelIds.length) {
+        return;
+      }
+
+      const { error } = await supabase
+        .from('gmail_labels')
+        .update({ is_enabled: enabled })
+        .eq('connected_account_id', selectedAccountId)
+        .in('gmail_label_id', labelIds);
+
+      if (error) {
+        throw error;
+      }
     } catch (error) {
-      console.error('Failed to bulk update labels:', error);
+      logSupabaseError('Failed to bulk update labels', error as { code?: string | null; message?: string | null });
       setLabels(previousState);
       setToastMessage(ERROR_MESSAGE);
     }
@@ -172,6 +255,22 @@ const Labels = () => {
               {enabledCount} of {labels.length} labels currently active.
             </p>
           </div>
+          {connectedAccounts.length > 1 ? (
+            <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+              Account
+              <select
+                className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                value={selectedAccountId}
+                onChange={(event) => setSelectedAccountId(event.target.value)}
+              >
+                {connectedAccounts.map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.email || account.id}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
           <div className="flex items-center gap-2">
             <Button type="button" size="sm" variant="outline" onClick={() => void setAllLabels(true)} disabled={!labels.length}>
               Select all
@@ -183,11 +282,14 @@ const Labels = () => {
         </div>
 
         {isLoading ? <p className="text-sm text-slate-600 dark:text-slate-300">Loading labels...</p> : null}
+        {!isLoading && !connectedAccounts.length ? (
+          <p className="text-sm text-slate-600 dark:text-slate-300">Connect Gmail first</p>
+        ) : null}
 
         <div className="space-y-3">
           {labels.map((label) => {
-            const enabled = Boolean(label.ai_enabled);
-            const dotColor = label.background_color || FALLBACK_DOT_COLOR;
+            const enabled = Boolean(label.is_enabled);
+            const dotColor = label.color_background || FALLBACK_DOT_COLOR;
 
             return (
               <div
@@ -197,8 +299,8 @@ const Labels = () => {
                 <div className="flex items-center gap-3">
                   <span className="h-3 w-3 rounded-full" style={{ backgroundColor: dotColor }} />
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">{label.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{label.ai_description}</p>
+                    <p className="font-semibold text-slate-900 dark:text-slate-100">{label.label_name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Gmail label</p>
                   </div>
                 </div>
 
@@ -219,7 +321,7 @@ const Labels = () => {
                       checked={enabled}
                       onChange={() => void toggleLabel(label.gmail_label_id, !enabled)}
                       className="peer sr-only"
-                      aria-label={`${enabled ? 'Disable' : 'Enable'} ${label.name} label`}
+                      aria-label={`${enabled ? 'Disable' : 'Enable'} ${label.label_name} label`}
                     />
                     <span className="toggle-off relative h-6 w-11 rounded-full transition peer-checked:bg-blue-600">
                       <span className="toggle-knob absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition peer-checked:translate-x-5" />
