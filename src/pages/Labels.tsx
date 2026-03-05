@@ -70,7 +70,11 @@ const Labels = () => {
           setConnectedAccountId(accountId);
         }
 
-        await api.post('/api/gmail/labels/sync', { connected_account_id: accountId });
+        try {
+          await api.post('/api/gmail/labels/sync', { connected_account_id: accountId });
+        } catch (syncError) {
+          console.warn('Failed to sync labels from Gmail, falling back to stored labels:', syncError);
+        }
 
         const response = await api.get<LabelsResponse>(`/api/gmail/labels?connected_account_id=${encodeURIComponent(accountId)}`);
         const rawLabels = Array.isArray(response)
