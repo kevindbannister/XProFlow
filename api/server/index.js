@@ -20,6 +20,7 @@ async function startServer() {
   const { registerBillingRoutes } = require('./routes/billing');
   const { registerFirmRoutes } = require('./routes/firm');
   const { registerProfessionalContextRoutes } = require('./routes/professionalContext');
+  const searchRoutes = require('./routes/search');
   const { requireInternalApiAuth } = require('./middleware/internalApiAuth');
   const { encrypt, decrypt } = require('./encryption');
 
@@ -129,6 +130,7 @@ async function startServer() {
   app.use('/api/email', emailRoutes);
   registerInboxRoutes(app, supabase);
   registerProfessionalContextRoutes(app, supabase);
+  app.use('/api/search', searchRoutes);
 
   app.get('/api/internal-auth-check', requireInternalApiAuth, (req, res) => {
     return res.status(200).json({
