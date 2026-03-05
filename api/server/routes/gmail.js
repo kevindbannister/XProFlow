@@ -204,6 +204,14 @@ async function logGmailAction(supabase, action) {
   }
 }
 
+function toLabelHistory(value) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((label) => typeof label === 'string' && label.length > 0);
+}
+
 async function refreshAccountAccessToken(supabase, account) {
   if (!account.access_token_encrypted) {
     return null;
@@ -375,11 +383,25 @@ function registerGmailRoutes(app, supabase) {
       }
 
       const moveTimestamp = new Date().toISOString();
+      const { data: existingInboxMessage, error: existingInboxMessageError } = await supabase
+        .from('gmail_messages_inbox')
+        .select('label_history')
+        .eq('connected_account_id', connectedAccountId)
+        .eq('gmail_message_id', gmailMessageId)
+        .maybeSingle();
+
+      if (existingInboxMessageError) {
+        throw existingInboxMessageError;
+      }
+
+      const labelHistory = [...toLabelHistory(existingInboxMessage?.label_history), label];
+
       const { error: inboxUpdateError } = await supabase
         .from('gmail_messages_inbox')
         .update({
           processed: true,
           moved_to_label: label,
+          label_history: labelHistory,
           moved_at: moveTimestamp,
           last_seen_at: moveTimestamp
         })
@@ -397,7 +419,18 @@ function registerGmailRoutes(app, supabase) {
         status: 'success'
       });
 
-      res.json({ success: true });
+      const { data: updatedMessage, error: updatedMessageError } = await supabase
+        .from('gmail_messages_inbox')
+        .select('*')
+        .eq('connected_account_id', connectedAccountId)
+        .eq('gmail_message_id', gmailMessageId)
+        .maybeSingle();
+
+      if (updatedMessageError) {
+        throw updatedMessageError;
+      }
+
+      res.json({ success: true, gmail: updatedMessage });
     } catch (error) {
       console.error('Gmail move route error', error);
 
@@ -762,6 +795,25 @@ function registerGmailRoutes(app, supabase) {
         });
         if (error) {
           throw error;
+        }
+
+        if (folder.toUpperCase() === 'INBOX') {
+          const gmailMessageIds = normalized.map((message) => message.gmail_message_id).filter(Boolean);
+
+          if (gmailMessageIds.length > 0) {
+            const { error: resetMoveStateError } = await supabase
+              .from('gmail_messages_inbox')
+              .update({
+                processed: false,
+                moved_to_label: null
+              })
+              .eq('connected_account_id', account.id)
+              .in('gmail_message_id', gmailMessageIds);
+
+            if (resetMoveStateError) {
+              throw resetMoveStateError;
+            }
+          }
         }
       }
 
