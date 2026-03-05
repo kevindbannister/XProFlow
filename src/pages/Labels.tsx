@@ -1,88 +1,148 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { api } from '../lib/api';
+import { useAppContext } from '../context/AppContext';
 
-type SmartLabel = {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  defaultEnabled: boolean;
+type GmailLabel = {
+  gmail_label_id: string;
+  name?: string | null;
+  label_name?: string | null;
+  text_color?: string | null;
+  background_color?: string | null;
+  ai_enabled?: boolean | null;
+  ai_description?: string | null;
 };
 
-const smartLabels: SmartLabel[] = [
-  {
-    id: 'to-respond',
-    name: 'To Respond',
-    description: 'Highlights threads that still need a reply.',
-    color: '#EF4444',
-    defaultEnabled: true
-  },
-  {
-    id: 'fyi',
-    name: 'FYI',
-    description: 'Useful context and updates that do not require action.',
-    color: '#3B82F6',
-    defaultEnabled: true
-  },
-  {
-    id: 'notification',
-    name: 'Notification',
-    description: 'System notifications and automated status messages.',
-    color: '#F59E0B',
-    defaultEnabled: true
-  },
-  {
-    id: 'marketing',
-    name: 'Marketing',
-    description: 'Promotions, campaigns, and newsletter content.',
-    color: '#8B5CF6',
-    defaultEnabled: false
-  },
-  {
-    id: 'meeting-update',
-    name: 'Meeting Update',
-    description: 'Calendar changes, confirmations, and meeting follow-ons.',
-    color: '#14B8A6',
-    defaultEnabled: true
-  },
-  {
-    id: 'follow-up',
-    name: 'Follow Up',
-    description: 'Conversations where a reminder should be sent soon.',
-    color: '#22C55E',
-    defaultEnabled: true
-  }
-];
+type LabelsResponse = {
+  labels?: GmailLabel[];
+};
 
-const buildInitialState = () =>
-  smartLabels.reduce<Record<string, boolean>>((accumulator, label) => {
-    accumulator[label.id] = label.defaultEnabled;
-    return accumulator;
-  }, {});
+const FALLBACK_DOT_COLOR = '#64748B';
+const ERROR_MESSAGE = 'Unable to update label settings.';
+
+const normalizeLabels = (labels: GmailLabel[]) =>
+  labels.map((label) => ({
+    ...label,
+    name: label.name || label.label_name || 'Unnamed label',
+    ai_enabled: Boolean(label.ai_enabled),
+    ai_description: label.ai_description || 'No description available.'
+  }));
 
 const Labels = () => {
-  const [enabledByLabel, setEnabledByLabel] = useState<Record<string, boolean>>(buildInitialState);
+  const { user } = useAppContext();
+  const [labels, setLabels] = useState<GmailLabel[]>([]);
+  const [connectedAccountId, setConnectedAccountId] = useState<string>('');
+  const [toastMessage, setToastMessage] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!toastMessage) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setToastMessage(''), 3000);
+    return () => window.clearTimeout(timeout);
+  }, [toastMessage]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const loadLabels = async () => {
+      try {
+        setIsLoading(true);
+        const meResponse = await api.get<{ gmail?: { connected_account_id?: string } }>('/api/me');
+        const accountId = meResponse.gmail?.connected_account_id;
+
+        if (!accountId) {
+          if (isMounted) {
+            setLabels([]);
+            setConnectedAccountId('');
+          }
+          return;
+        }
+
+        if (isMounted) {
+          setConnectedAccountId(accountId);
+        }
+
+        await api.post('/api/gmail/labels/sync', { connected_account_id: accountId });
+
+        const response = await api.get<LabelsResponse>(`/api/gmail/labels?connected_account_id=${encodeURIComponent(accountId)}`);
+        const rawLabels = Array.isArray(response)
+          ? (response as unknown as GmailLabel[])
+          : Array.isArray(response.labels)
+            ? response.labels
+            : [];
+
+        if (isMounted) {
+          setLabels(normalizeLabels(rawLabels));
+        }
+      } catch (error) {
+        console.error('Failed to load labels:', error);
+        if (isMounted) {
+          setToastMessage(ERROR_MESSAGE);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void loadLabels();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id]);
 
   const enabledCount = useMemo(
-    () => Object.values(enabledByLabel).filter(Boolean).length,
-    [enabledByLabel]
+    () => labels.filter((label) => Boolean(label.ai_enabled)).length,
+    [labels]
   );
 
-  const toggleLabel = (labelId: string) => {
-    setEnabledByLabel((currentState) => ({
-      ...currentState,
-      [labelId]: !currentState[labelId]
-    }));
+  const toggleLabel = async (labelId: string, nextEnabled: boolean) => {
+    setLabels((currentState) =>
+      currentState.map((label) =>
+        label.gmail_label_id === labelId ? { ...label, ai_enabled: nextEnabled } : label
+      )
+    );
+
+    try {
+      await api.patch(`/api/gmail/labels/${encodeURIComponent(labelId)}`, {
+        connected_account_id: connectedAccountId,
+        ai_enabled: nextEnabled
+      });
+    } catch (error) {
+      console.error('Failed to update label:', error);
+      setLabels((currentState) =>
+        currentState.map((label) =>
+          label.gmail_label_id === labelId ? { ...label, ai_enabled: !nextEnabled } : label
+        )
+      );
+      setToastMessage(ERROR_MESSAGE);
+    }
   };
 
-  const setAllLabels = (enabled: boolean) => {
-    setEnabledByLabel(
-      smartLabels.reduce<Record<string, boolean>>((accumulator, label) => {
-        accumulator[label.id] = enabled;
-        return accumulator;
-      }, {})
-    );
+  const setAllLabels = async (enabled: boolean) => {
+    const previousState = labels;
+    setLabels((currentState) => currentState.map((label) => ({ ...label, ai_enabled: enabled })));
+
+    try {
+      await api.patch('/api/gmail/labels/bulk', {
+        connected_account_id: connectedAccountId,
+        ai_enabled: enabled
+      });
+    } catch (error) {
+      console.error('Failed to bulk update labels:', error);
+      setLabels(previousState);
+      setToastMessage(ERROR_MESSAGE);
+    }
   };
 
   return (
@@ -94,38 +154,47 @@ const Labels = () => {
         </p>
       </div>
 
+      {toastMessage ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
+          {toastMessage}
+        </div>
+      ) : null}
+
       <Card className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart labels</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-              {enabledCount} of {smartLabels.length} labels currently active.
+              {enabledCount} of {labels.length} labels currently active.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button type="button" size="sm" variant="outline" onClick={() => setAllLabels(true)}>
+            <Button type="button" size="sm" variant="outline" onClick={() => void setAllLabels(true)} disabled={!labels.length}>
               Select all
             </Button>
-            <Button type="button" size="sm" variant="outline" onClick={() => setAllLabels(false)}>
+            <Button type="button" size="sm" variant="outline" onClick={() => void setAllLabels(false)} disabled={!labels.length}>
               Deselect all
             </Button>
           </div>
         </div>
 
+        {isLoading ? <p className="text-sm text-slate-600 dark:text-slate-300">Loading labels...</p> : null}
+
         <div className="space-y-3">
-          {smartLabels.map((label) => {
-            const enabled = enabledByLabel[label.id];
+          {labels.map((label) => {
+            const enabled = Boolean(label.ai_enabled);
+            const dotColor = label.background_color || FALLBACK_DOT_COLOR;
 
             return (
               <div
-                key={label.id}
+                key={label.gmail_label_id}
                 className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-950"
               >
                 <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: label.color }} />
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: dotColor }} />
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-slate-100">{label.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{label.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{label.ai_description}</p>
                   </div>
                 </div>
 
@@ -133,8 +202,8 @@ const Labels = () => {
                   <span
                     className="rounded-full px-2 py-1 text-xs font-medium"
                     style={{
-                      color: enabled ? label.color : '#64748B',
-                      backgroundColor: enabled ? `${label.color}20` : '#E2E8F0'
+                      color: enabled ? dotColor : '#64748B',
+                      backgroundColor: enabled ? `${dotColor}20` : '#E2E8F0'
                     }}
                   >
                     {enabled ? 'Enabled' : 'Disabled'}
@@ -144,7 +213,7 @@ const Labels = () => {
                     <input
                       type="checkbox"
                       checked={enabled}
-                      onChange={() => toggleLabel(label.id)}
+                      onChange={() => void toggleLabel(label.gmail_label_id, !enabled)}
                       className="peer sr-only"
                       aria-label={`${enabled ? 'Disable' : 'Enable'} ${label.name} label`}
                     />

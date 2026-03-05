@@ -15,7 +15,7 @@ function registerSessionRoutes(app, supabase) {
         supabase.from('gmail_accounts').select('email').eq('user_id', user.id).maybeSingle(),
         supabase
           .from('connected_accounts')
-          .select('email')
+          .select('id, email')
           .eq('user_id', user.id)
           .eq('provider', 'google')
           .maybeSingle(),
@@ -36,7 +36,13 @@ function registerSessionRoutes(app, supabase) {
         authenticated: true,
         isMasterUser: isMasterUserEmail(user.email),
         user: { id: user.id, email: user.email },
-        gmail: connectedGmailEmail ? { connected: true, email: connectedGmailEmail } : { connected: false },
+        gmail: connectedGmailEmail
+          ? {
+              connected: true,
+              email: connectedGmailEmail,
+              connected_account_id: connectedAccountData?.id
+            }
+          : { connected: false },
         organisation: orgData ? { id: orgData.id, name: orgData.name } : undefined,
         subscription: subscription
           ? {

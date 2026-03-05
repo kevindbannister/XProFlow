@@ -1,10 +1,20 @@
 import { supabase } from './supabaseClient';
-import { apiBaseUrl } from '../config/api';
+import { apiBaseUrl, internalApiKey } from '../config/api';
 
 type ApiOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
+};
+
+const buildInternalApiHeaders = (): Record<string, string> => {
+  if (!internalApiKey) {
+    return {};
+  }
+
+  return {
+    'x-internal-api-key': internalApiKey
+  };
 };
 
 const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
@@ -24,6 +34,7 @@ const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T
       'Content-Type': 'application/json',
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(isMasterSession ? { 'x-master-session': 'true' } : {}),
+      ...buildInternalApiHeaders(),
       ...(options.headers || {})
     },
     body: options.body ? JSON.stringify(options.body) : undefined
@@ -47,9 +58,11 @@ const request = async <T>(endpoint: string, options: ApiOptions = {}): Promise<T
 };
 
 export const api = {
-  get: <T>(endpoint: string) => request<T>(endpoint),
+  get: <T>(endpoint: string, headers?: Record<string, string>) => request<T>(endpoint, { headers }),
   post: <T>(endpoint: string, body?: unknown, headers?: Record<string, string>) =>
     request<T>(endpoint, { method: 'POST', body, headers }),
   put: <T>(endpoint: string, body?: unknown, headers?: Record<string, string>) =>
-    request<T>(endpoint, { method: 'PUT', body, headers })
+    request<T>(endpoint, { method: 'PUT', body, headers }),
+  patch: <T>(endpoint: string, body?: unknown, headers?: Record<string, string>) =>
+    request<T>(endpoint, { method: 'PATCH', body, headers })
 };

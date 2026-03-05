@@ -108,6 +108,7 @@ function mapLabelRow(connectedAccountId, label) {
     connected_account_id: connectedAccountId,
     gmail_label_id: label.id,
     name: label.name || null,
+    label_name: label.name || null,
     label_type: label.type || null,
     text_color: label.color?.textColor || null,
     background_color: label.color?.backgroundColor || null,
@@ -253,7 +254,8 @@ function registerGmailLabelRoutes(app, supabase) {
     const {
       connected_account_id: connectedAccountId,
       text_color: textColor,
-      background_color: backgroundColor
+      background_color: backgroundColor,
+      ai_enabled: aiEnabled
     } = req.body || {};
 
     try {
@@ -267,23 +269,26 @@ function registerGmailLabelRoutes(app, supabase) {
       }
 
       const accessToken = await getAccessToken(supabase, account);
-      await gmailRequest({
-        accessToken,
-        path: `/users/me/labels/${encodeURIComponent(labelId)}`,
-        method: 'PATCH',
-        body: {
-          color: {
-            textColor: textColor || undefined,
-            backgroundColor: backgroundColor || undefined
+      if (typeof textColor !== 'undefined' || typeof backgroundColor !== 'undefined') {
+        await gmailRequest({
+          accessToken,
+          path: `/users/me/labels/${encodeURIComponent(labelId)}`,
+          method: 'PATCH',
+          body: {
+            color: {
+              textColor: textColor || undefined,
+              backgroundColor: backgroundColor || undefined
+            }
           }
-        }
-      });
+        });
+      }
 
       const { data, error } = await supabase
         .from('gmail_labels')
         .update({
-          text_color: textColor || null,
-          background_color: backgroundColor || null,
+          ...(typeof textColor !== 'undefined' ? { text_color: textColor || null } : {}),
+          ...(typeof backgroundColor !== 'undefined' ? { background_color: backgroundColor || null } : {}),
+          ...(typeof aiEnabled === 'boolean' ? { ai_enabled: aiEnabled } : {}),
           updated_at: new Date().toISOString()
         })
         .eq('connected_account_id', connectedAccountId)
@@ -305,6 +310,39 @@ function registerGmailLabelRoutes(app, supabase) {
         message: error?.message
       });
       return res.status(500).json({ error: 'Failed to update Gmail label' });
+    }
+  });
+
+
+  app.patch('/api/gmail/labels/bulk', requireInternalApiAuth, async (req, res) => {
+    const {
+      connected_account_id: connectedAccountId,
+      ai_enabled: aiEnabled
+    } = req.body || {};
+
+    try {
+      if (!connectedAccountId || typeof aiEnabled !== 'boolean') {
+        return res.status(400).json({ error: 'connected_account_id and ai_enabled are required' });
+      }
+
+      const { data, error } = await supabase
+        .from('gmail_labels')
+        .update({
+          ai_enabled: aiEnabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq('connected_account_id', connectedAccountId)
+        .eq('is_archived', false)
+        .select('*');
+
+      if (error) {
+        throw error;
+      }
+
+      return res.json({ labels: data || [] });
+    } catch (error) {
+      console.error('Gmail labels bulk update error:', error);
+      return res.status(500).json({ error: 'Failed to bulk update Gmail labels' });
     }
   });
 
