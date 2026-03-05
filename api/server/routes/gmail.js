@@ -251,6 +251,8 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
   let fetchedCount = 0;
 
   for (const messageBatch of chunk(messageRefs, MESSAGE_FETCH_BATCH_SIZE)) {
+    const messageIds = messageBatch.map((message) => message.id).filter(Boolean);
+
     const results = await Promise.allSettled(
       messageBatch.map((message) =>
         gmail.users.messages.get({
@@ -276,9 +278,48 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
       continue;
     }
 
+    let existingRowsByMessageId = new Map();
+    if (messageIds.length > 0) {
+      const { data: existingRows, error: existingRowsError } = await supabase
+        .from('gmail_messages_inbox')
+        .select('gmail_message_id,label_ids')
+        .eq('connected_account_id', account.id)
+        .in('gmail_message_id', messageIds);
+
+      if (existingRowsError) {
+        throw existingRowsError;
+      }
+
+      existingRowsByMessageId = new Map(
+        (existingRows || []).map((row) => [row.gmail_message_id, row])
+      );
+    }
+
+    const polledAt = new Date().toISOString();
+    const dataWithInboxReintroduction = data.map((message) => {
+      const existingRow = existingRowsByMessageId.get(message.gmail_message_id);
+      const currentLabels = Array.isArray(message.label_ids) ? message.label_ids : [];
+      const previousLabels = Array.isArray(existingRow?.label_ids) ? existingRow.label_ids : [];
+      const nowInInbox = currentLabels.includes('INBOX');
+      const wasInInbox = previousLabels.includes('INBOX');
+      const returnedToInbox = nowInInbox && existingRow && !wasInInbox;
+
+      return {
+        ...message,
+        last_seen_at: polledAt,
+        ...(returnedToInbox
+          ? {
+              processed: false,
+              moved_to_label: null,
+              reintroduced_to_inbox_at: polledAt
+            }
+          : {})
+      };
+    });
+
     const { error: insertError } = await supabase
       .from('gmail_messages_inbox')
-      .upsert(data, { onConflict: 'connected_account_id,gmail_message_id' });
+      .upsert(dataWithInboxReintroduction, { onConflict: 'connected_account_id,gmail_message_id' });
 
     if (insertError) {
       throw insertError;
