@@ -562,11 +562,23 @@ function registerGmailRoutes(app, supabase) {
       }
 
       const accessToken = decrypt(account.access_token_encrypted);
+      const { data: storedMessage, error: storedMessageError } = await supabase
+        .from('gmail_messages_inbox')
+        .select('message_header_id')
+        .eq('connected_account_id', connectedAccountId)
+        .eq('gmail_message_id', gmailMessageId)
+        .maybeSingle();
+
+      if (storedMessageError) {
+        throw storedMessageError;
+      }
+
+      const replyHeaderId = storedMessage?.message_header_id || gmailMessageId;
       const rawEmail = [
         `To: ${to}`,
         `Subject: ${subject}`,
-        `In-Reply-To: <${gmailMessageId}>`,
-        `References: <${gmailMessageId}>`,
+        `In-Reply-To: <${replyHeaderId}>`,
+        `References: <${replyHeaderId}>`,
         '',
         body
       ].join('\r\n');
