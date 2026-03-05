@@ -280,7 +280,7 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
     const gmailMessageIds = data.map((message) => message.gmail_message_id);
     const { data: existingMessages, error: existingError } = await supabase
       .from('gmail_messages_inbox')
-      .select('gmail_message_id,label_ids')
+      .select('gmail_message_id,processed,label_ids')
       .eq('connected_account_id', account.id)
       .in('gmail_message_id', gmailMessageIds);
 
@@ -301,24 +301,24 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
       if (!existing) {
         newMessages.push({
           ...message,
+          processed: false,
           label_history: [],
           last_seen_at: nowIso
         });
         continue;
       }
 
-      const nextLabelIds = Array.isArray(message.label_ids) ? message.label_ids : [];
-      const previousLabelIds = Array.isArray(existing.label_ids) ? existing.label_ids : [];
-      const nextLabelSet = new Set(nextLabelIds);
-      const previousLabelSet = new Set(previousLabelIds);
-      const movedBackToInbox = nextLabelSet.has('INBOX') && !previousLabelSet.has('INBOX');
+      const labelIds = Array.isArray(message.label_ids) ? message.label_ids : [];
+      const hasInbox = labelIds.includes('INBOX');
 
       const updatePayload = {
-        label_ids: nextLabelIds,
+        label_ids: labelIds,
         last_seen_at: nowIso
       };
 
-      if (movedBackToInbox) {
+      // If Gmail shows this message in INBOX again after we already processed/moved it,
+      // reset processing state so downstream AI flows can pick it up as reintroduced mail.
+      if (hasInbox && existing.processed === true) {
         updatePayload.processed = false;
         updatePayload.moved_to_label = null;
         updatePayload.reintroduced_to_inbox_at = nowIso;
