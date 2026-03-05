@@ -162,14 +162,15 @@ function extractTextPlainBody(payload) {
 function normalizeGmailMessage(account, message) {
   const headers = message.payload?.headers || [];
   const internalDate = message.internalDate ? Number(message.internalDate) : null;
+  const fromHeader = getHeaderValue(headers, 'From');
+  const from = parseFromHeader(fromHeader);
 
   return {
     connected_account_id: account.id,
     gmail_message_id: message.id,
     thread_id: message.threadId || null,
-    provider: 'gmail',
     subject: getHeaderValue(headers, 'Subject'),
-    from_email: getHeaderValue(headers, 'From'),
+    from_email: from.email,
     snippet: message.snippet || null,
     body_text: extractTextPlainBody(message.payload),
     internal_date: internalDate,
@@ -276,12 +277,75 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
       continue;
     }
 
-    const { error: insertError } = await supabase
+    const gmailMessageIds = data.map((message) => message.gmail_message_id);
+    const { data: existingMessages, error: existingError } = await supabase
       .from('gmail_messages_inbox')
-      .upsert(data, { onConflict: 'connected_account_id,gmail_message_id' });
+      .select('gmail_message_id,label_ids')
+      .eq('connected_account_id', account.id)
+      .in('gmail_message_id', gmailMessageIds);
 
-    if (insertError) {
-      throw insertError;
+    if (existingError) {
+      throw existingError;
+    }
+
+    const existingByMessageId = new Map(
+      (existingMessages || []).map((message) => [message.gmail_message_id, message])
+    );
+
+    const nowIso = new Date().toISOString();
+    const newMessages = [];
+    const existingUpdates = [];
+
+    for (const message of data) {
+      const existing = existingByMessageId.get(message.gmail_message_id);
+      if (!existing) {
+        newMessages.push({
+          ...message,
+          last_seen_at: nowIso
+        });
+        continue;
+      }
+
+      const nextLabelIds = Array.isArray(message.label_ids) ? message.label_ids : [];
+      const previousLabelIds = Array.isArray(existing.label_ids) ? existing.label_ids : [];
+      const movedBackToInbox = nextLabelIds.includes('INBOX') && !previousLabelIds.includes('INBOX');
+
+      const updatePayload = {
+        label_ids: nextLabelIds,
+        last_seen_at: nowIso
+      };
+
+      if (movedBackToInbox) {
+        updatePayload.processed = false;
+        updatePayload.moved_to_label = null;
+        updatePayload.reintroduced_to_inbox_at = nowIso;
+      }
+
+      existingUpdates.push(
+        supabase
+          .from('gmail_messages_inbox')
+          .update(updatePayload)
+          .eq('connected_account_id', account.id)
+          .eq('gmail_message_id', message.gmail_message_id)
+      );
+    }
+
+    if (newMessages.length > 0) {
+      const { error: insertError } = await supabase
+        .from('gmail_messages_inbox')
+        .insert(newMessages);
+
+      if (insertError) {
+        throw insertError;
+      }
+    }
+
+    if (existingUpdates.length > 0) {
+      const updateResults = await Promise.all(existingUpdates);
+      const failedUpdate = updateResults.find((result) => result.error);
+      if (failedUpdate?.error) {
+        throw failedUpdate.error;
+      }
     }
 
     fetchedCount += data.length;
@@ -360,8 +424,9 @@ function registerGmailRoutes(app, supabase) {
       const labelId = await ensureLabelExists(gmail, connectedAccountId, label, supabase);
       console.log('[DEBUG][MOVE] resolved_label_id:', labelId);
 
+      let modifyResponse;
       try {
-        await gmail.users.messages.modify({
+        modifyResponse = await gmail.users.messages.modify({
           userId: 'me',
           id: gmailMessageId,
           requestBody: {
@@ -375,14 +440,20 @@ function registerGmailRoutes(app, supabase) {
       }
 
       const moveTimestamp = new Date().toISOString();
+      const inboxUpdatePayload = {
+        processed: true,
+        moved_to_label: label,
+        moved_at: moveTimestamp,
+        last_seen_at: moveTimestamp
+      };
+
+      if (Array.isArray(modifyResponse?.data?.labelIds)) {
+        inboxUpdatePayload.label_ids = modifyResponse.data.labelIds;
+      }
+
       const { error: inboxUpdateError } = await supabase
         .from('gmail_messages_inbox')
-        .update({
-          processed: true,
-          moved_to_label: label,
-          moved_at: moveTimestamp,
-          last_seen_at: moveTimestamp
-        })
+        .update(inboxUpdatePayload)
         .eq('connected_account_id', connectedAccountId)
         .eq('gmail_message_id', gmailMessageId);
 
