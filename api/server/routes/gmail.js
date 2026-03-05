@@ -563,7 +563,6 @@ function registerGmailRoutes(app, supabase) {
 
       const accessToken = decrypt(account.access_token_encrypted);
       const rawEmail = [
-        'From: me',
         `To: ${to}`,
         `Subject: ${subject}`,
         `In-Reply-To: <${gmailMessageId}>`,
@@ -573,18 +572,20 @@ function registerGmailRoutes(app, supabase) {
       ].join('\r\n');
 
       const encodedEmail = toBase64Url(rawEmail);
-      const gmailSendPayload = {
-        raw: encodedEmail,
-        threadId
+      const gmailDraftPayload = {
+        message: {
+          threadId,
+          raw: encodedEmail
+        }
       };
 
-      const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(gmailSendPayload)
+        body: JSON.stringify(gmailDraftPayload)
       });
 
       const gmailResponseBody = await gmailResponse.json().catch(() => null);
@@ -595,7 +596,7 @@ function registerGmailRoutes(app, supabase) {
         await logGmailAction(supabase, {
           connected_account_id: connectedAccountId,
           gmail_message_id: gmailMessageId,
-          action_type: 'reply',
+          action_type: 'reply_draft',
           request_payload: requestPayload,
           response_payload: gmailResponseBody,
           status: 'failed',
@@ -603,15 +604,15 @@ function registerGmailRoutes(app, supabase) {
           created_at: new Date().toISOString()
         });
 
-        console.error('Gmail reply send error:', gmailResponseBody || errorMessage);
-        res.status(500).json({ success: false, error: 'Failed to send Gmail reply' });
+        console.error('Gmail reply draft creation error:', gmailResponseBody || errorMessage);
+        res.status(500).json({ success: false, error: 'Failed to create Gmail reply draft' });
         return;
       }
 
       await logGmailAction(supabase, {
         connected_account_id: connectedAccountId,
         gmail_message_id: gmailMessageId,
-        action_type: 'reply',
+        action_type: 'reply_draft',
         request_payload: requestPayload,
         response_payload: gmailResponseBody,
         status: 'success',
@@ -620,7 +621,6 @@ function registerGmailRoutes(app, supabase) {
 
       res.json({
         success: true,
-        gmail_message_id: gmailMessageId,
         thread_id: threadId
       });
     } catch (error) {
@@ -629,17 +629,17 @@ function registerGmailRoutes(app, supabase) {
       await logGmailAction(supabase, {
         connected_account_id: connectedAccountId,
         gmail_message_id: gmailMessageId,
-        action_type: 'reply',
+        action_type: 'reply_draft',
         request_payload: requestPayload,
         response_payload: null,
         status: 'failed',
-        error: error?.message || 'Unknown Gmail reply error',
+        error: error?.message || 'Unknown Gmail reply draft error',
         created_at: new Date().toISOString()
       });
 
       res.status(500).json({
         success: false,
-        error: 'Failed to send Gmail reply'
+        error: 'Failed to create Gmail reply draft'
       });
     }
   });
