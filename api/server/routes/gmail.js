@@ -301,6 +301,7 @@ async function fetchAndUpsertInboxMessages({ gmail, account, messageRefs, supaba
       if (!existing) {
         newMessages.push({
           ...message,
+          label_history: [],
           last_seen_at: nowIso
         });
         continue;
@@ -443,7 +444,7 @@ function registerGmailRoutes(app, supabase) {
 
       const { data: existingInboxMessage, error: existingInboxMessageError } = await supabase
         .from('gmail_messages_inbox')
-        .select('label_history')
+        .select('label_history,moved_to_label')
         .eq('connected_account_id', connectedAccountId)
         .eq('gmail_message_id', gmailMessageId)
         .maybeSingle();
