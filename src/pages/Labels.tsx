@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabaseClient';
+import { api } from '../lib/api';
 
 type ConnectedAccount = {
   id: string;
@@ -41,6 +42,41 @@ const Labels = () => {
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const loadLabels = async (connectedAccountId: string) => {
+    if (!connectedAccountId) {
+      setLabels([]);
+      return;
+    }
+
+    const data = await api.get<{ labels?: GmailLabelRow[] }>(
+      `/api/gmail/labels?connected_account_id=${encodeURIComponent(connectedAccountId)}`
+    );
+
+    setLabels(normalizeLabels((data.labels ?? []) as GmailLabelRow[]));
+  };
+
+  const handleRefreshLabels = async () => {
+    if (!selectedAccountId) {
+      return;
+    }
+
+    try {
+      setIsRefreshing(true);
+
+      await api.post('/api/gmail/labels/sync', {
+        connected_account_id: selectedAccountId
+      });
+
+      await loadLabels(selectedAccountId);
+    } catch (error) {
+      console.error('Label refresh failed', error);
+      setToastMessage(ERROR_MESSAGE);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!toastMessage) {
@@ -131,28 +167,10 @@ const Labels = () => {
 
     let isMounted = true;
 
-    const loadLabels = async () => {
+    const loadLabelsForAccount = async () => {
       try {
         setIsLoading(true);
-
-        const { data: storedLabels, error: labelsError } = await supabase
-          .from('gmail_labels')
-          .select('gmail_label_id,label_name,label_type,is_enabled,color_background,color_text')
-          .eq('connected_account_id', selectedAccountId)
-          .neq('label_type', 'system')
-          .order('label_name', { ascending: true });
-
-        if (labelsError) {
-          logSupabaseError('Failed to load Gmail labels from Supabase', labelsError);
-          if (isMounted) {
-            setToastMessage(ERROR_MESSAGE);
-          }
-          return;
-        }
-
-        if (isMounted) {
-          setLabels(normalizeLabels((storedLabels ?? []) as GmailLabelRow[]));
-        }
+        await loadLabels(selectedAccountId);
       } catch (error) {
         console.error('Failed to load labels:', error);
         if (isMounted) {
@@ -165,7 +183,7 @@ const Labels = () => {
       }
     };
 
-    void loadLabels();
+    void loadLabelsForAccount();
 
     return () => {
       isMounted = false;
@@ -272,6 +290,14 @@ const Labels = () => {
             </label>
           ) : null}
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => void handleRefreshLabels()}
+              disabled={!selectedAccountId || isRefreshing}
+            >
+              {isRefreshing ? 'Refreshing...' : 'Refresh Labels'}
+            </Button>
             <Button type="button" size="sm" variant="outline" onClick={() => void setAllLabels(true)} disabled={!labels.length}>
               Select all
             </Button>
