@@ -644,6 +644,128 @@ function registerGmailRoutes(app, supabase) {
     }
   });
 
+  app.post('/api/gmail/draft', async (req, res) => {
+    const internalApiKey = getInternalApiKey(req);
+    const expectedInternalApiKey = process.env.INTERNAL_API_KEY;
+
+    if (!expectedInternalApiKey || internalApiKey !== expectedInternalApiKey) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const {
+      connected_account_id: connectedAccountId,
+      to,
+      subject,
+      body
+    } = req.body || {};
+
+    if (!connectedAccountId || !to || !subject || !body) {
+      res.status(400).json({
+        success: false,
+        error: 'connected_account_id, to, subject, and body are required'
+      });
+      return;
+    }
+
+    const requestPayload = {
+      connected_account_id: connectedAccountId,
+      to,
+      subject,
+      body
+    };
+
+    try {
+      const { data: account, error: accountError } = await supabase
+        .from('connected_accounts')
+        .select('id,access_token_encrypted')
+        .eq('id', connectedAccountId)
+        .eq('provider', 'google')
+        .maybeSingle();
+
+      if (accountError) {
+        throw accountError;
+      }
+
+      if (!account?.access_token_encrypted) {
+        res.status(404).json({ success: false, error: 'Connected account not found' });
+        return;
+      }
+
+      const accessToken = decrypt(account.access_token_encrypted);
+      const rawEmail = [
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        '',
+        body
+      ].join('\r\n');
+
+      const encodedEmail = toBase64Url(rawEmail);
+      const gmailDraftPayload = {
+        message: {
+          raw: encodedEmail
+        }
+      };
+
+      const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(gmailDraftPayload)
+      });
+
+      const gmailResponseBody = await gmailResponse.json().catch(() => null);
+
+      if (!gmailResponse.ok) {
+        const errorMessage = gmailResponseBody?.error?.message || `Gmail API error (${gmailResponse.status})`;
+
+        await logGmailAction(supabase, {
+          connected_account_id: connectedAccountId,
+          action_type: 'draft_created',
+          request_payload: requestPayload,
+          response_payload: gmailResponseBody,
+          status: 'failed',
+          error: errorMessage,
+          created_at: new Date().toISOString()
+        });
+
+        console.error('Gmail draft creation error:', gmailResponseBody || errorMessage);
+        res.status(500).json({ success: false, error: 'Failed to create Gmail draft' });
+        return;
+      }
+
+      await logGmailAction(supabase, {
+        connected_account_id: connectedAccountId,
+        action_type: 'draft_created',
+        request_payload: requestPayload,
+        response_payload: gmailResponseBody,
+        status: 'success',
+        created_at: new Date().toISOString()
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Gmail draft route error:', error?.response?.data || error);
+
+      await logGmailAction(supabase, {
+        connected_account_id: connectedAccountId,
+        action_type: 'draft_created',
+        request_payload: requestPayload,
+        response_payload: null,
+        status: 'failed',
+        error: error?.message || 'Unknown Gmail draft creation error',
+        created_at: new Date().toISOString()
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to create Gmail draft'
+      });
+    }
+  });
+
 
   app.get('/api/gmail/fetch-new', requireInternalApiAuth, async (req, res) => {
     try {
