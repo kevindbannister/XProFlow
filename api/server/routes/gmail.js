@@ -97,6 +97,31 @@ function chunk(array, size) {
   return chunks;
 }
 
+function getInternalApiKey(req) {
+  const headerPriority = [
+    'x-internal-api-key',
+    'internal-api-key',
+    'internal_api_key'
+  ];
+
+  for (const headerName of headerPriority) {
+    const value = req.headers?.[headerName];
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function toBase64Url(value) {
+  return Buffer.from(value)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
 function getHeaderValue(headers, name) {
   return headers.find((header) => header.name?.toLowerCase() === name.toLowerCase())?.value || null;
 }
@@ -388,6 +413,141 @@ function registerGmailRoutes(app, supabase) {
       res.status(500).json({
         success: false,
         error: 'Failed to move Gmail message'
+      });
+    }
+  });
+
+  app.post('/api/gmail/reply', async (req, res) => {
+    const internalApiKey = getInternalApiKey(req);
+    const expectedInternalApiKey = process.env.INTERNAL_API_KEY;
+
+    if (!expectedInternalApiKey || internalApiKey !== expectedInternalApiKey) {
+      res.status(401).json({ success: false, error: 'Unauthorized' });
+      return;
+    }
+
+    const {
+      connected_account_id: connectedAccountId,
+      gmail_message_id: gmailMessageId,
+      thread_id: threadId,
+      to,
+      subject,
+      body
+    } = req.body || {};
+
+    if (!connectedAccountId || !gmailMessageId || !threadId || !to || !subject || !body) {
+      res.status(400).json({
+        success: false,
+        error: 'connected_account_id, gmail_message_id, thread_id, to, subject, and body are required'
+      });
+      return;
+    }
+
+    const requestPayload = {
+      connected_account_id: connectedAccountId,
+      gmail_message_id: gmailMessageId,
+      thread_id: threadId,
+      to,
+      subject,
+      body
+    };
+
+    try {
+      const { data: account, error: accountError } = await supabase
+        .from('connected_accounts')
+        .select('id,access_token_encrypted,refresh_token_encrypted')
+        .eq('id', connectedAccountId)
+        .eq('provider', 'google')
+        .maybeSingle();
+
+      if (accountError) {
+        throw accountError;
+      }
+
+      if (!account?.access_token_encrypted) {
+        res.status(404).json({ success: false, error: 'Connected account not found' });
+        return;
+      }
+
+      const accessToken = decrypt(account.access_token_encrypted);
+      const rawEmail = [
+        'From: me',
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        `In-Reply-To: <${gmailMessageId}>`,
+        `References: <${gmailMessageId}>`,
+        '',
+        body
+      ].join('\r\n');
+
+      const encodedEmail = toBase64Url(rawEmail);
+      const gmailSendPayload = {
+        raw: encodedEmail,
+        threadId
+      };
+
+      const gmailResponse = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(gmailSendPayload)
+      });
+
+      const gmailResponseBody = await gmailResponse.json().catch(() => null);
+
+      if (!gmailResponse.ok) {
+        const errorMessage = gmailResponseBody?.error?.message || `Gmail API error (${gmailResponse.status})`;
+
+        await logGmailAction(supabase, {
+          connected_account_id: connectedAccountId,
+          gmail_message_id: gmailMessageId,
+          action_type: 'reply',
+          request_payload: requestPayload,
+          response_payload: gmailResponseBody,
+          status: 'failed',
+          error: errorMessage,
+          created_at: new Date().toISOString()
+        });
+
+        console.error('Gmail reply send error:', gmailResponseBody || errorMessage);
+        res.status(500).json({ success: false, error: 'Failed to send Gmail reply' });
+        return;
+      }
+
+      await logGmailAction(supabase, {
+        connected_account_id: connectedAccountId,
+        gmail_message_id: gmailMessageId,
+        action_type: 'reply',
+        request_payload: requestPayload,
+        response_payload: gmailResponseBody,
+        status: 'success',
+        created_at: new Date().toISOString()
+      });
+
+      res.json({
+        success: true,
+        gmail_message_id: gmailMessageId,
+        thread_id: threadId
+      });
+    } catch (error) {
+      console.error('Gmail reply route error:', error?.response?.data || error);
+
+      await logGmailAction(supabase, {
+        connected_account_id: connectedAccountId,
+        gmail_message_id: gmailMessageId,
+        action_type: 'reply',
+        request_payload: requestPayload,
+        response_payload: null,
+        status: 'failed',
+        error: error?.message || 'Unknown Gmail reply error',
+        created_at: new Date().toISOString()
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send Gmail reply'
       });
     }
   });
