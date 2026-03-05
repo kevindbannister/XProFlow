@@ -441,10 +441,26 @@ function registerGmailRoutes(app, supabase) {
         throw err;
       }
 
+      const { data: existingInboxMessage, error: existingInboxMessageError } = await supabase
+        .from('gmail_messages_inbox')
+        .select('label_history')
+        .eq('connected_account_id', connectedAccountId)
+        .eq('gmail_message_id', gmailMessageId)
+        .maybeSingle();
+
+      if (existingInboxMessageError) {
+        throw existingInboxMessageError;
+      }
+
+      const existingLabelHistory = Array.isArray(existingInboxMessage?.label_history)
+        ? existingInboxMessage.label_history
+        : [];
+
       const moveTimestamp = new Date().toISOString();
       const inboxUpdatePayload = {
         processed: true,
         moved_to_label: label,
+        label_history: [...existingLabelHistory, label],
         moved_at: moveTimestamp,
         last_seen_at: moveTimestamp
       };
@@ -453,11 +469,13 @@ function registerGmailRoutes(app, supabase) {
         inboxUpdatePayload.label_ids = modifyResponse.data.labelIds;
       }
 
-      const { error: inboxUpdateError } = await supabase
+      const { data: updatedInboxMessage, error: inboxUpdateError } = await supabase
         .from('gmail_messages_inbox')
         .update(inboxUpdatePayload)
         .eq('connected_account_id', connectedAccountId)
-        .eq('gmail_message_id', gmailMessageId);
+        .eq('gmail_message_id', gmailMessageId)
+        .select('*')
+        .maybeSingle();
 
       if (inboxUpdateError) {
         throw inboxUpdateError;
@@ -470,7 +488,7 @@ function registerGmailRoutes(app, supabase) {
         status: 'success'
       });
 
-      res.json({ success: true });
+      res.json({ success: true, gmail_message: updatedInboxMessage || null });
     } catch (error) {
       console.error('Gmail move route error', error);
 
