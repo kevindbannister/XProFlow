@@ -117,13 +117,20 @@ async function gmailRequest({ accessToken, path, method = 'GET', body }) {
 }
 
 function mapLabelRow(connectedAccountId, label) {
+  const labelListVisibility = label.labelListVisibility || null;
+  const messageListVisibility = label.messageListVisibility || null;
+  const isVisibleInLabelList =
+    labelListVisibility === 'labelShow' || labelListVisibility === 'labelShowIfUnread';
+  const isVisibleInMessageList = messageListVisibility === 'show';
+
   return {
     connected_account_id: connectedAccountId,
     gmail_label_id: label.id,
-    name: label.name || null,
     label_name: label.name || null,
     label_type: label.type || null,
-    text_color: label.color?.textColor || null,
+    is_enabled: isVisibleInLabelList || isVisibleInMessageList,
+    color_background: label.color?.backgroundColor || null,
+    color_text: label.color?.textColor || null,
     updated_at: new Date().toISOString()
   };
 }
