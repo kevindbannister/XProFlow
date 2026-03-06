@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { getUserFromRequest } = require('../auth/supabaseAuth');
 
 const INTERNAL_AUTH_DEBUG_PREFIX = '[DEBUG][INTERNAL_AUTH]';
 
@@ -57,7 +58,45 @@ function debugAuthFailure(req, details) {
 function requireInternalApiAuth(req, res, next) {
   const requestId = ensureRequestId(req);
   const envKey = process.env.INTERNAL_API_KEY;
+  const authHeader = req.headers.authorization;
   const { providedKey, usedHeader } = getProvidedKey(req);
+
+  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    return getUserFromRequest(req, req.app?.locals?.supabase)
+      .then((user) => {
+        if (!user) {
+          debugAuthFailure(req, {
+            requestId,
+            envKey,
+            providedKey,
+            usedHeader,
+            reason: 'invalid_bearer_token'
+          });
+
+          return res.status(401).json({
+            error: 'Unauthorized',
+            request_id: requestId
+          });
+        }
+
+        req.user = user;
+        return next();
+      })
+      .catch(() => {
+        debugAuthFailure(req, {
+          requestId,
+          envKey,
+          providedKey,
+          usedHeader,
+          reason: 'bearer_validation_exception'
+        });
+
+        return res.status(401).json({
+          error: 'Unauthorized',
+          request_id: requestId
+        });
+      });
+  }
 
   if (!envKey) {
     debugAuthFailure(req, {
