@@ -79,12 +79,23 @@ export default function InboxPage() {
     };
   }, []);
 
-  const fetchInbox = useCallback(async () => {
-    setLoading(true);
+  const fetchInbox = useCallback(async (options?: { isSync?: boolean }) => {
+    const isSync = options?.isSync ?? false;
+
+    if (isSync) {
+      setSyncing(true);
+    } else {
+      setLoading(true);
+    }
+
     setErrorMessage(null);
 
     if (!supabase || !apiBaseUrl) {
-      setLoading(false);
+      if (isSync) {
+        setSyncing(false);
+      } else {
+        setLoading(false);
+      }
       return;
     }
 
@@ -97,13 +108,21 @@ export default function InboxPage() {
       console.error("[INBOX] Failed to get session", sessionError);
       setEmails([]);
       setErrorMessage(sessionError.message || "Unable to get authenticated session.");
-      setLoading(false);
+      if (isSync) {
+        setSyncing(false);
+      } else {
+        setLoading(false);
+      }
       return;
     }
 
     if (!session?.access_token) {
       router.replace("/login");
-      setLoading(false);
+      if (isSync) {
+        setSyncing(false);
+      } else {
+        setLoading(false);
+      }
       return;
     }
 
@@ -120,7 +139,11 @@ export default function InboxPage() {
       if (response.status === 401) {
         setEmails([]);
         router.replace("/login");
-        setLoading(false);
+        if (isSync) {
+          setSyncing(false);
+        } else {
+          setLoading(false);
+        }
         return;
       }
 
@@ -138,7 +161,11 @@ export default function InboxPage() {
       setErrorMessage(message);
     }
 
-    setLoading(false);
+    if (isSync) {
+      setSyncing(false);
+    } else {
+      setLoading(false);
+    }
   }, [mapGmailMessage, router]);
 
   useEffect(() => {
@@ -166,17 +193,12 @@ export default function InboxPage() {
   const handleSync = useCallback(async () => {
     if (missingEnv) return;
 
-    setSyncing(true);
-    setErrorMessage(null);
-
     try {
-      await fetchInbox();
+      await fetchInbox({ isSync: true });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to load Gmail messages.";
       console.error("[INBOX] manual refresh failed", error);
       setErrorMessage(message);
-    } finally {
-      setSyncing(false);
     }
   }, [fetchInbox, missingEnv]);
 
