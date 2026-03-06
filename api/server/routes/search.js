@@ -1,30 +1,8 @@
 const router = require('express').Router();
+const { requireInternalApiAuth } = require('../middleware/internalApiAuth');
 
-function getInternalApiKey(req) {
-  const headerPriority = [
-    'x-internal-api-key',
-    'internal-api-key',
-    'internal_api_key'
-  ];
-
-  for (const headerName of headerPriority) {
-    const value = req.headers?.[headerName];
-    if (typeof value === 'string' && value.length > 0) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
-router.get('/', async (req, res) => {
+router.get('/', requireInternalApiAuth, async (req, res) => {
   try {
-    const internalApiKey = getInternalApiKey(req);
-
-    if (!internalApiKey || internalApiKey !== process.env.INTERNAL_API_KEY) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     const q = typeof req.query.q === 'string' ? req.query.q.trim() : '';
     const connectedAccountId =
       typeof req.query.connected_account_id === 'string'
@@ -39,7 +17,26 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'connected_account_id is required' });
     }
 
+    const requestingUserId = req.user?.id || null;
+
     const supabase = req.app.locals.supabase;
+
+    if (requestingUserId) {
+      const { data: account, error: accountError } = await supabase
+        .from('connected_accounts')
+        .select('id')
+        .eq('id', connectedAccountId)
+        .eq('user_id', requestingUserId)
+        .maybeSingle();
+
+      if (accountError) {
+        throw accountError;
+      }
+
+      if (!account) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+    }
     const escapedQuery = q.replace(/[%_]/g, (match) => `\\${match}`);
     const searchPattern = `%${escapedQuery}%`;
 
