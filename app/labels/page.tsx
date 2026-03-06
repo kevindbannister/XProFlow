@@ -255,6 +255,14 @@ export default function LabelsPage() {
     [labels]
   );
 
+  const labelsByVisibility = useMemo(
+    () => ({
+      shown: sortedLabels.filter((label) => !label.hidden),
+      hiding: sortedLabels.filter((label) => label.hidden),
+    }),
+    [sortedLabels]
+  );
+
   if (missingEnv) {
     return (
       <main className="mx-auto w-full max-w-7xl p-6">
@@ -299,72 +307,131 @@ export default function LabelsPage() {
       {loading ? (
         <p className="text-sm text-slate-600">Loading labels...</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Label Name</th>
-                <th className="px-4 py-3 font-semibold">Type</th>
-                <th className="px-4 py-3 font-semibold">Enabled</th>
-                <th className="px-4 py-3 font-semibold">Hidden</th>
-                <th className="px-4 py-3 font-semibold">Priority</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {sortedLabels.length ? (
-                sortedLabels.map((label) => {
-                  const isUpdatingEnabled = Boolean(updatingKeys[`${label.id}:enabled`]);
-                  const isUpdatingHidden = Boolean(updatingKeys[`${label.id}:hidden`]);
-
-                  return (
-                    <tr key={label.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{label.label_name}</td>
-                      <td className="px-4 py-3">{label.label_type ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <label className="inline-flex cursor-pointer items-center">
-                          <input
-                            type="checkbox"
-                            className="peer sr-only"
-                            checked={Boolean(label.enabled)}
-                            disabled={isUpdatingEnabled}
-                            onChange={(event) =>
-                              void updateLabel(label.id, "enabled", event.target.checked)
-                            }
-                          />
-                          <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
-                            <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5" />
-                          </span>
-                        </label>
-                      </td>
-                      <td className="px-4 py-3">
-                        <label className="inline-flex cursor-pointer items-center">
-                          <input
-                            type="checkbox"
-                            className="peer sr-only"
-                            checked={Boolean(label.hidden)}
-                            disabled={isUpdatingHidden}
-                            onChange={(event) =>
-                              void updateLabel(label.id, "hidden", event.target.checked)
-                            }
-                          />
-                          <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
-                            <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5" />
-                          </span>
-                        </label>
-                      </td>
-                      <td className="px-4 py-3">{label.priority ?? "—"}</td>
-                    </tr>
-                  );
-                })
-              ) : (
+        <div className="space-y-8">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+            <table className="min-w-full divide-y divide-slate-200 text-left text-sm text-slate-700">
+              <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
                 <tr>
-                  <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
-                    No labels found. Click Sync to import labels from Gmail.
-                  </td>
+                  <th className="px-4 py-3 font-semibold">Label Name</th>
+                  <th className="px-4 py-3 font-semibold">Type</th>
+                  <th className="px-4 py-3 font-semibold">Enabled</th>
+                  <th className="px-4 py-3 font-semibold">Hidden</th>
+                  <th className="px-4 py-3 font-semibold">Priority</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sortedLabels.length ? (
+                  sortedLabels.map((label) => {
+                    const isUpdatingEnabled = Boolean(updatingKeys[`${label.id}:enabled`]);
+                    const isUpdatingHidden = Boolean(updatingKeys[`${label.id}:hidden`]);
+
+                    return (
+                      <tr key={label.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-900">{label.label_name}</td>
+                        <td className="px-4 py-3">{label.label_type ?? "—"}</td>
+                        <td className="px-4 py-3">
+                          <label className="inline-flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              className="peer sr-only"
+                              checked={Boolean(label.enabled)}
+                              disabled={isUpdatingEnabled}
+                              onChange={(event) =>
+                                void updateLabel(label.id, "enabled", event.target.checked)
+                              }
+                            />
+                            <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
+                              <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5" />
+                            </span>
+                          </label>
+                        </td>
+                        <td className="px-4 py-3">
+                          <label className="inline-flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              className="peer sr-only"
+                              checked={Boolean(label.hidden)}
+                              disabled={isUpdatingHidden}
+                              onChange={(event) =>
+                                void updateLabel(label.id, "hidden", event.target.checked)
+                              }
+                            />
+                            <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
+                              <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition peer-checked:translate-x-5" />
+                            </span>
+                          </label>
+                        </td>
+                        <td className="px-4 py-3">{label.priority ?? "—"}</td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-slate-500">
+                      No labels found. Click Sync to import labels from Gmail.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+            <h2 className="text-base font-semibold text-slate-900">Supabase labels table snapshot</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Direct view of labels stored in Supabase with visibility status (shown vs hiding).
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              Shown: {labelsByVisibility.shown.length} · Hiding: {labelsByVisibility.hiding.length}
+            </p>
+
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200 text-left text-xs text-slate-700">
+                <thead className="bg-slate-50 uppercase tracking-wide text-slate-600">
+                  <tr>
+                    <th className="px-3 py-2 font-semibold">Label ID</th>
+                    <th className="px-3 py-2 font-semibold">Label Name</th>
+                    <th className="px-3 py-2 font-semibold">Type</th>
+                    <th className="px-3 py-2 font-semibold">Enabled</th>
+                    <th className="px-3 py-2 font-semibold">Hidden</th>
+                    <th className="px-3 py-2 font-semibold">Visibility</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sortedLabels.length ? (
+                    sortedLabels.map((label) => (
+                      <tr key={`${label.id}-snapshot`}>
+                        <td className="whitespace-nowrap px-3 py-2 font-mono text-[11px] text-slate-600">
+                          {label.id}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-slate-900">{label.label_name}</td>
+                        <td className="px-3 py-2">{label.label_type ?? "—"}</td>
+                        <td className="px-3 py-2">{label.enabled ? "Yes" : "No"}</td>
+                        <td className="px-3 py-2">{label.hidden ? "Yes" : "No"}</td>
+                        <td className="px-3 py-2">
+                          {label.hidden ? (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                              Hiding
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                              Shown
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-4 text-center text-slate-500">
+                        No rows in Supabase label table yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
       )}
     </main>
