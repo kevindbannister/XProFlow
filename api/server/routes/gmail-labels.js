@@ -124,7 +124,6 @@ function mapLabelRow(connectedAccountId, label) {
     label_name: label.name || null,
     label_type: label.type || null,
     text_color: label.color?.textColor || null,
-    background_color: label.color?.backgroundColor || null,
     updated_at: new Date().toISOString()
   };
 }
@@ -138,8 +137,6 @@ function registerGmailLabelRoutes(app, supabase) {
       }
 
       const connectedAccountId = req.query.connected_account_id;
-      const includeArchived = String(req.query.include_archived || 'false').toLowerCase() === 'true';
-
       if (!connectedAccountId) {
         return res.status(400).json({ error: 'connected_account_id is required' });
       }
@@ -153,11 +150,7 @@ function registerGmailLabelRoutes(app, supabase) {
         .from('gmail_labels')
         .select('*')
         .eq('connected_account_id', account.id)
-        .order('name', { ascending: true });
-
-      if (!includeArchived) {
-        query = query.eq('is_archived', false);
-      }
+        .order('label_name', { ascending: true });
 
       const { data, error } = await query;
       if (error) {
@@ -224,8 +217,7 @@ function registerGmailLabelRoutes(app, supabase) {
     const {
       connected_account_id: connectedAccountId,
       name,
-      text_color: textColor,
-      background_color: backgroundColor
+      text_color: textColor
     } = req.body || {};
 
     try {
@@ -248,8 +240,7 @@ function registerGmailLabelRoutes(app, supabase) {
           labelListVisibility: 'labelShow',
           messageListVisibility: 'show',
           color: {
-            textColor: textColor || undefined,
-            backgroundColor: backgroundColor || undefined
+            textColor: textColor || undefined
           }
         }
       });
@@ -282,7 +273,6 @@ function registerGmailLabelRoutes(app, supabase) {
     const {
       connected_account_id: connectedAccountId,
       text_color: textColor,
-      background_color: backgroundColor,
       ai_enabled: aiEnabled
     } = req.body || {};
 
@@ -297,15 +287,14 @@ function registerGmailLabelRoutes(app, supabase) {
       }
 
       const accessToken = await getAccessToken(supabase, account);
-      if (typeof textColor !== 'undefined' || typeof backgroundColor !== 'undefined') {
+      if (typeof textColor !== 'undefined') {
         await gmailRequest({
           accessToken,
           path: `/users/me/labels/${encodeURIComponent(labelId)}`,
           method: 'PATCH',
           body: {
             color: {
-              textColor: textColor || undefined,
-              backgroundColor: backgroundColor || undefined
+              textColor: textColor || undefined
             }
           }
         });
@@ -315,7 +304,6 @@ function registerGmailLabelRoutes(app, supabase) {
         .from('gmail_labels')
         .update({
           ...(typeof textColor !== 'undefined' ? { text_color: textColor || null } : {}),
-          ...(typeof backgroundColor !== 'undefined' ? { background_color: backgroundColor || null } : {}),
           ...(typeof aiEnabled === 'boolean' ? { ai_enabled: aiEnabled } : {}),
           updated_at: new Date().toISOString()
         })
@@ -360,7 +348,6 @@ function registerGmailLabelRoutes(app, supabase) {
           updated_at: new Date().toISOString()
         })
         .eq('connected_account_id', connectedAccountId)
-        .eq('is_archived', false)
         .select('*');
 
       if (error) {
@@ -390,7 +377,6 @@ function registerGmailLabelRoutes(app, supabase) {
       const { data, error } = await supabase
         .from('gmail_labels')
         .update({
-          is_archived: true,
           updated_at: new Date().toISOString()
         })
         .eq('connected_account_id', connectedAccountId)

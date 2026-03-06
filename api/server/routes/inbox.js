@@ -23,13 +23,27 @@ function registerInboxRoutes(app, supabase) {
         return;
       }
 
-      const folder = String(req.query.folder || 'INBOX');
-      const { data, error } = await supabase
-        .from('inbox_messages')
-        .select('*')
+      const { data: connectedAccounts, error: accountsError } = await supabase
+        .from('connected_accounts')
+        .select('id')
         .eq('user_id', user.id)
-        .eq('folder', folder)
-        .order('received_at', { ascending: false });
+        .eq('provider', 'google');
+
+      if (accountsError) {
+        throw accountsError;
+      }
+
+      if (!Array.isArray(connectedAccounts) || connectedAccounts.length === 0) {
+        return res.json({ today: [], thisMonth: [], older: [] });
+      }
+
+      const connectedAccountIds = connectedAccounts.map((account) => account.id);
+
+      const { data, error } = await supabase
+        .from('gmail_messages_inbox')
+        .select('*')
+        .order('internal_date', { ascending: false })
+        .in('connected_account_id', connectedAccountIds);
 
       if (error) {
         throw error;
@@ -43,7 +57,7 @@ function registerInboxRoutes(app, supabase) {
       };
 
       (data || []).forEach((message) => {
-        const received = message.received_at ? new Date(message.received_at) : null;
+        const received = message.internal_date ? new Date(Number(message.internal_date)) : null;
         if (received && isSameDay(received, today)) {
           grouped.today.push(message);
         } else if (received && isSameMonth(received, today)) {
