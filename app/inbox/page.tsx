@@ -2,29 +2,38 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  createClient,
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 type EmailMessage = {
   id: string;
-  user_id: string;
-  gmail_message_id: string | null;
-  thread_id: string | null;
   subject: string | null;
   from_address: string | null;
   snippet: string | null;
-  classification: string | null;
-  processed: boolean;
-  label_applied: boolean | null;
   received_at: string | null;
-  created_at: string;
+};
+
+type GmailMessageHeader = {
+  name?: string;
+  value?: string;
+};
+
+type GmailMessage = {
+  id: string;
+  snippet?: string;
+  internalDate?: string;
+  payload?: {
+    headers?: GmailMessageHeader[];
+  };
+};
+
+type GmailMessagesResponse = {
+  messages?: GmailMessage[];
+  error?: string;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const supabase =
   supabaseUrl && supabaseAnonKey
@@ -52,39 +61,78 @@ export default function InboxPage() {
   const [syncing, setSyncing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const missingEnv = useMemo(() => !supabase, []);
+  const missingEnv = useMemo(() => !supabase || !apiBaseUrl, []);
+
+  const mapGmailMessage = useCallback((message: GmailMessage): EmailMessage => {
+    const headers = message.payload?.headers ?? [];
+    const subject = headers.find((header) => header.name?.toLowerCase() === "subject")?.value ?? null;
+    const from = headers.find((header) => header.name?.toLowerCase() === "from")?.value ?? null;
+
+    return {
+      id: message.id,
+      subject,
+      from_address: from,
+      snippet: message.snippet ?? null,
+      received_at: message.internalDate
+        ? new Date(Number(message.internalDate)).toISOString()
+        : null,
+    };
+  }, []);
 
   const fetchInbox = useCallback(async () => {
     setLoading(true);
     setErrorMessage(null);
 
-    const {
-      data: { user },
-    } = await supabase!.auth.getUser();
-
-    if (!user) {
-      router.replace("/login");
+    if (!supabase || !apiBaseUrl) {
+      setLoading(false);
       return;
     }
 
-    const { data, error } = await supabase!
-      .from("email_messages")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("received_at", { ascending: false })
-      .limit(50);
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
 
-    if (error) {
-      console.error("[INBOX] Failed to fetch inbox emails", error);
+    if (sessionError) {
+      console.error("[INBOX] Failed to get session", sessionError);
       setEmails([]);
-      setErrorMessage(error.message || "Unable to load inbox emails.");
-    } else {
-      console.log("[INBOX] fetched email_messages rows:", data?.length ?? 0, "for user", user.id);
-      setEmails((data ?? []) as EmailMessage[]);
+      setErrorMessage(sessionError.message || "Unable to get authenticated session.");
+      setLoading(false);
+      return;
+    }
+
+    if (!session?.access_token) {
+      router.replace("/login");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/gmail/messages`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const payload = (await response.json()) as GmailMessagesResponse | GmailMessage[];
+      console.log("[INBOX] Gmail API response:", payload);
+
+      if (!response.ok) {
+        const error = Array.isArray(payload) ? undefined : payload?.error;
+        throw new Error(error || `Failed to fetch Gmail messages (${response.status}).`);
+      }
+
+      const messages = Array.isArray(payload) ? payload : payload.messages ?? [];
+      setEmails(messages.map(mapGmailMessage));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to load Gmail messages.";
+      console.error("[INBOX] Failed to fetch Gmail messages", error);
+      setEmails([]);
+      setErrorMessage(message);
     }
 
     setLoading(false);
-  }, [router]);
+  }, [mapGmailMessage, router]);
 
   useEffect(() => {
     if (missingEnv) {
@@ -108,70 +156,6 @@ export default function InboxPage() {
     };
   }, [fetchInbox, missingEnv]);
 
-  useEffect(() => {
-    if (missingEnv) return;
-
-    let channelName = "";
-    let didUnmount = false;
-    let realtimeChannel: RealtimeChannel | null = null;
-
-    async function subscribe() {
-      const {
-        data: { user },
-      } = await supabase!.auth.getUser();
-
-      if (!user || didUnmount) return;
-
-      channelName = `email_messages_${user.id}`;
-
-      const channel = supabase!
-        .channel(channelName)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "email_messages",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload: RealtimePostgresChangesPayload<EmailMessage>) => {
-            if (payload.eventType === "INSERT") {
-              const inserted = payload.new as EmailMessage;
-
-              setEmails((prev) => {
-                const deduped = prev.filter((email) => email.id !== inserted.id);
-                return [inserted, ...deduped].slice(0, 50);
-              });
-            }
-
-            if (payload.eventType === "UPDATE") {
-              const updated = payload.new as EmailMessage;
-
-              setEmails((prev) =>
-                prev.map((email) => (email.id === updated.id ? updated : email)),
-              );
-            }
-          },
-        )
-        .subscribe();
-
-      realtimeChannel = channel;
-
-      if (didUnmount && realtimeChannel) {
-        supabase!.removeChannel(realtimeChannel);
-      }
-    }
-
-    subscribe();
-
-    return () => {
-      didUnmount = true;
-      if (realtimeChannel) {
-        supabase!.removeChannel(realtimeChannel);
-      }
-    };
-  }, [missingEnv]);
-
   const handleSync = useCallback(async () => {
     if (missingEnv) return;
 
@@ -179,23 +163,11 @@ export default function InboxPage() {
     setErrorMessage(null);
 
     try {
-      const response = await fetch("/api/gmail/sync", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const payload = (await response.json()) as { error?: string; inserted_count?: number };
-
-      if (!response.ok) {
-        throw new Error(payload?.error || "Failed to sync Gmail.");
-      }
-
-      console.log("[INBOX] manual sync completed, inserted_count:", payload?.inserted_count ?? 0);
       await fetchInbox();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to sync Gmail.";
-      console.error("[INBOX] manual sync failed", error);
-      setErrorMessage(`Unable to sync Gmail: ${message}`);
+      const message = error instanceof Error ? error.message : "Unable to load Gmail messages.";
+      console.error("[INBOX] manual refresh failed", error);
+      setErrorMessage(message);
     } finally {
       setSyncing(false);
     }
@@ -206,8 +178,7 @@ export default function InboxPage() {
       <main className="mx-auto w-full max-w-7xl p-6">
         <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
         <p className="mt-4 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-          Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and
-          NEXT_PUBLIC_SUPABASE_ANON_KEY.
+          Missing required environment variables. Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, and NEXT_PUBLIC_API_URL.
         </p>
       </main>
     );
@@ -218,7 +189,7 @@ export default function InboxPage() {
       <header className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
-          <p className="mt-1 text-sm text-slate-500">Latest 50 messages from your synced mailbox.</p>
+          <p className="mt-1 text-sm text-slate-500">Latest Gmail messages from your mailbox.</p>
           {errorMessage ? (
             <p className="mt-2 text-sm text-rose-600">{errorMessage}</p>
           ) : null}
@@ -235,7 +206,7 @@ export default function InboxPage() {
 
       <section className="min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         {loading ? (
-          <div className="p-6 text-sm text-slate-500">Loading inbox...</div>
+          <div className="p-6 text-sm text-slate-500">Loading emails...</div>
         ) : (
           <div className="h-full overflow-auto">
             <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
@@ -244,15 +215,13 @@ export default function InboxPage() {
                   <th className="px-4 py-3 font-medium">From</th>
                   <th className="px-4 py-3 font-medium">Subject</th>
                   <th className="px-4 py-3 font-medium">Snippet</th>
-                  <th className="px-4 py-3 font-medium">Classification</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Received</th>
+                  <th className="px-4 py-3 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {emails.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
                       No emails found.
                     </td>
                   </tr>
@@ -265,18 +234,6 @@ export default function InboxPage() {
                       </td>
                       <td className="max-w-[320px] truncate px-4 py-3 text-slate-600">
                         {email.snippet ?? "—"}
-                      </td>
-                      <td className="px-4 py-3">{email.classification ?? "Unclassified"}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                            email.processed
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-blue-100 text-blue-700"
-                          }`}
-                        >
-                          {email.processed ? "Processed" : "New"}
-                        </span>
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-slate-500">
                         {formatReceivedAt(email.received_at)}
