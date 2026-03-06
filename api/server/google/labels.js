@@ -20,6 +20,37 @@ async function syncGmailLabels(gmailClient, connectedAccountId, supabase) {
     }
   }
 
+  const incomingLabelIds = new Set(
+    labels
+      .map((label) => label?.id)
+      .filter((labelId) => typeof labelId === 'string' && labelId.length > 0)
+  );
+
+  const { data: existingRows, error: existingRowsError } = await supabase
+    .from('gmail_labels')
+    .select('gmail_label_id')
+    .eq('connected_account_id', connectedAccountId);
+
+  if (existingRowsError) {
+    throw existingRowsError;
+  }
+
+  const staleLabelIds = (existingRows || [])
+    .map((row) => row.gmail_label_id)
+    .filter((gmailLabelId) => !incomingLabelIds.has(gmailLabelId));
+
+  if (staleLabelIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('gmail_labels')
+      .delete()
+      .eq('connected_account_id', connectedAccountId)
+      .in('gmail_label_id', staleLabelIds);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+  }
+
   return labels;
 }
 

@@ -138,6 +138,52 @@ function mapLabelRow(connectedAccountId, label) {
   };
 }
 
+async function syncLabelsToSupabase(supabase, connectedAccountId, labels) {
+  const normalizedLabels = Array.isArray(labels) ? labels : [];
+
+  if (normalizedLabels.length > 0) {
+    const rows = normalizedLabels.map((label) => mapLabelRow(connectedAccountId, label));
+    const { error: upsertError } = await supabase
+      .from('gmail_labels')
+      .upsert(rows, { onConflict: 'connected_account_id,gmail_label_id' });
+
+    if (upsertError) {
+      throw upsertError;
+    }
+  }
+
+  const incomingLabelIds = new Set(
+    normalizedLabels
+      .map((label) => label?.id)
+      .filter((labelId) => typeof labelId === 'string' && labelId.length > 0)
+  );
+
+  const { data: existingRows, error: existingRowsError } = await supabase
+    .from('gmail_labels')
+    .select('gmail_label_id')
+    .eq('connected_account_id', connectedAccountId);
+
+  if (existingRowsError) {
+    throw existingRowsError;
+  }
+
+  const staleLabelIds = (existingRows || [])
+    .map((row) => row.gmail_label_id)
+    .filter((gmailLabelId) => !incomingLabelIds.has(gmailLabelId));
+
+  if (staleLabelIds.length > 0) {
+    const { error: deleteError } = await supabase
+      .from('gmail_labels')
+      .delete()
+      .eq('connected_account_id', connectedAccountId)
+      .in('gmail_label_id', staleLabelIds);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+  }
+}
+
 function registerGmailLabelRoutes(app, supabase) {
   async function listUserGoogleAccountIds(userId) {
     const { data, error } = await supabase
@@ -273,16 +319,7 @@ function registerGmailLabelRoutes(app, supabase) {
       });
 
       const labels = Array.isArray(payload?.labels) ? payload.labels : [];
-      if (labels.length > 0) {
-        const rows = labels.map((label) => mapLabelRow(account.id, label));
-        const { error: upsertError } = await supabase
-          .from('gmail_labels')
-          .upsert(rows, { onConflict: 'connected_account_id,gmail_label_id' });
-
-        if (upsertError) {
-          throw upsertError;
-        }
-      }
+      await syncLabelsToSupabase(supabase, account.id, labels);
 
       return res.json({ synced_count: labels.length });
     } catch (error) {
@@ -453,16 +490,7 @@ function registerGmailLabelRoutes(app, supabase) {
       });
 
       const labels = Array.isArray(payload?.labels) ? payload.labels : [];
-      if (labels.length > 0) {
-        const rows = labels.map((label) => mapLabelRow(connectedAccountId, label));
-        const { error: upsertError } = await supabase
-          .from('gmail_labels')
-          .upsert(rows, { onConflict: 'connected_account_id,gmail_label_id' });
-
-        if (upsertError) {
-          throw upsertError;
-        }
-      }
+      await syncLabelsToSupabase(supabase, connectedAccountId, labels);
 
       return res.json({ synced_count: labels.length });
     } catch (error) {
