@@ -113,6 +113,15 @@ async function gmailRequest({ accessToken, path, method = 'GET', body }) {
     throw error;
   }
 
+  if (response.status === 204) {
+    return null;
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    return null;
+  }
+
   return response.json();
 }
 
@@ -136,6 +145,259 @@ function mapLabelRow(connectedAccountId, label) {
 }
 
 function registerGmailLabelRoutes(app, supabase) {
+  async function listUserGoogleAccountIds(userId) {
+    const { data, error } = await supabase
+      .from('connected_accounts')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('provider', 'google');
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map((account) => account.id);
+  }
+
+  async function resolveUserConnectedAccount(userId, connectedAccountId) {
+    if (connectedAccountId) {
+      return getConnectedAccount(supabase, userId, connectedAccountId);
+    }
+
+    const { data, error } = await supabase
+      .from('connected_accounts')
+      .select('id,provider,access_token_encrypted,refresh_token_encrypted,token_expires_at')
+      .eq('user_id', userId)
+      .eq('provider', 'google')
+      .order('created_at', { ascending: true })
+      .limit(2);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    if (data.length > 1) {
+      return { requiresConnectedAccountId: true };
+    }
+
+    return data[0];
+  }
+
+  async function findOwnedLabelById(userId, labelId) {
+    const accountIds = await listUserGoogleAccountIds(userId);
+    if (accountIds.length === 0) {
+      return null;
+    }
+
+    const byUuid = await supabase
+      .from('gmail_labels')
+      .select('*')
+      .in('connected_account_id', accountIds)
+      .eq('id', labelId)
+      .maybeSingle();
+
+    if (byUuid.error) {
+      throw byUuid.error;
+    }
+
+    if (byUuid.data) {
+      return byUuid.data;
+    }
+
+    const byGmailId = await supabase
+      .from('gmail_labels')
+      .select('*')
+      .in('connected_account_id', accountIds)
+      .eq('gmail_label_id', labelId)
+      .maybeSingle();
+
+    if (byGmailId.error) {
+      throw byGmailId.error;
+    }
+
+    return byGmailId.data || null;
+  }
+
+  app.get('/api/labels', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const accountIds = await listUserGoogleAccountIds(user.id);
+      if (accountIds.length === 0) {
+        return res.json({ labels: [] });
+      }
+
+      const { data, error } = await supabase
+        .from('gmail_labels')
+        .select('*')
+        .in('connected_account_id', accountIds)
+        .order('label_name', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return res.json({ labels: data || [] });
+    } catch (error) {
+      console.error('Labels list error:', error);
+      return res.status(500).json({ error: 'Failed to list labels' });
+    }
+  });
+
+  app.post('/api/labels/sync', async (req, res) => {
+    const { connected_account_id: connectedAccountId } = req.body || {};
+
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const account = await resolveUserConnectedAccount(user.id, connectedAccountId);
+      if (!account) {
+        return res.status(404).json({ error: 'Connected account not found' });
+      }
+
+      if (account.requiresConnectedAccountId) {
+        return res.status(400).json({
+          error: 'connected_account_id is required when multiple Google accounts are connected'
+        });
+      }
+
+      const accessToken = await getAccessToken(supabase, account);
+      const payload = await gmailRequest({
+        accessToken,
+        path: '/users/me/labels',
+        method: 'GET'
+      });
+
+      const labels = Array.isArray(payload?.labels) ? payload.labels : [];
+      if (labels.length > 0) {
+        const rows = labels.map((label) => mapLabelRow(account.id, label));
+        const { error: upsertError } = await supabase
+          .from('gmail_labels')
+          .upsert(rows, { onConflict: 'connected_account_id,gmail_label_id' });
+
+        if (upsertError) {
+          throw upsertError;
+        }
+      }
+
+      return res.json({ synced_count: labels.length });
+    } catch (error) {
+      console.error('Labels sync error:', {
+        connected_account_id: connectedAccountId,
+        status: error?.status,
+        body: error?.body,
+        message: error?.message
+      });
+      return res.status(500).json({ error: 'Failed to sync labels' });
+    }
+  });
+
+  app.patch('/api/labels/:id', async (req, res) => {
+    const { id } = req.params;
+    const { enabled, hidden, priority } = req.body || {};
+
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      if (
+        typeof enabled === 'undefined' &&
+        typeof hidden === 'undefined' &&
+        typeof priority === 'undefined'
+      ) {
+        return res.status(400).json({
+          error: 'At least one of enabled, hidden, or priority must be provided'
+        });
+      }
+
+      const label = await findOwnedLabelById(user.id, id);
+      if (!label) {
+        return res.status(404).json({ error: 'Label not found' });
+      }
+
+      const updates = {
+        ...(typeof enabled === 'boolean' ? { enabled } : {}),
+        ...(typeof hidden === 'boolean' ? { hidden } : {}),
+        ...(typeof priority === 'number' ? { priority } : {}),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('gmail_labels')
+        .update(updates)
+        .eq('id', label.id)
+        .select('*')
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      return res.json({ label: data });
+    } catch (error) {
+      console.error('Label update error:', {
+        label_id: id,
+        message: error?.message
+      });
+      return res.status(500).json({ error: 'Failed to update label' });
+    }
+  });
+
+  app.delete('/api/labels/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const label = await findOwnedLabelById(user.id, id);
+      if (!label) {
+        return res.status(404).json({ error: 'Label not found' });
+      }
+
+      const account = await getConnectedAccount(supabase, user.id, label.connected_account_id);
+      if (!account) {
+        return res.status(404).json({ error: 'Connected account not found' });
+      }
+
+      const accessToken = await getAccessToken(supabase, account);
+      await gmailRequest({
+        accessToken,
+        path: `/users/me/labels/${encodeURIComponent(label.gmail_label_id)}`,
+        method: 'DELETE'
+      });
+
+      const { error } = await supabase.from('gmail_labels').delete().eq('id', label.id);
+      if (error) {
+        throw error;
+      }
+
+      return res.status(204).send();
+    } catch (error) {
+      console.error('Label delete error:', {
+        label_id: id,
+        status: error?.status,
+        body: error?.body,
+        message: error?.message
+      });
+      return res.status(500).json({ error: 'Failed to delete label' });
+    }
+  });
+
   app.get('/api/gmail/labels', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
