@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ChevronRight, Plus, Search, Tag } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../lib/supabaseClient';
@@ -43,6 +44,7 @@ const Labels = () => {
   const [toastMessage, setToastMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadLabels = async (connectedAccountId: string) => {
     if (!connectedAccountId) {
@@ -195,6 +197,22 @@ const Labels = () => {
     [labels]
   );
 
+  const visibleLabels = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
+    if (!normalizedSearch) {
+      return labels;
+    }
+
+    return labels.filter((label) => label.label_name.toLowerCase().includes(normalizedSearch));
+  }, [labels, searchQuery]);
+
+  const autoAppliedLabels = useMemo(() => visibleLabels.filter((label) => label.is_enabled).slice(0, 5), [visibleLabels]);
+  const manualLabels = useMemo(
+    () => visibleLabels.filter((label) => !autoAppliedLabels.some((autoLabel) => autoLabel.gmail_label_id === label.gmail_label_id)),
+    [autoAppliedLabels, visibleLabels]
+  );
+
   const toggleLabel = async (labelId: string, nextEnabled: boolean) => {
     setLabels((currentState) =>
       currentState.map((label) =>
@@ -251,12 +269,33 @@ const Labels = () => {
   };
 
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Label settings</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Enable the labels X-ProFlow should use while triaging inbox messages.
-        </p>
+    <section className="mx-auto max-w-4xl space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Labels</h1>
+          <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-300">
+            Organize your emails with labels. AI-powered labels automatically categorize incoming emails based on
+            their content.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="rounded-full border border-slate-200 p-2 text-slate-500 transition hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+          aria-label="Create label"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search labels"
+          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+        />
       </div>
 
       {toastMessage ? (
@@ -268,7 +307,7 @@ const Labels = () => {
       <Card className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Smart labels</h2>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Auto-applied labels</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
               {enabledCount} of {labels.length} labels currently active.
             </p>
@@ -312,59 +351,75 @@ const Labels = () => {
           <p className="text-sm text-slate-600 dark:text-slate-300">Connect Gmail first</p>
         ) : null}
 
-        <div className="space-y-3">
-          {labels.map((label) => {
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          {autoAppliedLabels.length ? autoAppliedLabels.map((label) => {
             const enabled = Boolean(label.is_enabled);
             const dotColor = label.color_background || FALLBACK_DOT_COLOR;
 
             return (
               <div
                 key={label.gmail_label_id}
-                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0 dark:border-slate-800"
               >
-                <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: dotColor }} />
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-slate-100">{label.label_name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Gmail label</p>
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <Tag className="h-4 w-4" style={{ color: dotColor }} />
+                  <p className="font-medium text-slate-700 dark:text-slate-100">{label.label_name}</p>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span
-                    className="rounded-full px-2 py-1 text-xs font-medium"
-                    style={{
-                      color: enabled ? dotColor : '#64748B',
-                      backgroundColor: enabled ? `${dotColor}20` : '#E2E8F0'
-                    }}
+                  {enabled ? <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800">AI ACTIVE</span> : null}
+                  <button
+                    type="button"
+                    onClick={() => void toggleLabel(label.gmail_label_id, !enabled)}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                   >
-                    {enabled ? 'Enabled' : 'Disabled'}
-                  </span>
-
-                  <label className="relative inline-flex cursor-pointer items-center">
-                    <input
-                      type="checkbox"
-                      checked={enabled}
-                      onChange={() => void toggleLabel(label.gmail_label_id, !enabled)}
-                      className="peer sr-only"
-                      aria-label={`${enabled ? 'Disable' : 'Enable'} ${label.label_name} label`}
-                    />
-                    <span className="toggle-off relative h-6 w-11 rounded-full transition peer-checked:bg-blue-600">
-                      <span className="toggle-knob absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition peer-checked:translate-x-5" />
-                    </span>
-                  </label>
+                    {enabled ? 'Remove' : 'Add'}
+                  </button>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
                 </div>
               </div>
             );
-          })}
+          }) : <p className="px-4 py-3 text-sm text-slate-500">No labels match your search.</p>}
+        </div>
+      </Card>
+
+      <Card className="space-y-4">
+        <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Manual labels</h2>
+        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          {manualLabels.length ? manualLabels.map((label) => {
+            const enabled = Boolean(label.is_enabled);
+            const dotColor = label.color_background || FALLBACK_DOT_COLOR;
+
+            return (
+              <div
+                key={label.gmail_label_id}
+                className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 text-sm last:border-b-0 dark:border-slate-800"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Tag className="h-4 w-4" style={{ color: dotColor }} />
+                  <p className="font-medium text-slate-700 dark:text-slate-100">{label.label_name}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => void toggleLabel(label.gmail_label_id, !enabled)}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                  >
+                    {enabled ? 'Remove' : 'Add'}
+                  </button>
+                  <ChevronRight className="h-4 w-4 text-slate-400" />
+                </div>
+              </div>
+            );
+          }) : <p className="px-4 py-3 text-sm text-slate-500">No labels available.</p>}
         </div>
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Recommended next step</h2>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Suggested labels</h2>
         <p className="text-sm text-slate-600 dark:text-slate-300">
-          Add automation rules for your enabled labels so each one triggers triage actions, reminders,
-          or routing behavior.
+          Add automation rules for your active labels so each one triggers triage actions, reminders, or routing
+          behavior.
         </p>
       </Card>
     </section>
