@@ -117,6 +117,13 @@ export default function InboxPage() {
       const payload = (await response.json()) as GmailMessagesResponse | GmailMessage[];
       console.log("[INBOX] Gmail API response:", payload);
 
+      if (response.status === 401) {
+        setEmails([]);
+        router.replace("/login");
+        setLoading(false);
+        return;
+      }
+
       if (!response.ok) {
         const error = Array.isArray(payload) ? undefined : payload?.error;
         throw new Error(error || `Failed to fetch Gmail messages (${response.status}).`);
