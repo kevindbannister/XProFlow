@@ -32,7 +32,7 @@ export default function LabelsPage() {
   const [labels, setLabels] = useState<Label[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
-  const [updatingLabelId, setUpdatingLabelId] = useState<string | null>(null);
+  const [updatingKeys, setUpdatingKeys] = useState<Record<string, boolean>>({});
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const missingEnv = useMemo(() => !supabase || !apiBaseUrl, []);
@@ -152,10 +152,15 @@ export default function LabelsPage() {
   }, [fetchLabels, router]);
 
   const updateLabel = useCallback(
-    async (labelId: string, patch: Partial<Pick<Label, "enabled" | "hidden">>) => {
+    async (
+      labelId: string,
+      field: "enabled" | "hidden",
+      value: boolean
+    ) => {
       if (!supabase || !apiBaseUrl) return;
 
-      setUpdatingLabelId(labelId);
+      const updateKey = `${labelId}:${field}`;
+      setUpdatingKeys((current) => ({ ...current, [updateKey]: true }));
       setErrorMessage(null);
 
       const {
@@ -165,23 +170,32 @@ export default function LabelsPage() {
 
       if (sessionError) {
         setErrorMessage(sessionError.message || "Unable to get authenticated session.");
-        setUpdatingLabelId(null);
+        setUpdatingKeys((current) => {
+          const next = { ...current };
+          delete next[updateKey];
+          return next;
+        });
         return;
       }
 
       if (!session?.access_token) {
         router.replace("/login");
-        setUpdatingLabelId(null);
+        setUpdatingKeys((current) => {
+          const next = { ...current };
+          delete next[updateKey];
+          return next;
+        });
         return;
       }
 
-      const previousLabels = labels;
+      const previousLabel = labels.find((label) => label.id === labelId);
+      const patch = { [field]: value };
       setLabels((current) =>
         current.map((label) =>
           label.id === labelId
             ? {
                 ...label,
-                ...patch,
+                [field]: value,
               }
             : label
         )
@@ -213,11 +227,19 @@ export default function LabelsPage() {
         }
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to update label.";
-        setLabels(previousLabels);
+        if (previousLabel) {
+          setLabels((current) =>
+            current.map((label) => (label.id === labelId ? previousLabel : label))
+          );
+        }
         setErrorMessage(message);
       }
 
-      setUpdatingLabelId(null);
+      setUpdatingKeys((current) => {
+        const next = { ...current };
+        delete next[updateKey];
+        return next;
+      });
     },
     [labels, router]
   );
@@ -253,6 +275,10 @@ export default function LabelsPage() {
           <p className="mt-1 text-sm text-slate-600">
             Manage Gmail label settings used by X-ProFlow.
           </p>
+          <p className="mt-1 text-xs text-slate-500">
+            Hidden labels are removed from inbox filters. Disabled labels stay visible, but
+            automations ignore them.
+          </p>
         </div>
         <button
           type="button"
@@ -287,7 +313,8 @@ export default function LabelsPage() {
             <tbody className="divide-y divide-slate-100">
               {sortedLabels.length ? (
                 sortedLabels.map((label) => {
-                  const isUpdating = updatingLabelId === label.id;
+                  const isUpdatingEnabled = Boolean(updatingKeys[`${label.id}:enabled`]);
+                  const isUpdatingHidden = Boolean(updatingKeys[`${label.id}:hidden`]);
 
                   return (
                     <tr key={label.id} className="hover:bg-slate-50">
@@ -299,9 +326,9 @@ export default function LabelsPage() {
                             type="checkbox"
                             className="peer sr-only"
                             checked={Boolean(label.enabled)}
-                            disabled={isUpdating}
+                            disabled={isUpdatingEnabled}
                             onChange={(event) =>
-                              void updateLabel(label.id, { enabled: event.target.checked })
+                              void updateLabel(label.id, "enabled", event.target.checked)
                             }
                           />
                           <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
@@ -315,9 +342,9 @@ export default function LabelsPage() {
                             type="checkbox"
                             className="peer sr-only"
                             checked={Boolean(label.hidden)}
-                            disabled={isUpdating}
+                            disabled={isUpdatingHidden}
                             onChange={(event) =>
-                              void updateLabel(label.id, { hidden: event.target.checked })
+                              void updateLabel(label.id, "hidden", event.target.checked)
                             }
                           />
                           <span className="relative h-6 w-11 rounded-full bg-slate-300 transition peer-checked:bg-emerald-500 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-400 peer-disabled:cursor-not-allowed peer-disabled:opacity-60">
