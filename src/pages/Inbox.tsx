@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
 import { supabase } from '../lib/supabaseClient';
+import { useAuth } from '../context/AuthContext';
 import type { GroupedInboxResponse, InboxFolder, InboxMessage } from '../../shared/types/inbox';
 
 const folders: { id: InboxFolder; label: string }[] = [
@@ -55,12 +56,9 @@ const Inbox = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isStatusLoading, setIsStatusLoading] = useState(true);
-  const [gmailStatus, setGmailStatus] = useState<{ connected: boolean; email?: string } | null>(
-    null
-  );
   const location = useLocation();
   const navigate = useNavigate();
+  const { gmailConnected, gmailEmail, isLoading: isAuthLoading, refreshSession } = useAuth();
 
   const fetchInbox = useCallback(async () => {
     setIsLoading(true);
@@ -79,34 +77,12 @@ const Inbox = () => {
   }, [selectedFolder]);
 
   useEffect(() => {
-    const fetchStatus = async () => {
-      setIsStatusLoading(true);
-      setError(null);
-      try {
-        const response = await api.get<{ connected: boolean; email?: string }>(
-          '/api/gmail/status'
-        );
-        setGmailStatus(response);
-        if (!response.connected) {
-          setGroups(emptyGroups);
-        }
-      } catch (err) {
-        console.error('Failed to check Gmail status', err);
-        setError('Unable to check Gmail connection.');
-        setGmailStatus({ connected: false });
-      } finally {
-        setIsStatusLoading(false);
-      }
-    };
-
-    void fetchStatus();
-  }, []);
-
-  useEffect(() => {
-    if (gmailStatus?.connected) {
+    if (gmailConnected) {
       void fetchInbox();
+    } else {
+      setGroups(emptyGroups);
     }
-  }, [fetchInbox, gmailStatus]);
+  }, [fetchInbox, gmailConnected]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -114,12 +90,13 @@ const Inbox = () => {
     if (connected === 'gmail') {
       const message = params.get('message') || 'Gmail connected successfully.';
       setSuccessMessage(message);
+      void refreshSession();
       navigate('/inbox', { replace: true });
     }
-  }, [location.search, navigate]);
+  }, [location.search, navigate, refreshSession]);
 
   const handleSync = async () => {
-    if (!gmailStatus?.connected) {
+    if (!gmailConnected) {
       setError('Connect Gmail before syncing.');
       return;
     }
@@ -150,8 +127,8 @@ const Inbox = () => {
     [groups]
   );
 
-  const isConnected = Boolean(gmailStatus?.connected);
-  const isLoadingState = isStatusLoading || (isConnected && isLoading);
+  const isConnected = gmailConnected;
+  const isLoadingState = isAuthLoading || (isConnected && isLoading);
 
   return (
     <section className="space-y-6">
@@ -160,14 +137,9 @@ const Inbox = () => {
           <p className="text-sm text-slate-500">
             Keep your Gmail inbox synced and prioritized in one view.
           </p>
-          {gmailStatus ? (
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              Gmail:{' '}
-              {gmailStatus.connected
-                ? `Connected${gmailStatus.email ? ` • ${gmailStatus.email}` : ''}`
-                : 'Not connected'}
-            </p>
-          ) : null}
+          <p className="mt-2 text-xs font-medium text-slate-500">
+            Gmail: {isConnected ? `Connected${gmailEmail ? ` • ${gmailEmail}` : ''}` : 'Not connected'}
+          </p>
         </div>
         {isConnected ? (
           <button
