@@ -11,8 +11,7 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const [{ data: gmailData }, { data: connectedAccountData }, { data: orgData }] = await Promise.all([
-        supabase.from('gmail_accounts').select('email').eq('user_id', user.id).maybeSingle(),
+      const [{ data: connectedAccountData }, { data: orgData }] = await Promise.all([
         supabase
           .from('connected_accounts')
           .select('id, email')
@@ -26,7 +25,7 @@ function registerSessionRoutes(app, supabase) {
           .maybeSingle(),
       ]);
 
-      const connectedGmailEmail = gmailData?.email || connectedAccountData?.email;
+      const connectedGmailEmail = connectedAccountData?.email;
 
       const subscription = Array.isArray(orgData?.subscriptions)
         ? orgData?.subscriptions[0]
@@ -67,13 +66,14 @@ function registerSessionRoutes(app, supabase) {
         return;
       }
 
-      const [{ error: gmailError }, { error: connectedAccountError }] = await Promise.all([
-        supabase.from('gmail_accounts').delete().eq('user_id', user.id),
-        supabase.from('connected_accounts').delete().eq('user_id', user.id).eq('provider', 'google'),
-      ]);
+      const { error: connectedAccountError } = await supabase
+        .from('connected_accounts')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('provider', 'google');
 
-      if (gmailError || connectedAccountError) {
-        throw gmailError || connectedAccountError;
+      if (connectedAccountError) {
+        throw connectedAccountError;
       }
 
       res.status(204).send();

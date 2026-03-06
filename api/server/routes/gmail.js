@@ -49,7 +49,7 @@ function normalizeMessage(message, folder) {
   const isUnread = (message.labelIds || []).includes('UNREAD');
 
   return {
-    provider: 'gmail',
+    provider: 'google',
     external_id: message.id,
     thread_id: message.threadId || null,
     folder,
@@ -65,7 +65,14 @@ function normalizeMessage(message, folder) {
 }
 
 async function getStoredAccount(supabase, userId, email) {
-  let query = supabase.from('gmail_accounts').select('*').eq('user_id', userId);
+  let query = supabase
+    .from('connected_accounts')
+    .select(
+      'id,user_id,email,provider,access_token:access_token_encrypted,refresh_token:refresh_token_encrypted,expiry_ts:token_expires_at,created_at'
+    )
+    .eq('user_id', userId)
+    .eq('provider', 'google');
+
   if (email) {
     query = query.eq('email', email);
   }
@@ -80,8 +87,17 @@ async function getStoredAccount(supabase, userId, email) {
 }
 
 async function upsertAccount(supabase, account) {
-  const { error } = await supabase.from('gmail_accounts').upsert(account, {
-    onConflict: 'user_id,email'
+  const payload = {
+    user_id: account.user_id,
+    email: account.email,
+    provider: 'google',
+    access_token_encrypted: account.access_token,
+    refresh_token_encrypted: account.refresh_token,
+    token_expires_at: account.expiry_ts
+  };
+
+  const { error } = await supabase.from('connected_accounts').upsert(payload, {
+    onConflict: 'user_id,provider,email'
   });
 
   if (error) {
@@ -180,42 +196,6 @@ function extractHtmlBody(payload) {
   }
 
   return null;
-}
-
-function normalizeForEmailMessages(userId, message) {
-  const headers = message.payload?.headers || [];
-  const internalDate = message.internalDate ? Number(message.internalDate) : null;
-  const fromHeader = getHeaderValue(headers, 'From');
-  const from = parseFromHeader(fromHeader);
-
-  return {
-    user_id: userId,
-    gmail_message_id: message.id,
-    thread_id: message.threadId || null,
-    subject: getHeaderValue(headers, 'Subject'),
-    from_address: from.email,
-    snippet: message.snippet || null,
-    received_at: internalDate ? new Date(internalDate).toISOString() : null,
-    body_text: extractTextPlainBody(message.payload),
-    body_html: extractHtmlBody(message.payload)
-  };
-}
-
-async function insertEmailMessages(supabase, messages) {
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return 0;
-  }
-
-  const { data, error } = await supabase
-    .from('email_messages')
-    .upsert(messages, { onConflict: 'gmail_message_id', ignoreDuplicates: true })
-    .select('id');
-
-  if (error) {
-    throw error;
-  }
-
-  return Array.isArray(data) ? data.length : 0;
 }
 
 function normalizeGmailMessage(account, message) {
@@ -1007,7 +987,7 @@ function registerGmailRoutes(app, supabase) {
         await upsertAccount(supabase, {
           user_id: user.id,
           email: account.email,
-          provider: 'gmail',
+          provider: 'google',
           access_token: encrypt(accessToken),
           refresh_token: account.refresh_token,
           expiry_ts: nextExpiry
@@ -1134,7 +1114,7 @@ function registerGmailRoutes(app, supabase) {
         await upsertAccount(supabase, {
           user_id: user.id,
           email: account.email,
-          provider: 'gmail',
+          provider: 'google',
           access_token: encrypt(accessToken),
           refresh_token: account.refresh_token,
           expiry_ts: nextExpiry
@@ -1165,9 +1145,6 @@ function registerGmailRoutes(app, supabase) {
         }
       }
 
-      const emailMessagesPayload = metadata.map((message) => normalizeForEmailMessages(user.id, message));
-      const insertedCount = await insertEmailMessages(supabase, emailMessagesPayload);
-      console.log('[GMAIL][SYNC] upserted into email_messages:', insertedCount, 'of', emailMessagesPayload.length);
 
       const sorted = normalized.sort((a, b) => {
         const aDate = a.internal_date || 0;
@@ -1175,7 +1152,7 @@ function registerGmailRoutes(app, supabase) {
         return bDate - aDate;
       });
 
-      res.json({ messages: sorted, inserted_count: insertedCount });
+      res.json({ messages: sorted, inserted_count: normalized.length });
     } catch (error) {
       console.error('Gmail sync error:', error);
       res.status(500).json({ error: 'Failed to sync Gmail' });
