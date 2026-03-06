@@ -84,6 +84,52 @@ function getGmailClient(accessToken) {
   return {
     users: {
       messages: {
+        list: async ({ userId = 'me', labelIds, maxResults, pageToken }) => {
+          const params = new URLSearchParams();
+          if (Array.isArray(labelIds) && labelIds.length > 0) {
+            for (const labelId of labelIds) {
+              params.append('labelIds', labelId);
+            }
+          }
+          if (typeof maxResults === 'number') {
+            params.set('maxResults', String(maxResults));
+          }
+          if (pageToken) {
+            params.set('pageToken', pageToken);
+          }
+
+          const response = await fetch(
+            `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/messages?${params.toString()}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to list Gmail messages: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          return { data };
+        },
+        get: async ({ userId = 'me', id, format = 'full' }) => {
+          const params = new URLSearchParams();
+          if (format) {
+            params.set('format', format);
+          }
+
+          const response = await fetch(
+            `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/messages/${encodeURIComponent(id)}?${params.toString()}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch Gmail message: ${response.status} ${errorText}`);
+          }
+
+          const data = await response.json();
+          return { data };
+        },
         modify: async ({ userId = 'me', id, requestBody }) => {
           const response = await fetch(
             `${GMAIL_BASE_URL}/users/${encodeURIComponent(userId)}/messages/${encodeURIComponent(id)}/modify`,

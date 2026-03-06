@@ -159,6 +159,65 @@ function extractTextPlainBody(payload) {
   return null;
 }
 
+function extractHtmlBody(payload) {
+  if (!payload) {
+    return null;
+  }
+
+  if (payload.mimeType === 'text/html' && payload.body?.data) {
+    return decodeBase64Url(payload.body.data);
+  }
+
+  if (!Array.isArray(payload.parts)) {
+    return null;
+  }
+
+  for (const part of payload.parts) {
+    const html = extractHtmlBody(part);
+    if (html) {
+      return html;
+    }
+  }
+
+  return null;
+}
+
+function normalizeForEmailMessages(userId, message) {
+  const headers = message.payload?.headers || [];
+  const internalDate = message.internalDate ? Number(message.internalDate) : null;
+  const fromHeader = getHeaderValue(headers, 'From');
+  const from = parseFromHeader(fromHeader);
+
+  return {
+    user_id: userId,
+    gmail_message_id: message.id,
+    thread_id: message.threadId || null,
+    subject: getHeaderValue(headers, 'Subject'),
+    from_address: from.email,
+    snippet: message.snippet || null,
+    received_at: internalDate ? new Date(internalDate).toISOString() : null,
+    body_text: extractTextPlainBody(message.payload),
+    body_html: extractHtmlBody(message.payload)
+  };
+}
+
+async function insertEmailMessages(supabase, messages) {
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return 0;
+  }
+
+  const { data, error } = await supabase
+    .from('email_messages')
+    .upsert(messages, { onConflict: 'gmail_message_id', ignoreDuplicates: true })
+    .select('id');
+
+  if (error) {
+    throw error;
+  }
+
+  return Array.isArray(data) ? data.length : 0;
+}
+
 function normalizeGmailMessage(account, message) {
   const headers = message.payload?.headers || [];
   const internalDate = message.internalDate ? Number(message.internalDate) : null;
@@ -915,6 +974,115 @@ function registerGmailRoutes(app, supabase) {
     }
   });
 
+
+  app.get('/api/gmail/messages', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const folder = String(req.query.folder || 'INBOX');
+      const account = await getStoredAccount(supabase, user.id);
+      if (!account) {
+        res.status(404).json({ error: 'No Gmail account connected' });
+        return;
+      }
+
+      let accessToken = decrypt(account.access_token);
+      const refreshToken = decrypt(account.refresh_token);
+      const expiry = new Date(account.expiry_ts).getTime();
+      if (Number.isNaN(expiry) || expiry <= Date.now()) {
+        const { credentials } = await refreshAccessToken(refreshToken);
+        if (!credentials.access_token) {
+          res.status(500).json({ error: 'Failed to refresh access token' });
+          return;
+        }
+
+        accessToken = credentials.access_token;
+        const nextExpiry = credentials.expiry_date
+          ? new Date(credentials.expiry_date).toISOString()
+          : new Date(Date.now() + 3600 * 1000).toISOString();
+
+        await upsertAccount(supabase, {
+          user_id: user.id,
+          email: account.email,
+          provider: 'gmail',
+          access_token: encrypt(accessToken),
+          refresh_token: account.refresh_token,
+          expiry_ts: nextExpiry
+        });
+
+        console.log('[GMAIL][MESSAGES] Token refreshed for user', user.id);
+      }
+
+      const messages = await listMessages(accessToken, folder);
+      const metadata = await Promise.all(
+        messages.map((message) => getMessageMetadata(accessToken, message.id))
+      );
+
+      console.log('[GMAIL][MESSAGES] Retrieved metadata count:', metadata.length, 'user:', user.id);
+
+      res.json({ messages: metadata });
+    } catch (error) {
+      console.error('Gmail messages error:', error);
+      res.status(500).json({ error: 'Failed to fetch Gmail messages' });
+    }
+  });
+
+  app.get('/api/gmail/messages/:gmailMessageId', async (req, res) => {
+    try {
+      const user = await requireUser(req, res, supabase);
+      if (!user) {
+        return;
+      }
+
+      const account = await getStoredAccount(supabase, user.id);
+      if (!account) {
+        res.status(404).json({ error: 'No Gmail account connected' });
+        return;
+      }
+
+      let accessToken = decrypt(account.access_token);
+      const refreshToken = decrypt(account.refresh_token);
+      const expiry = new Date(account.expiry_ts).getTime();
+      if (Number.isNaN(expiry) || expiry <= Date.now()) {
+        const { credentials } = await refreshAccessToken(refreshToken);
+        if (!credentials.access_token) {
+          res.status(500).json({ error: 'Failed to refresh access token' });
+          return;
+        }
+
+        accessToken = credentials.access_token;
+      }
+
+      const gmail = getGmailClient(accessToken);
+      const messageResponse = await gmail.users.messages.get({
+        userId: 'me',
+        id: req.params.gmailMessageId,
+        format: 'full'
+      });
+
+      const bodyText = extractTextPlainBody(messageResponse?.data?.payload);
+      const bodyHtml = extractHtmlBody(messageResponse?.data?.payload);
+
+      console.log('[GMAIL][MESSAGE_DETAIL] fetched message', req.params.gmailMessageId, 'user:', user.id);
+
+      res.json({
+        id: messageResponse?.data?.id,
+        threadId: messageResponse?.data?.threadId,
+        snippet: messageResponse?.data?.snippet || null,
+        payload: messageResponse?.data?.payload || null,
+        internalDate: messageResponse?.data?.internalDate || null,
+        body_text: bodyText,
+        body_html: bodyHtml
+      });
+    } catch (error) {
+      console.error('Gmail message detail error:', error);
+      res.status(500).json({ error: 'Failed to fetch Gmail message detail' });
+    }
+  });
+
   app.get('/api/gmail/status', async (req, res) => {
     try {
       const user = await requireUser(req, res, supabase);
@@ -978,6 +1146,8 @@ function registerGmailRoutes(app, supabase) {
         messages.map((message) => getMessageMetadata(accessToken, message.id))
       );
 
+      console.log('[GMAIL][SYNC] fetched Gmail metadata count:', metadata.length, 'user:', user.id, 'folder:', folder);
+
       const normalized = metadata.map((message) => ({
         ...normalizeMessage(message, folder),
         user_id: user.id,
@@ -995,13 +1165,17 @@ function registerGmailRoutes(app, supabase) {
         }
       }
 
+      const emailMessagesPayload = metadata.map((message) => normalizeForEmailMessages(user.id, message));
+      const insertedCount = await insertEmailMessages(supabase, emailMessagesPayload);
+      console.log('[GMAIL][SYNC] upserted into email_messages:', insertedCount, 'of', emailMessagesPayload.length);
+
       const sorted = normalized.sort((a, b) => {
         const aDate = a.internal_date || 0;
         const bDate = b.internal_date || 0;
         return bDate - aDate;
       });
 
-      res.json({ messages: sorted });
+      res.json({ messages: sorted, inserted_count: insertedCount });
     } catch (error) {
       console.error('Gmail sync error:', error);
       res.status(500).json({ error: 'Failed to sync Gmail' });
