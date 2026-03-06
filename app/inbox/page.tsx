@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createClient,
@@ -49,8 +49,42 @@ export default function InboxPage() {
   const router = useRouter();
   const [emails, setEmails] = useState<EmailMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const missingEnv = useMemo(() => !supabase, []);
+
+  const fetchInbox = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    const {
+      data: { user },
+    } = await supabase!.auth.getUser();
+
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+
+    const { data, error } = await supabase!
+      .from("email_messages")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("received_at", { ascending: false })
+      .limit(50);
+
+    if (error) {
+      console.error("[INBOX] Failed to fetch inbox emails", error);
+      setEmails([]);
+      setErrorMessage(error.message || "Unable to load inbox emails.");
+    } else {
+      console.log("[INBOX] fetched email_messages rows:", data?.length ?? 0, "for user", user.id);
+      setEmails((data ?? []) as EmailMessage[]);
+    }
+
+    setLoading(false);
+  }, [router]);
 
   useEffect(() => {
     if (missingEnv) {
@@ -61,34 +95,10 @@ export default function InboxPage() {
     let active = true;
 
     async function loadInbox() {
-      setLoading(true);
-
-      const {
-        data: { user },
-      } = await supabase!.auth.getUser();
-
-      if (!user) {
-        router.replace("/login");
+      await fetchInbox();
+      if (!active) {
         return;
       }
-
-      const { data, error } = await supabase!
-        .from("email_messages")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("received_at", { ascending: false })
-        .limit(50);
-
-      if (!active) return;
-
-      if (error) {
-        console.error("Failed to fetch inbox emails", error);
-        setEmails([]);
-      } else {
-        setEmails((data ?? []) as EmailMessage[]);
-      }
-
-      setLoading(false);
     }
 
     loadInbox();
@@ -96,7 +106,7 @@ export default function InboxPage() {
     return () => {
       active = false;
     };
-  }, [missingEnv, router]);
+  }, [fetchInbox, missingEnv]);
 
   useEffect(() => {
     if (missingEnv) return;
@@ -162,6 +172,35 @@ export default function InboxPage() {
     };
   }, [missingEnv]);
 
+  const handleSync = useCallback(async () => {
+    if (missingEnv) return;
+
+    setSyncing(true);
+    setErrorMessage(null);
+
+    try {
+      const response = await fetch("/api/gmail/sync", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const payload = (await response.json()) as { error?: string; inserted_count?: number };
+
+      if (!response.ok) {
+        throw new Error(payload?.error || "Failed to sync Gmail.");
+      }
+
+      console.log("[INBOX] manual sync completed, inserted_count:", payload?.inserted_count ?? 0);
+      await fetchInbox();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to sync Gmail.";
+      console.error("[INBOX] manual sync failed", error);
+      setErrorMessage(`Unable to sync Gmail: ${message}`);
+    } finally {
+      setSyncing(false);
+    }
+  }, [fetchInbox, missingEnv]);
+
   if (missingEnv) {
     return (
       <main className="mx-auto w-full max-w-7xl p-6">
@@ -176,9 +215,22 @@ export default function InboxPage() {
 
   return (
     <main className="mx-auto flex h-[calc(100vh-2rem)] w-full max-w-7xl flex-col p-6">
-      <header className="mb-4">
-        <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
-        <p className="mt-1 text-sm text-slate-500">Latest 50 messages from your synced mailbox.</p>
+      <header className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">Inbox</h1>
+          <p className="mt-1 text-sm text-slate-500">Latest 50 messages from your synced mailbox.</p>
+          {errorMessage ? (
+            <p className="mt-2 text-sm text-rose-600">{errorMessage}</p>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          onClick={handleSync}
+          disabled={syncing}
+          className="rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {syncing ? "Syncing…" : "Sync"}
+        </button>
       </header>
 
       <section className="min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
