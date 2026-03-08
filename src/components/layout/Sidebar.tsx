@@ -1,11 +1,9 @@
 import {
   LayoutDashboard,
   Inbox,
-  GitBranch,
   CircleHelp,
   PanelLeftClose,
   PanelLeftOpen,
-  Tag,
   PenSquare,
   Clock3,
   AtSign,
@@ -23,8 +21,6 @@ const SIDEBAR_VISIBLE_ITEMS_STORAGE_KEY = 'xproflow.sidebar.visible-items';
 const primaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { label: 'Inbox', to: '/inbox', icon: Inbox },
-  { label: 'Labels', to: '/labels', icon: Tag },
-  { label: 'Rules', to: '/rules', icon: GitBranch },
   { label: 'Drafting', to: '/settings/drafts', icon: PenSquare },
   { label: 'Writing Style', to: '/writing-style', icon: PenSquare },
   { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
