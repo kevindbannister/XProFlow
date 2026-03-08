@@ -290,6 +290,7 @@ const AppLayout = () => {
                 isOpen={isUserMenuOpen}
                 onOpenChange={setIsUserMenuOpen}
                 align="left"
+                side="right"
                 trigger={(
                   <button type="button" aria-label="Open user menu" className="rounded-full border border-transparent p-0.5 transition hover:border-slate-300/40">
                     <Avatar

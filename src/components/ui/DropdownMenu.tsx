@@ -8,6 +8,7 @@ type DropdownMenuProps = {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   align?: 'left' | 'right';
+  side?: 'bottom' | 'right';
 };
 
 export const DropdownMenu = ({
@@ -15,7 +16,8 @@ export const DropdownMenu = ({
   children,
   isOpen,
   onOpenChange,
-  align = 'right'
+  align = 'right',
+  side = 'bottom'
 }: DropdownMenuProps) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerElement = isValidElement(trigger)
@@ -73,9 +75,14 @@ export const DropdownMenu = ({
         role="menu"
         aria-hidden={!isOpen}
         className={classNames(
-          'dropdown-surface absolute top-full z-30 mt-2 min-w-[180px] rounded-2xl border p-2 backdrop-blur-xl transition',
-          align === 'right' ? 'right-0' : 'left-0',
-          isOpen ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
+          'dropdown-surface absolute z-30 min-w-[180px] rounded-2xl border p-2 backdrop-blur-xl transition',
+          side === 'bottom' ? 'top-full mt-2' : 'top-0 ml-2',
+          side === 'bottom'
+            ? (align === 'right' ? 'right-0' : 'left-0')
+            : 'left-full',
+          isOpen
+            ? 'translate-x-0 translate-y-0 opacity-100'
+            : `pointer-events-none opacity-0 ${side === 'bottom' ? '-translate-y-2' : '-translate-x-2'}`
         )}
       >
         {children}
