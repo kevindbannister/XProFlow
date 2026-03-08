@@ -1,0 +1,74 @@
+:root {
+  --flow-gradient: linear-gradient(90deg, #4a8dff, #6ec3ff, #9ad7ff);
+  --flow-bg-image: url('/FlowBackground.svg');
+  --flow-bg-opacity: 0.14;
+  --flow-bg-filter: saturate(1) brightness(1);
+}
+
+.theme-dark {
+  --flow-bg-image: url('/FlowBackground.svg');
+  --flow-bg-opacity: 0.12;
+  --flow-bg-filter: hue-rotate(195deg) saturate(0.95) brightness(0.48);
+}
+
+@keyframes flowMove {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(40px);
+  }
+}
+
+.flow-background {
+  position: relative;
+  isolation: isolate;
+}
+
+.flow-background__overlay {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.flow-background__graphic {
+  position: absolute;
+  top: -5rem;
+  right: -10rem;
+  width: min(52rem, 90vw);
+  height: min(36rem, 70vh);
+  background-image: var(--flow-bg-image);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: top right;
+  opacity: var(--flow-bg-opacity);
+  filter: var(--flow-bg-filter);
+  animation: flowMove 24s ease-in-out infinite alternate;
+}
+
+.flow-background__content {
+  position: relative;
+  z-index: 1;
+}
+
+.flow-active-surface {
+  background: var(--flow-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+}
+
+.flow-primary-button {
+  background: var(--flow-gradient);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 10px 20px rgba(74, 141, 255, 0.25);
+}
+
+.flow-primary-button:hover {
+  filter: brightness(1.05);
+}

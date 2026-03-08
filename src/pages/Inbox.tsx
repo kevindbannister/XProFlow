@@ -145,7 +145,7 @@ const Inbox = () => {
         </div>
         {isConnected ? (
           <Button
-            variant="outline"
+            variant="default"
             size="sm"
             type="button"
             onClick={handleSync}
@@ -206,7 +206,7 @@ const Inbox = () => {
                   onClick={() => setSelectedFolder(folder.id)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                     selectedFolder === folder.id
-                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                      ? 'flow-active-surface text-white'
                       : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                   }`}
                 >

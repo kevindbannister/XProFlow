@@ -33,6 +33,7 @@ import { getUserInitials, useUser } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { applyThemeMode, getInitialThemeMode, type ThemeMode } from '../../lib/theme';
 import { classNames } from '../../lib/utils';
+import FlowBackground from '../theme/FlowBackground';
 
 const routeMeta: Record<string, { title: string }> = {
   '/dashboard': { title: 'Dashboard' },
@@ -132,7 +133,7 @@ const ContextSidebar = ({ locationPath, isCollapsed }: { locationPath: string; i
                     className={classNames(
                       'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm',
                       isActive
-                        ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-sm'
+                        ? 'flow-active-surface text-white shadow-sm'
                         : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
                     )}
                   >
@@ -162,7 +163,7 @@ const ContextSidebar = ({ locationPath, isCollapsed }: { locationPath: string; i
                   classNames(
                     'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
                     isActive
-                      ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white'
+                      ? 'flow-active-surface text-white'
                       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
                   )
                 }
@@ -214,7 +215,8 @@ const AppLayout = () => {
 
 
   return (
-    <div className="flex h-screen theme-text-primary bg-slate-50 dark:bg-slate-950">
+    <FlowBackground>
+      <div className="flex h-screen theme-text-primary bg-slate-50 dark:bg-slate-950">
       <div
         className={classNames(
           'flex flex-col bg-white dark:bg-slate-950 border-r dark:border-slate-800 transition-all duration-200',
@@ -239,7 +241,7 @@ const AppLayout = () => {
                     classNames(
                       'flex h-10 w-10 items-center justify-center rounded-xl transition',
                       isActive
-                        ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
+                        ? 'flow-active-surface text-white'
                         : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
                     )
                   }
@@ -257,7 +259,7 @@ const AppLayout = () => {
                   classNames(
                     'flex h-10 w-10 items-center justify-center rounded-xl transition',
                     isActive
-                      ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
+                      ? 'flow-active-surface text-white'
                       : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
                   )
                 }
@@ -329,7 +331,8 @@ const AppLayout = () => {
         ) : null}
         <Outlet />
       </main>
-    </div>
+      </div>
+    </FlowBackground>
   );
 };
 
