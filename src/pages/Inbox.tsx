@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { api } from '../lib/api';
@@ -197,112 +196,87 @@ const Inbox = () => {
           </Button>
         </Card>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[220px_1fr]">
-          <Card className="p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">Folders</p>
-            <div className="mt-4 space-y-1">
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+          <div className="border-b border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70">
+            <div className="flex flex-wrap gap-2">
               {folders.map((folder, index) => (
                 <button
                   key={`${folder.label}-${index}`}
                   type="button"
                   onClick={() => setSelectedFolder(folder.id)}
-                  className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-sm font-medium transition ${
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
                     selectedFolder === folder.id
                       ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                      : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <span>{folder.label}</span>
+                  {folder.label}
                 </button>
               ))}
             </div>
-          </Card>
-
-          <div className="space-y-6">
-            <Card className="p-4">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search or ask XProFlow a question"
-                  className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                />
-              </div>
-            </Card>
-
-            {successMessage ? (
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-                {successMessage}
-              </div>
-            ) : null}
-            {isLoading ? (
-              <p className="text-sm text-slate-500 dark:text-slate-300">Loading inbox…</p>
-            ) : (
-              <div className="space-y-6">
-                {sections.map((section) => (
-                  <div key={section.key} className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
-                        {section.title}
-                      </h2>
-                      <span className="text-xs text-slate-400 dark:text-slate-500">
-                        {section.messages.length} messages
-                      </span>
-                    </div>
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-                      {section.messages.length === 0 ? (
-                        <div className="px-6 py-8 text-sm text-slate-400 dark:text-slate-500">
-                          No messages in this section.
-                        </div>
-                      ) : (
-                        <div className="divide-y divide-slate-200/70 dark:divide-slate-800">
-                          {section.messages.map((message) => (
-                            <div
-                              key={message.external_id}
-                              className="flex items-center gap-4 px-6 py-4 transition hover:bg-slate-50 dark:hover:bg-slate-900"
-                            >
-                              <span
-                                className={`h-2 w-2 flex-shrink-0 rounded-full ${
-                                  message.is_unread ? 'bg-sky-500' : 'bg-slate-200'
-                                }`}
-                              />
-                              <div className="min-w-0 flex-1 space-y-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                    {message.from_name || message.from_email || 'Unknown'}
-                                  </p>
-                                  <span className="hidden h-1 w-1 rounded-full bg-slate-300 dark:bg-slate-600 sm:inline-block" />
-                                  <p className="text-sm text-slate-600 dark:text-slate-300">{message.subject}</p>
-                                </div>
-                                <p className="truncate text-xs text-slate-400 dark:text-slate-500">
-                                  {message.snippet}
-                                </p>
-                              </div>
-                              <div className="flex flex-col items-end gap-2 text-right">
-                                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-                                  {formatTime(message)}
-                                </span>
-                                {message.status && message.status !== 'NONE' ? (
-                                  <span
-                                    className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                                      statusStyles[message.status] ||
-                                      'bg-slate-100 text-slate-600'
-                                    }`}
-                                  >
-                                    {message.status.toLowerCase()}
-                                  </span>
-                                ) : null}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+
+          {successMessage ? (
+            <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
+              {successMessage}
+            </div>
+          ) : null}
+
+          {isLoading ? (
+            <p className="px-6 py-8 text-sm text-slate-500 dark:text-slate-300">Loading inbox…</p>
+          ) : (
+            <div>
+              {sections.map((section) => (
+                <div key={section.key} className="border-b border-slate-200 last:border-b-0 dark:border-slate-800">
+                  <div className="px-6 pb-3 pt-6 text-xl font-normal text-slate-500 dark:text-slate-300">
+                    {section.title}
+                  </div>
+                  {section.messages.length === 0 ? (
+                    <div className="px-6 pb-6 text-sm text-slate-400 dark:text-slate-500">
+                      No messages in this section.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-200/80 dark:divide-slate-800">
+                      {section.messages.map((message) => (
+                        <div
+                          key={message.external_id}
+                          className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-6 py-4 transition hover:bg-slate-50 dark:hover:bg-slate-900"
+                        >
+                          <div className="min-w-0 flex items-center gap-4">
+                            <p className="w-44 shrink-0 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+                              {message.from_name || message.from_email || 'Unknown'}
+                            </p>
+                            <div className="min-w-0 flex items-center gap-2 text-sm">
+                              <p className="truncate text-slate-800 dark:text-slate-100">{message.subject}</p>
+                              {message.snippet ? (
+                                <p className="hidden truncate text-slate-400 sm:block dark:text-slate-500">
+                                  — {message.snippet}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-right">
+                            {message.status && message.status !== 'NONE' ? (
+                              <span
+                                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                                  statusStyles[message.status] || 'bg-slate-100 text-slate-600'
+                                }`}
+                              >
+                                {message.status}
+                              </span>
+                            ) : null}
+                            <span className="w-16 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                              {formatTime(message)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </section>
