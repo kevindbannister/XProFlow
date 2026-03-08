@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Topbar from './Topbar';
 
 const routeMeta: Record<string, { title: string }> = {
   '/dashboard': { title: 'Dashboard' },
@@ -18,13 +17,13 @@ const routeMeta: Record<string, { title: string }> = {
 const AppLayout = () => {
   const location = useLocation();
   const meta = routeMeta[location.pathname];
+  const isInboxRoute = location.pathname.startsWith('/inbox');
 
   return (
-    <div className="app-shell-bg min-h-screen theme-text-primary">
-      <Topbar />
+    <div className="flex h-screen bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100">
       <Sidebar />
-      <main className="app-main-bg ml-12 mt-11 h-[calc(100vh-2.75rem)] overflow-y-auto p-6">
-        {meta?.title ? (
+      <main className="flex-1 overflow-auto p-6">
+        {!isInboxRoute && meta?.title ? (
           <header className="mb-6">
             <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">{meta.title}</h1>
           </header>

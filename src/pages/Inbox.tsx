@@ -12,7 +12,6 @@ const folders: { id: InboxFolder; label: string }[] = [
   { id: 'INBOX', label: 'Main' },
   { id: 'PROMOTIONS', label: 'Promotions' },
   { id: 'DRAFT', label: 'Drafts' },
-  { id: 'ALL', label: 'Recents' },
   { id: 'SPAM', label: 'Spam' },
   { id: 'TRASH', label: 'Trash' },
   { id: 'ALL', label: 'All' }
@@ -132,7 +131,7 @@ const Inbox = () => {
   const isLoadingState = isAuthLoading || (isConnected && isLoading);
 
   return (
-    <section className="max-w-4xl space-y-6">
+    <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Inbox</h1>
