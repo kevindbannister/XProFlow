@@ -17,7 +17,7 @@ const Signup = () => {
       await api.post('/api/auth/signup', { email, password, organisationName });
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) throw signInError;
-      navigate('/dashboard');
+      navigate('/inbox');
     } catch (signupError) {
       setError(signupError instanceof Error ? signupError.message : 'Signup failed');
     }
