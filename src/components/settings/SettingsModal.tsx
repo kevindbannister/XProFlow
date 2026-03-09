@@ -1,5 +1,12 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import Labels from '../../pages/Labels';
+import Billing from '../../pages/Billing';
+import Integrations from '../../pages/Integrations';
+import Rules from '../../pages/Rules';
+import AccountSettings from '../../pages/settings/AccountSettings';
+import SignatureTimeZoneSettings from '../../pages/settings/SignatureTimeZoneSettings';
+import WritingStyleSettings from '../../pages/settings/WritingStyleSettings';
 import { classNames } from '../../lib/utils';
 
 type ModalProps = {
@@ -42,21 +49,26 @@ const sidebarItems = [
   { label: 'Rules', value: 'rules' },
   { label: 'Labels', value: 'labels' },
   { label: 'Writing Style', value: 'writing-style' },
-  { label: 'Signature & Time Zone', value: 'signature-time-zone' },
-  { label: 'Sidebar', value: 'sidebar' },
-  { label: 'Integrations', value: 'integrations' },
-  { label: 'Advanced', value: 'advanced' },
-  { label: 'Billing & Usage', value: 'billing-usage' },
+  { label: 'Signature', value: 'signature' },
   { label: 'Account', value: 'account' },
-  { label: 'Team', value: 'team' },
-  { label: 'Changelog', value: 'changelog' },
-  { label: 'Learn', value: 'learn' },
+  { label: 'Billing', value: 'billing' },
+  { label: 'Integrations', value: 'integrations' }
 ] as const;
 
-export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
-  const [activeTab, setActiveTab] = useState('writing-style');
+type SettingsTab = (typeof sidebarItems)[number]['value'];
 
-  const activeItem = sidebarItems.find((item) => item.value === activeTab) ?? sidebarItems[2];
+const settingsContent: Record<SettingsTab, ReactNode> = {
+  rules: <Rules />,
+  labels: <Labels />,
+  'writing-style': <WritingStyleSettings />,
+  signature: <SignatureTimeZoneSettings />,
+  account: <AccountSettings />,
+  billing: <Billing />,
+  integrations: <Integrations />
+};
+
+export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
+  const [activeTab, setActiveTab] = useState<SettingsTab>('writing-style');
 
   return (
     <Modal open={open} onClose={onClose}>
@@ -84,12 +96,7 @@ export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
           </nav>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-8">
-          <h2 className="text-2xl font-semibold text-foreground">{activeItem.label}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            This area displays the selected settings page content.
-          </p>
-        </main>
+        <main className="flex-1 overflow-y-auto p-8">{settingsContent[activeTab]}</main>
       </section>
     </Modal>
   );
