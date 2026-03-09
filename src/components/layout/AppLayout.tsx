@@ -22,7 +22,6 @@ import {
   Clock3,
   Tag,
   Sparkles,
-  Bot,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -60,8 +59,6 @@ const settingsRoutes = [
 
 const iconNav = [
   { label: 'Inbox', to: '/inbox', icon: Inbox },
-  { label: 'Automation', to: '/rules', icon: Bot },
-  { label: 'Content', to: '/settings/drafts', icon: PenSquare },
 ] as const;
 
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'xproflow.sidebar.collapsed';

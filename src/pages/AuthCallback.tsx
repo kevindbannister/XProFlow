@@ -80,7 +80,7 @@ const AuthCallback = () => {
         }
 
         setMsg('Signed in. Redirecting…');
-        navigate('/dashboard', { replace: true });
+        navigate('/inbox', { replace: true });
       } catch (callbackError) {
         console.error('Unexpected OAuth callback failure:', callbackError);
         navigate('/login?error=oauth_callback', { replace: true });

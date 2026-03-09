@@ -47,12 +47,12 @@ const App = () => {
   return (
     <AppBootGate>
       <Routes>
-        <Route path="login" element={hasSession ? <Navigate to="/dashboard" replace /> : <Login />} />
-        <Route path="signup" element={hasSession ? <Navigate to="/dashboard" replace /> : <Signup />} />
+        <Route path="login" element={hasSession ? <Navigate to="/inbox" replace /> : <Login />} />
+        <Route path="signup" element={hasSession ? <Navigate to="/inbox" replace /> : <Signup />} />
         <Route path="auth/callback" element={<AuthCallback />} />
         <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route path="billing" element={<Billing />} />
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="/inbox" replace />} />
           <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
           <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
           <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
@@ -69,7 +69,7 @@ const App = () => {
           <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
           <Route path="settings/firm" element={<RequireProductAccess><FirmSettings /></RequireProductAccess>} />
           <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/inbox" replace />} />
         </Route>
       </Routes>
     </AppBootGate>
