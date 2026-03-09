@@ -39,7 +39,7 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
     >
       <div
         className={classNames(
-          'w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-background shadow-2xl transition-all duration-200 ease-out',
+          'w-full max-w-6xl overflow-hidden rounded-2xl border border-white/40 bg-background/75 shadow-2xl backdrop-blur-xl supports-[backdrop-filter]:bg-background/65 transition-all duration-200 ease-out',
           isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         )}
         role="dialog"
@@ -92,8 +92,8 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <section className="flex h-[80vh] min-h-[560px] w-full">
-        <aside className="w-64 border-r bg-muted/20 p-4">
+      <section className="flex h-[80vh] min-h-[560px] w-full bg-gradient-to-br from-white/35 via-white/20 to-white/10">
+        <aside className="w-64 border-r border-white/30 bg-white/35 p-4 backdrop-blur-md">
           <nav className="space-y-1" aria-label="Settings sections">
             {sidebarItems.map((item) => {
               const isActive = item.value === activeTab;
@@ -116,7 +116,7 @@ export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
           </nav>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-8">{settingsContent[activeTab]}</main>
+        <main className="flex-1 overflow-y-auto bg-white/40 p-8 backdrop-blur-sm">{settingsContent[activeTab]}</main>
       </section>
     </Modal>
   );
