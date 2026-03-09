@@ -116,66 +116,83 @@ const ContextSidebar = ({ locationPath, isCollapsed }: { locationPath: string; i
         isCollapsed ? 'w-0 overflow-hidden border-r-0 px-0' : 'w-64 px-3'
       )}
     >
-      {isInbox ? (
-        <nav className="flex h-full flex-col gap-4" aria-label="Inbox folders">
-          {inboxGroups.map((group, index) => (
-            <div key={index} className="border-b border-slate-200 pb-3 last:border-b-0 dark:border-slate-800">
-              {group.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = item.label === 'Inbox';
-                const hasCountBadge = item.label === 'To Respond';
-                const hasAiBadge = item.label === 'Comment';
-                return (
-                  <button
-                    key={item.label}
-                    type="button"
-                    className={classNames(
-                      'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm',
+      <div className="flex h-full flex-col justify-between">
+        {isInbox ? (
+          <nav className="flex flex-col gap-4" aria-label="Inbox folders">
+            {inboxGroups.map((group, index) => (
+              <div key={index} className="border-b border-slate-200 pb-3 last:border-b-0 dark:border-slate-800">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = item.label === 'Inbox';
+                  const hasCountBadge = item.label === 'To Respond';
+                  const hasAiBadge = item.label === 'Comment';
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      className={classNames(
+                        'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm',
+                        isActive
+                          ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-sm'
+                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
+                      )}
+                    >
+                      <Icon className={classNames('h-5 w-5', isActive ? 'text-white' : 'text-slate-500')} />
+                      <span className="flex-1 text-left font-medium">{item.label}</span>
+                      {hasCountBadge ? (
+                        <span className="rounded-md bg-amber-400 px-2 py-0.5 text-xs font-semibold text-white">2</span>
+                      ) : null}
+                      {hasAiBadge ? (
+                        <span className="rounded-md bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">AI</span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+        ) : isSettings ? (
+          <nav className="flex flex-col gap-1" aria-label="Settings navigation">
+            {settingsItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.label}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    classNames(
+                      'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
                       isActive
-                        ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-sm'
-                        : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
-                    )}
-                  >
-                    <Icon className={classNames('h-5 w-5', isActive ? 'text-white' : 'text-slate-500')} />
-                    <span className="flex-1 text-left font-medium">{item.label}</span>
-                    {hasCountBadge ? (
-                      <span className="rounded-md bg-amber-400 px-2 py-0.5 text-xs font-semibold text-white">2</span>
-                    ) : null}
-                    {hasAiBadge ? (
-                      <span className="rounded-md bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">AI</span>
-                    ) : null}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
-      ) : isSettings ? (
-        <nav className="flex flex-col gap-1" aria-label="Settings navigation">
-          {settingsItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.label}
-                to={item.to}
-                className={({ isActive }) =>
-                  classNames(
-                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
-                    isActive
-                      ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
-                  )
-                }
-              >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
-      ) : (
-        <div className="text-sm text-slate-500 dark:text-slate-400">Select an area from the left sidebar.</div>
-      )}
+                        ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white'
+                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
+                    )
+                  }
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        ) : (
+          <div className="text-sm text-slate-500 dark:text-slate-400">Select an area from the left sidebar.</div>
+        )}
+
+        <NavLink
+          to="/labels"
+          className={({ isActive }) =>
+            classNames(
+              'mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
+              isActive
+                ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
+            )
+          }
+        >
+          <Settings className="h-4 w-4" />
+          <span>Settings</span>
+        </NavLink>
+      </div>
     </aside>
   );
 };
@@ -250,23 +267,6 @@ const AppLayout = () => {
             })}
             </div>
             <div className="flex flex-col items-center gap-2">
-              <NavLink
-                to="/labels"
-                aria-label="Settings"
-                className={({ isActive }) =>
-                  classNames(
-                    'flex h-10 w-10 items-center justify-center rounded-xl transition',
-                    isActive
-                      ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
-                      : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
-                  )
-                }
-              >
-                <Settings className="h-5 w-5" />
-              </NavLink>
-              <button type="button" aria-label="Notifications" className={iconButtonClassName}>
-                <Bell className="h-4 w-4" />
-              </button>
               <button
                 type="button"
                 aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
