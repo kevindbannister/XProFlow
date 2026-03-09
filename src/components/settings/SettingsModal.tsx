@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { classNames } from '../../lib/utils';
 
@@ -13,7 +13,12 @@ const Modal = ({ open, onClose, children }: ModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-      <div className="w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-background shadow-2xl">
+      <div
+        className="w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-background shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Settings"
+      >
         <button
           type="button"
           aria-label="Close settings modal"
@@ -51,14 +56,11 @@ const sidebarItems = [
 export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState('writing-style');
 
-  const activeItem = useMemo(
-    () => sidebarItems.find((item) => item.value === activeTab) ?? sidebarItems[2],
-    [activeTab]
-  );
+  const activeItem = sidebarItems.find((item) => item.value === activeTab) ?? sidebarItems[2];
 
   return (
     <Modal open={open} onClose={onClose}>
-      <section className="flex h-[80vh] min-h-[560px] w-full" role="dialog" aria-modal="true" aria-label="Settings">
+      <section className="flex h-[80vh] min-h-[560px] w-full">
         <aside className="w-64 border-r bg-muted/20 p-4">
           <nav className="space-y-1" aria-label="Settings sections">
             {sidebarItems.map((item) => {
