@@ -75,8 +75,8 @@ export const DropdownMenu = ({
         role="menu"
         aria-hidden={!isOpen}
         className={classNames(
-          'dropdown-surface absolute z-30 min-w-[180px] rounded-2xl border p-2 backdrop-blur-xl transition',
-          side === 'bottom' ? 'top-full mt-2' : 'top-0 ml-2',
+          'dropdown-surface absolute z-30 min-w-[180px] max-h-[calc(100vh-1rem)] overflow-y-auto rounded-2xl border p-2 backdrop-blur-xl transition',
+          side === 'bottom' ? 'top-full mt-2' : 'bottom-0 ml-2',
           side === 'bottom'
             ? (align === 'right' ? 'right-0' : 'left-0')
             : 'left-full',
