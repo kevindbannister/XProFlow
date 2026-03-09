@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import Labels from '../../pages/Labels';
 import Billing from '../../pages/Billing';
@@ -16,12 +16,32 @@ type ModalProps = {
 };
 
 const Modal = ({ isOpen, onClose, children }: ModalProps) => {
-  if (!isOpen) return null;
+  const [isMounted, setIsMounted] = useState(isOpen);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsMounted(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setIsMounted(false), 200);
+    return () => window.clearTimeout(timeout);
+  }, [isOpen]);
+
+  if (!isMounted) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+    <div
+      className={classNames(
+        'fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 transition-opacity duration-200',
+        isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+      )}
+    >
       <div
-        className="w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-background shadow-2xl"
+        className={classNames(
+          'w-full max-w-6xl overflow-hidden rounded-2xl border border-slate-200 bg-background shadow-2xl transition-all duration-200 ease-out',
+          isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        )}
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
