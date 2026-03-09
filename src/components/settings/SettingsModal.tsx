@@ -10,13 +10,13 @@ import WritingStyleSettings from '../../pages/settings/WritingStyleSettings';
 import { classNames } from '../../lib/utils';
 
 type ModalProps = {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
   children: ReactNode;
 };
 
-const Modal = ({ open, onClose, children }: ModalProps) => {
-  if (!open) return null;
+const Modal = ({ isOpen, onClose, children }: ModalProps) => {
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
@@ -41,7 +41,7 @@ const Modal = ({ open, onClose, children }: ModalProps) => {
 };
 
 type SettingsModalProps = {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
 };
 
@@ -67,11 +67,11 @@ const settingsContent: Record<SettingsTab, ReactNode> = {
   integrations: <Integrations />
 };
 
-export const SettingsModal = ({ open, onClose }: SettingsModalProps) => {
+export const SettingsModal = ({ isOpen, onClose }: SettingsModalProps) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('writing-style');
 
   return (
-    <Modal open={open} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose}>
       <section className="flex h-[80vh] min-h-[560px] w-full">
         <aside className="w-64 border-r bg-muted/20 p-4">
           <nav className="space-y-1" aria-label="Settings sections">
