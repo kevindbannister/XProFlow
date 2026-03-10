@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
+  ChevronLeft,
+  ChevronRight,
   CircleHelp,
   Inbox,
   Home,
@@ -49,6 +51,7 @@ const AppLayout = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   useEffect(() => {
     applyThemeMode(themeMode);
   }, [themeMode]);
@@ -65,14 +68,23 @@ const AppLayout = () => {
 
   return (
     <div className="flex h-screen theme-text-primary bg-slate-50 dark:bg-slate-950">
-      <div className="flex w-16 flex-col border-r bg-white transition-all duration-200 dark:border-slate-800 dark:bg-slate-950">
-        <div className="flex h-16 items-center justify-center border-b border-slate-200 px-2 dark:border-slate-800">
+      <div className={classNames(
+        'flex flex-col border-r bg-white transition-all duration-200 dark:border-slate-800 dark:bg-slate-950',
+        isSidebarExpanded ? 'w-56' : 'w-16'
+      )}>
+        <div className={classNames(
+          'flex h-16 border-b border-slate-200 px-2 dark:border-slate-800',
+          isSidebarExpanded ? 'items-center justify-start' : 'items-center justify-center'
+        )}>
           <AppLogo className="h-8 w-auto" />
         </div>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="w-16 bg-white flex flex-col justify-between py-4 items-center dark:bg-slate-950">
-            <div className="flex flex-col items-center gap-2" aria-label="Primary areas" role="navigation">
+          <aside className={classNames(
+            'flex w-full flex-col justify-between bg-white py-4 dark:bg-slate-950',
+            isSidebarExpanded ? 'px-3' : 'items-center'
+          )}>
+            <div className={classNames('flex gap-2', isSidebarExpanded ? 'flex-col' : 'flex-col items-center')} aria-label="Primary areas" role="navigation">
               {iconNav.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -82,7 +94,8 @@ const AppLayout = () => {
                     aria-label={item.label}
                     className={({ isActive }) =>
                       classNames(
-                        'flex h-10 w-10 items-center justify-center rounded-xl transition',
+                        'flex items-center rounded-xl transition',
+                        isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center',
                         isActive
                           ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
                           : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
@@ -90,29 +103,44 @@ const AppLayout = () => {
                     }
                   >
                     <Icon className="h-5 w-5" />
+                    {isSidebarExpanded ? <span className="text-sm font-medium">{item.label}</span> : null}
                   </NavLink>
                 );
               })}
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className={classNames('flex flex-col gap-2', isSidebarExpanded ? '' : 'items-center')}>
               <button
                 type="button"
                 aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 onClick={toggleTheme}
-                className={iconButtonClassName}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
               >
                 {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {isSidebarExpanded ? (
+                  <span className="text-sm">{themeMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+                ) : null}
               </button>
-              <button type="button" aria-label="Help" className={iconButtonClassName}>
+              <button type="button" aria-label="Help" className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}>
                 <CircleHelp className="h-4 w-4" />
+                {isSidebarExpanded ? <span className="text-sm">Help</span> : null}
               </button>
               <button
                 type="button"
                 aria-label="Open settings"
                 onClick={() => setSettingsOpen(true)}
-                className={iconButtonClassName}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
               >
                 <Settings className="h-4 w-4" />
+                {isSidebarExpanded ? <span className="text-sm">Settings</span> : null}
+              </button>
+              <button
+                type="button"
+                aria-label={isSidebarExpanded ? 'Collapse left menu' : 'Expand left menu'}
+                onClick={() => setIsSidebarExpanded((currentState) => !currentState)}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
+              >
+                {isSidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {isSidebarExpanded ? <span className="text-sm">Collapse menu</span> : null}
               </button>
               <DropdownMenu
                 isOpen={isUserMenuOpen}
