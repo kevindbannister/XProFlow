@@ -1,29 +1,14 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Bell,
-  BriefcaseBusiness,
+  ChevronLeft,
+  ChevronRight,
   CircleHelp,
-  FileText,
-  GitBranch,
   Inbox,
-  Mail,
-  MessageCircle,
+  Home,
   Moon,
-  PenSquare,
   Settings,
   Sun,
-  Trash2,
-  Archive,
-  Send,
-  ShieldAlert,
-  Building2,
-  AtSign,
-  Clock3,
-  Tag,
-  Sparkles,
-  PanelLeftClose,
-  PanelLeftOpen,
 } from 'lucide-react';
 import AppLogo from '../branding/AppLogo';
 import { Avatar } from '../ui/Avatar';
@@ -35,6 +20,7 @@ import { classNames } from '../../lib/utils';
 import { SettingsModal } from '../settings/SettingsModal';
 
 const routeMeta: Record<string, { title: string }> = {
+  '/home': { title: 'Home' },
   '/dashboard': { title: 'Dashboard' },
   '/rules': { title: 'Rules' },
   '/settings/drafts': { title: 'Drafting' },
@@ -47,155 +33,14 @@ const routeMeta: Record<string, { title: string }> = {
   '/profile': { title: 'Profile' },
 };
 
-const settingsRoutes = [
-  '/labels',
-  '/rules',
-  '/settings/drafts',
-  '/writing-style',
-  '/signature-time-zone',
-  '/settings/professional-context',
-  '/account-settings',
-  '/settings/firm',
-];
-
 const iconNav = [
+  { label: 'Home', to: '/home', icon: Home },
   { label: 'Inbox', to: '/inbox', icon: Inbox },
 ] as const;
 
-const SIDEBAR_COLLAPSED_STORAGE_KEY = 'xproflow.sidebar.collapsed';
-
-const inboxGroups = [
-  {
-    items: [
-      { label: 'Inbox', icon: Mail },
-      { label: 'To Respond', icon: MessageCircle },
-      { label: 'Comment', icon: MessageCircle },
-      { label: 'Notification', icon: Bell },
-      { label: 'Meeting Update', icon: Sparkles },
-      { label: 'Awaiting Reply', icon: MessageCircle },
-    ],
-  },
-  {
-    items: [
-      { label: 'Drafts', icon: FileText },
-      { label: 'Sent', icon: Send },
-      { label: 'Archive', icon: Archive },
-      { label: 'Spam', icon: ShieldAlert },
-      { label: 'Trash', icon: Trash2 },
-    ],
-  },
-  {
-    items: [{ label: 'Help', icon: CircleHelp }],
-  },
-] as const;
-
-const settingsItems = [
-  { label: 'Labels', to: '/labels', icon: Tag },
-  { label: 'Rules', to: '/rules', icon: GitBranch },
-  { label: 'Drafting', to: '/settings/drafts', icon: PenSquare },
-  { label: 'Writing Style', to: '/writing-style', icon: PenSquare },
-  { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
-  { label: 'Professional Context', to: '/settings/professional-context', icon: BriefcaseBusiness },
-  { label: 'Account', to: '/account-settings', icon: AtSign },
-  { label: 'Firm Settings', to: '/settings/firm', icon: Building2 },
-] as const;
 
 const iconButtonClassName =
   'theme-text-muted flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-900 dark:hover:text-white';
-
-const ContextSidebar = ({
-  locationPath,
-  isCollapsed,
-  onOpenSettings,
-}: {
-  locationPath: string;
-  isCollapsed: boolean;
-  onOpenSettings: () => void;
-}) => {
-  const isInbox = locationPath.startsWith('/inbox');
-  const isSettings = settingsRoutes.some((route) => locationPath.startsWith(route));
-
-  return (
-    <aside
-      className={classNames(
-        'border-r bg-white/95 py-5 dark:bg-slate-950 dark:border-slate-800 transition-all duration-200 backdrop-blur-sm',
-        isCollapsed ? 'w-0 overflow-hidden border-r-0 px-0' : 'w-64 px-3'
-      )}
-    >
-      <div className="flex h-full flex-col justify-between">
-        {isInbox ? (
-          <nav className="flex flex-col gap-4" aria-label="Inbox folders">
-            {inboxGroups.map((group, index) => (
-              <div key={index} className="border-b border-slate-200 pb-3 last:border-b-0 dark:border-slate-800">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = item.label === 'Inbox';
-                  const hasCountBadge = item.label === 'To Respond';
-                  const hasAiBadge = item.label === 'Comment';
-                  return (
-                    <button
-                      key={item.label}
-                      type="button"
-                      className={classNames(
-                        'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm',
-                        isActive
-                          ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white shadow-sm'
-                          : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
-                      )}
-                    >
-                      <Icon className={classNames('h-5 w-5', isActive ? 'text-white' : 'text-slate-500')} />
-                      <span className="flex-1 text-left font-medium">{item.label}</span>
-                      {hasCountBadge ? (
-                        <span className="rounded-md bg-amber-400 px-2 py-0.5 text-xs font-semibold text-white">2</span>
-                      ) : null}
-                      {hasAiBadge ? (
-                        <span className="rounded-md bg-sky-500 px-2 py-0.5 text-xs font-semibold text-white">AI</span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </nav>
-        ) : isSettings ? (
-          <nav className="flex flex-col gap-1" aria-label="Settings navigation">
-            {settingsItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.label}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    classNames(
-                      'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition',
-                      isActive
-                        ? 'bg-gradient-to-r from-sky-500 to-blue-500 text-white'
-                        : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900'
-                    )
-                  }
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
-        ) : (
-          <div className="text-sm text-slate-500 dark:text-slate-400">Select an area from the left sidebar.</div>
-        )}
-
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          className="mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-900"
-        >
-          <Settings className="h-4 w-4" />
-          <span>Settings</span>
-        </button>
-      </div>
-    </aside>
-  );
-};
 
 const AppLayout = () => {
   const location = useLocation();
@@ -206,18 +51,10 @@ const AppLayout = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    const savedValue = localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
-    return savedValue === 'true';
-  });
-
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   useEffect(() => {
     applyThemeMode(themeMode);
   }, [themeMode]);
-
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
 
   const toggleTheme = () => {
     setThemeMode((currentMode) => (currentMode === 'dark' ? 'light' : 'dark'));
@@ -229,63 +66,81 @@ const AppLayout = () => {
     navigate('/login', { replace: true });
   };
 
-
-
   return (
     <div className="flex h-screen theme-text-primary bg-slate-50 dark:bg-slate-950">
-      <div
-        className={classNames(
-          'flex flex-col bg-white dark:bg-slate-950 border-r dark:border-slate-800 transition-all duration-200',
-          isSidebarCollapsed ? 'w-16' : 'w-80'
-        )}
-      >
-        <div className="flex h-16 items-center border-b border-slate-200 px-4 dark:border-slate-800">
+      <div className={classNames(
+        'flex flex-col border-r bg-white transition-all duration-200 dark:border-slate-800 dark:bg-slate-950',
+        isSidebarExpanded ? 'w-56' : 'w-16'
+      )}>
+        <div className={classNames(
+          'flex h-16 border-b border-slate-200 px-2 dark:border-slate-800',
+          isSidebarExpanded ? 'items-center justify-start' : 'items-center justify-center'
+        )}>
           <AppLogo className="h-8 w-auto" />
         </div>
 
         <div className="flex min-h-0 flex-1">
-          <aside className="w-16 border-r bg-white flex flex-col justify-between py-4 items-center dark:bg-slate-950 dark:border-slate-800">
-            <div className="flex flex-col items-center gap-2" aria-label="Primary areas" role="navigation">
-            {iconNav.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.label}
-                  to={item.to}
-                  aria-label={item.label}
-                  className={({ isActive }) =>
-                    classNames(
-                      'flex h-10 w-10 items-center justify-center rounded-xl transition',
-                      isActive
-                        ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
-                        : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
-                    )
-                  }
-                >
-                  <Icon className="h-5 w-5" />
-                </NavLink>
-              );
-            })}
+          <aside className={classNames(
+            'flex w-full flex-col justify-between bg-white py-4 dark:bg-slate-950',
+            isSidebarExpanded ? 'px-3' : 'items-center'
+          )}>
+            <div className={classNames('flex gap-2', isSidebarExpanded ? 'flex-col' : 'flex-col items-center')} aria-label="Primary areas" role="navigation">
+              {iconNav.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.label}
+                    to={item.to}
+                    aria-label={item.label}
+                    className={({ isActive }) =>
+                      classNames(
+                        'flex items-center rounded-xl transition',
+                        isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center',
+                        isActive
+                          ? 'bg-gradient-to-b from-sky-500 to-blue-500 text-white'
+                          : 'theme-text-muted hover:bg-slate-100 dark:hover:bg-slate-900'
+                      )
+                    }
+                  >
+                    <Icon className="h-5 w-5" />
+                    {isSidebarExpanded ? <span className="text-sm font-medium">{item.label}</span> : null}
+                  </NavLink>
+                );
+              })}
             </div>
-            <div className="flex flex-col items-center gap-2">
+            <div className={classNames('flex flex-col gap-2', isSidebarExpanded ? '' : 'items-center')}>
               <button
                 type="button"
                 aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 onClick={toggleTheme}
-                className={iconButtonClassName}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
               >
                 {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {isSidebarExpanded ? (
+                  <span className="text-sm">{themeMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+                ) : null}
               </button>
-              <button type="button" aria-label="Help" className={iconButtonClassName}>
+              <button type="button" aria-label="Help" className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}>
                 <CircleHelp className="h-4 w-4" />
+                {isSidebarExpanded ? <span className="text-sm">Help</span> : null}
               </button>
               <button
                 type="button"
-                aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                onClick={() => setIsSidebarCollapsed((currentState) => !currentState)}
-                className={iconButtonClassName}
+                aria-label="Open settings"
+                onClick={() => setSettingsOpen(true)}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
               >
-                {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                <Settings className="h-4 w-4" />
+                {isSidebarExpanded ? <span className="text-sm">Settings</span> : null}
+              </button>
+              <button
+                type="button"
+                aria-label={isSidebarExpanded ? 'Collapse left menu' : 'Expand left menu'}
+                onClick={() => setIsSidebarExpanded((currentState) => !currentState)}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
+              >
+                {isSidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                {isSidebarExpanded ? <span className="text-sm">Collapse menu</span> : null}
               </button>
               <DropdownMenu
                 isOpen={isUserMenuOpen}
@@ -318,12 +173,6 @@ const AppLayout = () => {
               </DropdownMenu>
             </div>
           </aside>
-
-          <ContextSidebar
-            locationPath={location.pathname}
-            isCollapsed={isSidebarCollapsed}
-            onOpenSettings={() => setSettingsOpen(true)}
-          />
         </div>
       </div>
 

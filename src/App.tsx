@@ -21,6 +21,7 @@ import FirmSettings from './pages/settings/FirmSettings';
 import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
 import Dashboard from './pages/Dashboard';
+import Home from './pages/Home';
 import Billing from './pages/Billing';
 import { applyThemeMode, getInitialThemeMode } from './lib/theme';
 import { AppLoadingScreen, RequireAuth } from './components/auth/RequireAuth';
@@ -47,12 +48,13 @@ const App = () => {
   return (
     <AppBootGate>
       <Routes>
-        <Route path="login" element={hasSession ? <Navigate to="/inbox" replace /> : <Login />} />
-        <Route path="signup" element={hasSession ? <Navigate to="/inbox" replace /> : <Signup />} />
+        <Route path="login" element={hasSession ? <Navigate to="/home" replace /> : <Login />} />
+        <Route path="signup" element={hasSession ? <Navigate to="/home" replace /> : <Signup />} />
         <Route path="auth/callback" element={<AuthCallback />} />
         <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route path="billing" element={<Billing />} />
-          <Route index element={<Navigate to="/inbox" replace />} />
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<RequireProductAccess><Home /></RequireProductAccess>} />
           <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
           <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
           <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
@@ -69,7 +71,7 @@ const App = () => {
           <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
           <Route path="settings/firm" element={<RequireProductAccess><FirmSettings /></RequireProductAccess>} />
           <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
-          <Route path="*" element={<Navigate to="/inbox" replace />} />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Route>
       </Routes>
     </AppBootGate>
