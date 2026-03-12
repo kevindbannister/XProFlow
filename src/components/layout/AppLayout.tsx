@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Sun,
+  Settings,
   UserRound,
   Workflow,
   Wrench,
@@ -23,6 +24,7 @@ import { getUserInitials, useUser } from '../../context/UserContext';
 import { useAuth } from '../../context/AuthContext';
 import { applyThemeMode, getInitialThemeMode, type ThemeMode } from '../../lib/theme';
 import { classNames } from '../../lib/utils';
+import { SettingsModal } from '../settings/SettingsModal';
 
 const routeMeta: Record<string, { title: string }> = {
   '/dashboard': { title: 'Dashboard' },
@@ -59,6 +61,7 @@ const AppLayout = () => {
   const [themeMode, setThemeMode] = useState<ThemeMode>(getInitialThemeMode);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     applyThemeMode(themeMode);
@@ -164,6 +167,20 @@ const AppLayout = () => {
               </button>
             )}
 
+
+            <button
+              type="button"
+              aria-label="Open settings"
+              onClick={() => setSettingsOpen(true)}
+              className={classNames(
+                'theme-text-muted flex h-10 items-center rounded-xl transition hover:bg-slate-100 dark:hover:bg-slate-900',
+                isSidebarExpanded ? 'w-full justify-start gap-2 px-3' : 'w-full justify-center'
+              )}
+            >
+              <Settings className="h-4 w-4" />
+              {isSidebarExpanded ? <span className="text-sm font-medium">Settings</span> : null}
+            </button>
+
             <DropdownMenu
               isOpen={isUserMenuOpen}
               onOpenChange={setIsUserMenuOpen}
@@ -212,6 +229,8 @@ const AppLayout = () => {
         ) : null}
         <Outlet />
       </main>
+
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 };
