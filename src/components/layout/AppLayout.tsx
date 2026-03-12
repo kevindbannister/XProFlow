@@ -40,7 +40,7 @@ const iconNav = [
 
 
 const iconButtonClassName =
-  'theme-text-muted flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-900 dark:hover:text-white';
+  'theme-text-muted flex items-center rounded-xl transition hover:bg-slate-100 dark:hover:bg-slate-900';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -113,34 +113,34 @@ const AppLayout = () => {
                 type="button"
                 aria-label={themeMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
                 onClick={toggleTheme}
-                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center')}
               >
-                {themeMode === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                {themeMode === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 {isSidebarExpanded ? (
-                  <span className="text-sm">{themeMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+                  <span className="text-sm font-medium">{themeMode === 'dark' ? 'Light mode' : 'Dark mode'}</span>
                 ) : null}
               </button>
-              <button type="button" aria-label="Help" className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}>
-                <CircleHelp className="h-4 w-4" />
-                {isSidebarExpanded ? <span className="text-sm">Help</span> : null}
+              <button type="button" aria-label="Help" className={classNames(iconButtonClassName, isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center')}>
+                <CircleHelp className="h-5 w-5" />
+                {isSidebarExpanded ? <span className="text-sm font-medium">Help</span> : null}
               </button>
               <button
                 type="button"
                 aria-label="Open settings"
                 onClick={() => setSettingsOpen(true)}
-                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center')}
               >
-                <Settings className="h-4 w-4" />
-                {isSidebarExpanded ? <span className="text-sm">Settings</span> : null}
+                <Settings className="h-5 w-5" />
+                {isSidebarExpanded ? <span className="text-sm font-medium">Settings</span> : null}
               </button>
               <button
                 type="button"
                 aria-label={isSidebarExpanded ? 'Collapse left menu' : 'Expand left menu'}
                 onClick={() => setIsSidebarExpanded((currentState) => !currentState)}
-                className={classNames(iconButtonClassName, isSidebarExpanded ? 'w-full justify-start px-3' : '')}
+                className={classNames(iconButtonClassName, isSidebarExpanded ? 'h-10 w-full justify-start gap-2 px-3' : 'h-10 w-10 justify-center')}
               >
-                {isSidebarExpanded ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                {isSidebarExpanded ? <span className="text-sm">Collapse menu</span> : null}
+                {isSidebarExpanded ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                {isSidebarExpanded ? <span className="text-sm font-medium">Collapse menu</span> : null}
               </button>
               <DropdownMenu
                 isOpen={isUserMenuOpen}
