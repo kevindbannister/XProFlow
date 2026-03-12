@@ -1,29 +1,41 @@
-const integrationCards = [
-  'Gmail',
-  'Office365',
-  'Google Calendar',
-  'Outlook Calendar',
-  'Zoom',
+import {
+  PrimaryButton,
+  SecondaryButton,
+  SettingsCard,
+  SettingsPageShell
+} from '../../components/control-center/SettingsUI';
+
+const integrations = [
+  { name: 'Gmail', logo: '📧', status: 'Connected' },
+  { name: 'Office365', logo: '🧩', status: 'Not connected' },
+  { name: 'Google Calendar', logo: '📅', status: 'Connected' },
+  { name: 'Outlook Calendar', logo: '🗓️', status: 'Not connected' },
+  { name: 'Zoom', logo: '🎥', status: 'Connected' }
 ];
 
-const IntegrationsPage = () => {
-  return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Integrations</h1>
-        <p className="text-gray-500">Manage provider connections that power AI email automation.</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        {integrationCards.map((integration) => (
-          <div key={integration} className="rounded-xl border bg-white p-6 shadow-sm">
-            <p className="font-medium">{integration}</p>
-            <p className="mt-1 text-sm text-gray-500">Integration card placeholder.</p>
+const IntegrationsPage = () => (
+  <SettingsPageShell
+    title="Integrations"
+    subtitle="Connect and manage third-party tools that power scheduling and inbox workflows."
+  >
+    <div className="grid gap-4 md:grid-cols-2">
+      {integrations.map((integration) => (
+        <SettingsCard key={integration.name} className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-lg">{integration.logo}</span>
+            <div>
+              <h2 className="text-base font-semibold text-slate-900">{integration.name}</h2>
+              <p className="text-sm text-slate-500">Connection status: {integration.status}</p>
+            </div>
           </div>
-        ))}
-      </div>
+          <div className="flex gap-2">
+            <PrimaryButton type="button">Connect</PrimaryButton>
+            <SecondaryButton type="button">Remove</SecondaryButton>
+          </div>
+        </SettingsCard>
+      ))}
     </div>
-  );
-};
+  </SettingsPageShell>
+);
 
 export default IntegrationsPage;
