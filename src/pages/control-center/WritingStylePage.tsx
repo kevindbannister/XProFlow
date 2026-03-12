@@ -1,21 +1,35 @@
-const WritingStylePage = () => {
-  return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Writing Style</h1>
-        <p className="text-gray-500">Guide AI tone and voice for outgoing email drafts.</p>
-      </div>
+import {
+  Field,
+  SelectInput,
+  SettingsCard,
+  SettingsPageShell,
+  TextAreaInput
+} from '../../components/control-center/SettingsUI';
 
-      <div className="rounded-xl border bg-white p-6 shadow-sm">
-        <label htmlFor="styleInstructions" className="mb-2 block font-medium">Style instructions</label>
-        <textarea
-          id="styleInstructions"
-          className="min-h-40 w-full rounded-lg border p-3"
-          placeholder="Example: Keep replies concise, professional, and solution-oriented."
+const WritingStylePage = () => (
+  <SettingsPageShell
+    title="Writing Style"
+    subtitle="Train AI with your preferred writing style and tone guidance."
+  >
+    <SettingsCard className="space-y-4">
+      <Field label="Writing style training" htmlFor="style-instructions">
+        <TextAreaInput
+          id="style-instructions"
+          className="min-h-52"
+          placeholder={'"My emails are concise."\n"I prefer bullet points."'}
+          defaultValue={'My emails are concise.\nI prefer bullet points and clear action items.'}
         />
-      </div>
-    </div>
-  );
-};
+      </Field>
+
+      <Field label="Tone selector" htmlFor="tone-selector">
+        <SelectInput id="tone-selector" defaultValue="professional">
+          <option value="professional">Professional</option>
+          <option value="friendly">Friendly</option>
+          <option value="concise">Concise</option>
+        </SelectInput>
+      </Field>
+    </SettingsCard>
+  </SettingsPageShell>
+);
 
 export default WritingStylePage;

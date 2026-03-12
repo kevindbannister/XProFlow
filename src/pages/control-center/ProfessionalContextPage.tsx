@@ -1,27 +1,44 @@
-const ProfessionalContextPage = () => {
-  return (
-    <div className="mx-auto max-w-4xl space-y-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Professional Context</h1>
-        <p className="text-gray-500">Define business context to improve AI drafting and categorisation quality.</p>
+import {
+  Field,
+  SettingsCard,
+  SettingsPageShell,
+  TextAreaInput,
+  TextInput
+} from '../../components/control-center/SettingsUI';
+
+const ProfessionalContextPage = () => (
+  <SettingsPageShell
+    title="Professional Context"
+    subtitle="Provide business context so AI can generate more relevant and accurate replies."
+  >
+    <SettingsCard className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Company name" htmlFor="company-name">
+          <TextInput id="company-name" placeholder="XProFlow" />
+        </Field>
+
+        <Field label="Role" htmlFor="role">
+          <TextInput id="role" placeholder="Head of Operations" />
+        </Field>
       </div>
 
-      <div className="space-y-4 rounded-xl border bg-white p-6 shadow-sm">
-        <div>
-          <label htmlFor="company" className="mb-1 block text-sm font-medium">Company name</label>
-          <input id="company" className="w-full rounded-lg border p-2" placeholder="Acme Inc." />
-        </div>
-        <div>
-          <label htmlFor="role" className="mb-1 block text-sm font-medium">Role</label>
-          <input id="role" className="w-full rounded-lg border p-2" placeholder="Operations Manager" />
-        </div>
-        <div>
-          <label htmlFor="preferences" className="mb-1 block text-sm font-medium">Communication preferences</label>
-          <textarea id="preferences" className="min-h-24 w-full rounded-lg border p-3" placeholder="Preferred tone, detail level, and response style." />
-        </div>
-      </div>
-    </div>
-  );
-};
+      <Field label="Industry" htmlFor="industry">
+        <TextInput id="industry" placeholder="SaaS / Productivity" />
+      </Field>
+
+      <Field label="Services" htmlFor="services">
+        <TextAreaInput id="services" placeholder="List your core services and product offerings." className="min-h-24" />
+      </Field>
+
+      <Field label="Communication preferences" htmlFor="communication-preferences">
+        <TextAreaInput id="communication-preferences" placeholder="Preferred tone, response length, and formatting style." className="min-h-24" />
+      </Field>
+
+      <Field label="Example replies" htmlFor="example-replies">
+        <TextAreaInput id="example-replies" placeholder="Paste sample responses that reflect your writing style." className="min-h-40" />
+      </Field>
+    </SettingsCard>
+  </SettingsPageShell>
+);
 
 export default ProfessionalContextPage;
