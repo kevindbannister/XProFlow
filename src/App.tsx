@@ -3,27 +3,26 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
 import EmailSetup from './pages/EmailSetup';
-import Integrations from './pages/Integrations';
-import Labels from './pages/Labels';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import AuthCallback from './pages/AuthCallback';
 import Onboarding from './pages/Onboarding';
 import ProfilePage from './pages/ProfilePage';
-import Rules from './pages/Rules';
-import SettingsDrafts from './pages/SettingsDrafts';
-import WritingStyleSettings from './pages/settings/WritingStyleSettings';
-import SignatureTimeZoneSettings from './pages/settings/SignatureTimeZoneSettings';
-import AccountSettings from './pages/settings/AccountSettings';
 import ProfessionalContextOnboarding from './pages/onboarding/ProfessionalContextOnboarding';
-import ProfessionalContextSettings from './pages/settings/ProfessionalContextSettings';
-import FirmSettings from './pages/settings/FirmSettings';
-import Workflows from './pages/Workflows';
 import Inbox from './pages/Inbox';
-import Dashboard from './pages/Dashboard';
 import Billing from './pages/Billing';
 import { applyThemeMode, getInitialThemeMode } from './lib/theme';
 import { AppLoadingScreen, RequireAuth } from './components/auth/RequireAuth';
+import DashboardPage from './pages/control-center/DashboardPage';
+import CategorisationPage from './pages/control-center/CategorisationPage';
+import RulesPage from './pages/control-center/RulesPage';
+import DraftingPage from './pages/control-center/DraftingPage';
+import WritingStylePage from './pages/control-center/WritingStylePage';
+import SignaturePage from './pages/control-center/SignaturePage';
+import SchedulingPage from './pages/control-center/SchedulingPage';
+import IntegrationsPage from './pages/control-center/IntegrationsPage';
+import ProfessionalContextPage from './pages/control-center/ProfessionalContextPage';
+import AccountPage from './pages/control-center/AccountPage';
 
 const AppBootGate = ({ children }: { children: ReactNode }) => {
   const { isBootstrapping } = useAuth();
@@ -53,21 +52,22 @@ const App = () => {
         <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route path="billing" element={<Billing />} />
           <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<RequireProductAccess><DashboardPage /></RequireProductAccess>} />
+          <Route path="categorisation" element={<RequireProductAccess><CategorisationPage /></RequireProductAccess>} />
+          <Route path="rules" element={<RequireProductAccess><RulesPage /></RequireProductAccess>} />
+          <Route path="drafting" element={<RequireProductAccess><DraftingPage /></RequireProductAccess>} />
+          <Route path="writing-style" element={<RequireProductAccess><WritingStylePage /></RequireProductAccess>} />
+          <Route path="signature" element={<RequireProductAccess><SignaturePage /></RequireProductAccess>} />
+          <Route path="scheduling" element={<RequireProductAccess><SchedulingPage /></RequireProductAccess>} />
+          <Route path="integrations" element={<RequireProductAccess><IntegrationsPage /></RequireProductAccess>} />
+          <Route path="professional-context" element={<RequireProductAccess><ProfessionalContextPage /></RequireProductAccess>} />
+          <Route path="account" element={<RequireProductAccess><AccountPage /></RequireProductAccess>} />
+
+          <Route path="home" element={<Navigate to="/dashboard" replace />} />
           <Route path="inbox" element={<RequireProductAccess><Inbox /></RequireProductAccess>} />
-          <Route path="dashboard" element={<RequireProductAccess><Dashboard /></RequireProductAccess>} />
           <Route path="email-setup" element={<RequireProductAccess><EmailSetup /></RequireProductAccess>} />
           <Route path="onboarding" element={<RequireProductAccess><Onboarding /></RequireProductAccess>} />
           <Route path="onboarding/professional-context" element={<RequireProductAccess><ProfessionalContextOnboarding /></RequireProductAccess>} />
-          <Route path="labels" element={<RequireProductAccess><Labels /></RequireProductAccess>} />
-          <Route path="rules" element={<RequireProductAccess><Rules /></RequireProductAccess>} />
-          <Route path="integrations" element={<RequireProductAccess><Integrations /></RequireProductAccess>} />
-          <Route path="workflows" element={<RequireProductAccess><Workflows /></RequireProductAccess>} />
-          <Route path="settings/drafts" element={<RequireProductAccess><SettingsDrafts /></RequireProductAccess>} />
-          <Route path="writing-style" element={<RequireProductAccess><WritingStyleSettings /></RequireProductAccess>} />
-          <Route path="signature-time-zone" element={<RequireProductAccess><SignatureTimeZoneSettings /></RequireProductAccess>} />
-          <Route path="account-settings" element={<RequireProductAccess><AccountSettings /></RequireProductAccess>} />
-          <Route path="settings/professional-context" element={<RequireProductAccess><ProfessionalContextSettings /></RequireProductAccess>} />
-          <Route path="settings/firm" element={<RequireProductAccess><FirmSettings /></RequireProductAccess>} />
           <Route path="profile" element={<RequireProductAccess><ProfilePage /></RequireProductAccess>} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>

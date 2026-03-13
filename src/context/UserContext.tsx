@@ -25,6 +25,12 @@ const defaultUser: UserProfile = {
 
 const USER_STORAGE_KEY = 'emailai-user-profile';
 
+const clearStoredUser = () => {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(USER_STORAGE_KEY);
+  }
+};
+
 const getSessionUserProfile = (session: Session | null): UserProfile | null => {
   if (!session?.user) {
     return null;
@@ -76,7 +82,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (sessionProfile) {
         setUser((current) => ({ ...current, ...sessionProfile }));
       } else {
-        setUser(getStoredUser());
+        clearStoredUser();
+        setUser(defaultUser);
       }
     });
 

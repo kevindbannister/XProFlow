@@ -48,7 +48,7 @@ const Login = () => {
     if (email.trim() === 'master' && password.trim() === 'master') {
       setError('');
       await loginWithManual();
-      navigate('/dashboard');
+      navigate('/inbox');
       return;
     }
 
@@ -60,7 +60,7 @@ const Login = () => {
 
     await refreshSession();
     setError('');
-    navigate('/dashboard');
+    navigate('/inbox');
   };
 
   return (
