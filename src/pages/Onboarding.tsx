@@ -17,7 +17,7 @@ const statusStyles = {
 
 const Onboarding = () => {
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <section className="flex w-full max-w-6xl flex-col gap-5">
       <PageHeader
         title="Onboarding"
         subtitle="Configure XProFlow to mirror your workflows while keeping every decision explicit and reversible."
@@ -29,10 +29,13 @@ const Onboarding = () => {
         )}
       />
 
-      <Card className="space-y-3">
+      <Card className="space-y-3 bg-gradient-to-r from-[#F5FBFF] via-white to-[#F2F7FF]">
+        <div className="inline-flex w-fit rounded-full bg-gradient-to-r from-[#27B0FF] to-[#3B82F6] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-white shadow-[0_8px_20px_rgba(59,130,246,0.18)]">
+          Guided setup
+        </div>
         <h2 className="text-lg font-semibold text-content-primary">Help XProFlow write like your finance team</h2>
         <p className="text-sm text-content-secondary">Capture your role, audiences, tone and risk posture in under 3 minutes.</p>
-        <Link to="/onboarding/professional-context" className="inline-flex w-fit rounded-full bg-content-primary px-4 py-2 text-sm font-medium text-white">Open Professional Context setup</Link>
+        <Link to="/onboarding/professional-context" className="inline-flex w-fit rounded-full bg-gradient-to-r from-[#27B0FF] to-[#3B82F6] px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_rgba(59,130,246,0.24)]">Open Professional Context setup</Link>
       </Card>
 
       <Card className="space-y-4">

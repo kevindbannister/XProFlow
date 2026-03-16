@@ -17,7 +17,7 @@ export default {
         }
       },
       boxShadow: {
-        page: '-10px 0 24px rgba(18,29,49,0.12), 0 0 0 1px rgba(18,29,49,0.04)',
+        page: '0 0 0 1px rgba(18,29,49,0.03), 0 10px 28px rgba(18,29,49,0.05)',
         card: '0 1px 2px rgba(18,29,49,0.04)'
       }
     }

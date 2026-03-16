@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import Labels from '../../pages/Labels';
 import Billing from '../../pages/Billing';
 import Integrations from '../../pages/Integrations';
@@ -17,6 +17,11 @@ type ModalProps = {
 
 const Modal = ({ isOpen, onClose, children }: ModalProps) => {
   const [isMounted, setIsMounted] = useState(isOpen);
+
+  const handleBackdropInteraction = (event: MouseEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
+    onClose();
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +41,7 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
         'fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6 transition-opacity duration-200',
         isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
       )}
+      onClick={handleBackdropInteraction}
     >
       <div
         className={classNames(
@@ -45,6 +51,7 @@ const Modal = ({ isOpen, onClose, children }: ModalProps) => {
         role="dialog"
         aria-modal="true"
         aria-label="Settings"
+        onClick={(event) => event.stopPropagation()}
       >
         <button
           type="button"

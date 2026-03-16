@@ -135,7 +135,7 @@ const Inbox = () => {
   const isLoadingState = isAuthLoading || (isConnected && isLoading);
 
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <section className="flex w-full max-w-6xl flex-col gap-5">
       <PageHeader
         title="Inbox"
         subtitle="Keep Gmail synced, categorized, and reviewable from one shared workflow view."

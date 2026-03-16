@@ -22,7 +22,7 @@ export const StatCard = ({ icon, label, value, className }: StatCardProps) => {
           <p className="text-[18px] font-medium text-value-text">{value}</p>
         </div>
         {icon ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-content-primary shadow-card">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#E0F2FE] to-[#DBEAFE] text-[#2563EB] shadow-[0_6px_16px_rgba(59,130,246,0.16)]">
             {icon}
           </div>
         ) : null}
