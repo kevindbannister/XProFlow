@@ -79,7 +79,7 @@ const ProfilePage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5">
       <PageHeader
         title="Your Profile"
         subtitle="Manage your account details and update your avatar."
@@ -92,13 +92,13 @@ const ProfilePage = () => {
               src={user.avatarUrl}
               alt={user.name}
               fallback={getUserInitials(user.name)}
-              className="h-20 w-20 rounded-full bg-gray-200 text-lg font-semibold text-gray-700 dark:bg-slate-800 dark:text-slate-100"
+              className="h-20 w-20 rounded-full bg-[#E6EAEE] text-lg font-semibold text-content-primary"
             />
             <div>
-              <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <p className="text-lg font-semibold text-content-primary">
                 {user.name}
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
+              <p className="text-sm text-content-secondary">{user.email}</p>
             </div>
           </div>
           <Button
@@ -114,7 +114,7 @@ const ProfilePage = () => {
           <div className="space-y-2">
             <label
               htmlFor="full-name"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+              className="text-xs font-semibold uppercase tracking-wide text-content-secondary"
             >
               Full name
             </label>
@@ -127,18 +127,18 @@ const ProfilePage = () => {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"
+              className="text-xs font-semibold uppercase tracking-wide text-content-secondary"
             >
               Email
             </label>
-            <Input id="email" value={user.email} readOnly className="bg-gray-100 text-slate-500" />
+            <Input id="email" value={user.email} readOnly className="bg-surface-page text-content-secondary" />
           </div>
           <div className="flex flex-wrap items-center gap-3 md:col-span-2">
             <Button type="submit" disabled={isSaving}>
               Save changes
             </Button>
             {statusMessage && (
-              <span className="text-sm font-medium text-slate-500">{statusMessage}</span>
+              <span className="text-sm font-medium text-content-secondary">{statusMessage}</span>
             )}
           </div>
         </form>

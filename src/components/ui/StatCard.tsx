@@ -1,22 +1,32 @@
 import { ReactNode } from 'react';
-import { GlassCard } from './GlassCard';
+import { classNames } from '../../lib/utils';
 
 export type StatCardProps = {
-  icon: ReactNode;
+  icon?: ReactNode;
   label: string;
-  value: string;
+  value: string | number;
+  className?: string;
 };
 
-export const StatCard = ({ icon, label, value }: StatCardProps) => {
+export const StatCard = ({ icon, label, value, className }: StatCardProps) => {
   return (
-    <GlassCard className="flex items-center gap-4" padding="sm">
-      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-[0_10px_20px_rgba(59,130,246,0.35)]">
-        {icon}
+    <div
+      className={classNames(
+        'rounded-[12px] bg-surface-page p-4 shadow-card',
+        className
+      )}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <p className="text-[12.8px] font-medium text-content-secondary">{label}</p>
+          <p className="text-[18px] font-medium text-value-text">{value}</p>
+        </div>
+        {icon ? (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-content-primary shadow-card">
+            {icon}
+          </div>
+        ) : null}
       </div>
-      <div>
-        <p className="text-xl font-semibold theme-text-primary">{value}</p>
-        <p className="text-xs theme-text-muted">{label}</p>
-      </div>
-    </GlassCard>
+    </div>
   );
 };

@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { EmptyState } from '../components/ui/EmptyState';
+import { FilterPill } from '../components/ui/FilterPill';
+import { PageHeader } from '../components/ui/PageHeader';
 import { api } from '../lib/api';
 import { apiBaseUrl } from '../config/api';
 import { supabase } from '../lib/supabaseClient';
@@ -132,153 +135,147 @@ const Inbox = () => {
   const isLoadingState = isAuthLoading || (isConnected && isLoading);
 
   return (
-    <section className="max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">Inbox</h1>
-          <p className="text-sm text-slate-500">
-            Keep your Gmail inbox synced and prioritized in one view.
-          </p>
-          <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-300">
-            Gmail: {isConnected ? `Connected${gmailEmail ? ` • ${gmailEmail}` : ''}` : 'Not connected'}
-          </p>
-        </div>
-        {isConnected ? (
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={handleSync}
-            disabled={isSyncing}
-          >
-            {isSyncing ? 'Syncing…' : 'Sync'}
-          </Button>
-        ) : null}
-      </div>
-
-      {error ? (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-200">
-          {error}
-        </div>
-      ) : null}
-
-      {isLoadingState ? (
-        <Card className="p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 w-40 rounded-full bg-slate-100" />
-            <div className="h-3 w-64 rounded-full bg-slate-100" />
-            <div className="h-24 w-full rounded-2xl bg-slate-100" />
+    <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+      <PageHeader
+        title="Inbox"
+        subtitle="Keep Gmail synced, categorized, and reviewable from one shared workflow view."
+        action={(
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterPill active={isConnected}>
+              {isConnected ? `Connected${gmailEmail ? ` • ${gmailEmail}` : ''}` : 'Not connected'}
+            </FilterPill>
+            {isConnected ? (
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={handleSync}
+                disabled={isSyncing}
+              >
+                {isSyncing ? 'Syncing…' : 'Sync'}
+              </Button>
+            ) : null}
           </div>
-        </Card>
-      ) : !isConnected ? (
-        <Card className="p-8 text-center sm:p-12">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Connect your Gmail</h2>
-          <p className="mt-3 text-sm text-slate-500 dark:text-slate-300">
-            To sync and prioritise your inbox, connect your Gmail account.
-          </p>
-          <Button
-            type="button"
-            className="mt-6"
-            onClick={async () => {
-              const {
-                data: { session }
-              } = await supabase.auth.getSession();
+        )}
+      />
 
-              if (!session?.access_token) {
-                alert('Not authenticated');
-                return;
-              }
-
-              window.location.href = `${apiBaseUrl}/auth/google?token=${session.access_token}`;
-            }}
-          >
-            Connect Gmail
-          </Button>
-        </Card>
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-          <div className="border-b border-slate-200 bg-slate-50/80 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/70">
+      <div className="rounded-[16px] border border-[rgba(18,29,49,0.06)] bg-white shadow-page">
+        {isConnected ? (
+          <div className="border-b border-[rgba(18,29,49,0.06)] px-6 py-4">
             <div className="flex flex-wrap gap-2">
               {folders.map((folder, index) => (
-                <button
+                <FilterPill
                   key={`${folder.label}-${index}`}
-                  type="button"
+                  active={selectedFolder === folder.id}
                   onClick={() => setSelectedFolder(folder.id)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                    selectedFolder === folder.id
-                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                      : 'bg-white text-slate-500 hover:bg-slate-100 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
-                  }`}
                 >
                   {folder.label}
-                </button>
+                </FilterPill>
               ))}
             </div>
           </div>
+        ) : null}
 
-          {successMessage ? (
-            <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200">
-              {successMessage}
+        {error ? (
+          <div className="border-b border-rose-100 bg-rose-50 px-6 py-3 text-sm text-rose-700">
+            {error}
+          </div>
+        ) : null}
+
+        {successMessage ? (
+          <div className="border-b border-emerald-100 bg-emerald-50 px-6 py-3 text-sm text-emerald-700">
+            {successMessage}
+          </div>
+        ) : null}
+
+        {isLoadingState ? (
+          <Card className="m-6 p-8">
+            <div className="animate-pulse space-y-4">
+              <div className="h-4 w-40 rounded-full bg-surface-hover" />
+              <div className="h-3 w-64 rounded-full bg-surface-hover" />
+              <div className="h-24 w-full rounded-[12px] bg-surface-hover" />
             </div>
-          ) : null}
+          </Card>
+        ) : !isConnected ? (
+          <div className="px-6 pb-12">
+            <EmptyState
+              title="Connect your Gmail"
+              body="To sync and prioritize your inbox, connect your Gmail account and bring live threads into the dashboard."
+              action={(
+                <Button
+                  type="button"
+                  onClick={async () => {
+                    const {
+                      data: { session }
+                    } = await supabase.auth.getSession();
 
-          {isLoading ? (
-            <p className="px-6 py-8 text-sm text-slate-500 dark:text-slate-300">Loading inbox…</p>
-          ) : (
-            <div>
-              {sections.map((section) => (
-                <div key={section.key} className="border-b border-slate-200 last:border-b-0 dark:border-slate-800">
-                  <div className="px-6 pb-3 pt-6 text-xl font-normal text-slate-500 dark:text-slate-300">
-                    {section.title}
+                    if (!session?.access_token) {
+                      alert('Not authenticated');
+                      return;
+                    }
+
+                    window.location.href = `${apiBaseUrl}/auth/google?token=${session.access_token}`;
+                  }}
+                >
+                  Connect Gmail
+                </Button>
+              )}
+            />
+          </div>
+        ) : (
+          <div>
+            {sections.map((section) => (
+              <div key={section.key} className="border-b border-[rgba(18,29,49,0.06)] last:border-b-0">
+                <div className="px-6 pb-3 pt-6 text-[20px] font-medium text-content-primary">
+                  {section.title}
+                </div>
+                {section.messages.length === 0 ? (
+                  <div className="px-6 pb-6 text-sm text-content-secondary">
+                    No messages in this section.
                   </div>
-                  {section.messages.length === 0 ? (
-                    <div className="px-6 pb-6 text-sm text-slate-400 dark:text-slate-500">
-                      No messages in this section.
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-slate-200/80 dark:divide-slate-800">
-                      {section.messages.map((message) => (
-                        <div
-                          key={message.external_id}
-                          className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-6 py-4 transition hover:bg-slate-50 dark:hover:bg-slate-900"
-                        >
-                          <div className="min-w-0 flex items-center gap-4">
-                            <p className="w-44 shrink-0 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
-                              {message.from_name || message.from_email || 'Unknown'}
-                            </p>
-                            <div className="min-w-0 flex items-center gap-2 text-sm">
-                              <p className="truncate text-slate-800 dark:text-slate-100">{message.subject}</p>
-                              {message.snippet ? (
-                                <p className="hidden truncate text-slate-400 sm:block dark:text-slate-500">
-                                  — {message.snippet}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3 text-right">
-                            {message.status && message.status !== 'NONE' ? (
-                              <span
-                                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
-                                  statusStyles[message.status] || 'bg-slate-100 text-slate-600'
-                                }`}
-                              >
-                                {message.status}
-                              </span>
+                ) : (
+                  <div>
+                    {section.messages.map((message) => (
+                      <div
+                        key={message.external_id}
+                        className="grid grid-cols-[minmax(0,1fr)_auto] gap-4 px-6 py-4 transition hover:bg-surface-page"
+                      >
+                        <div className="min-w-0 flex items-center gap-4">
+                          <p className="w-44 shrink-0 truncate text-sm font-medium text-content-primary">
+                            {message.from_name || message.from_email || 'Unknown'}
+                          </p>
+                          <div className="min-w-0 flex items-center gap-2 text-sm">
+                            <p className="truncate text-content-primary">{message.subject}</p>
+                            {message.snippet ? (
+                              <p className="hidden truncate text-content-secondary sm:block">
+                                {message.snippet}
+                              </p>
                             ) : null}
-                            <span className="w-16 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                              {formatTime(message)}
-                            </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                        <div className="flex items-center gap-3 text-right">
+                          {message.status && message.status !== 'NONE' ? (
+                            <span
+                              className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
+                                statusStyles[message.status] || 'bg-slate-100 text-slate-600'
+                              }`}
+                            >
+                              {message.status}
+                            </span>
+                          ) : null}
+                          <span className="w-16 text-xs font-semibold text-content-secondary">
+                            {formatTime(message)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 };

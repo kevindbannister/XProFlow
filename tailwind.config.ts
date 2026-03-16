@@ -6,9 +6,19 @@ export default {
   theme: {
     extend: {
       colors: {
+        'content-primary': '#121D31',
+        'content-secondary': '#667085',
+        'surface-page': '#F6F7F8',
+        'surface-hover': '#EEF1F3',
+        'border-medium': '#D4DAE1',
+        'value-text': '#3E4C63',
         slate: {
           950: '#0b1220'
         }
+      },
+      boxShadow: {
+        page: '0 0 0 1px rgba(18,29,49,0.03), 0 8px 24px rgba(18,29,49,0.06)',
+        card: '0 1px 2px rgba(18,29,49,0.04)'
       }
     }
   },

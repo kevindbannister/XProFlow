@@ -1,188 +1,134 @@
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  Inbox,
-  CircleHelp,
-  PanelLeftClose,
-  PanelLeftOpen,
-  PenSquare,
-  Clock3,
-  AtSign,
   BriefcaseBusiness,
+  CalendarClock,
+  CircuitBoard,
+  CreditCard,
+  Inbox,
+  LayoutDashboard,
+  PenSquare,
   Settings,
-  Building2,
+  Signature,
+  SlidersHorizontal,
+  Sparkles,
+  UserRound,
+  Workflow,
+  Wrench
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import AppLogo from '../branding/AppLogo';
+import { Avatar } from '../ui/Avatar';
+import { DropdownMenu } from '../ui/DropdownMenu';
+import { useAuth } from '../../context/AuthContext';
+import { getUserInitials, useUser } from '../../context/UserContext';
 import { classNames } from '../../lib/utils';
 
-const SIDEBAR_COLLAPSED_STORAGE_KEY = 'xproflow.sidebar.collapsed';
-const SIDEBAR_VISIBLE_ITEMS_STORAGE_KEY = 'xproflow.sidebar.visible-items';
+type NavItem = {
+  label: string;
+  to: string;
+  icon: typeof LayoutDashboard;
+  matchPrefix?: string;
+};
 
-const primaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [
-  { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Inbox', to: '/inbox', icon: Inbox },
-  { label: 'Drafting', to: '/settings/drafts', icon: PenSquare },
-  { label: 'Writing Style', to: '/writing-style', icon: PenSquare },
-  { label: 'Signature & Time Zone', to: '/signature-time-zone', icon: Clock3 },
-  { label: 'Professional Context', to: '/settings/professional-context', icon: BriefcaseBusiness },
-  { label: 'Account', to: '/account-settings', icon: AtSign },
-  { label: 'Firm Settings', to: '/settings/firm', icon: Building2 },
-];
+const navItems: NavItem[] = [
+  { label: 'Dashboard', to: '/dashboard' as const, icon: LayoutDashboard },
+  { label: 'Inbox', to: '/inbox' as const, icon: Inbox },
+  { label: 'Categorisation', to: '/categorisation' as const, icon: Workflow },
+  { label: 'Rules', to: '/rules' as const, icon: SlidersHorizontal },
+  { label: 'Drafting', to: '/drafting' as const, icon: PenSquare },
+  { label: 'Writing Style', to: '/writing-style' as const, icon: Sparkles },
+  { label: 'Signature', to: '/signature' as const, icon: Signature },
+  { label: 'Scheduling', to: '/scheduling' as const, icon: CalendarClock },
+  { label: 'Integrations', to: '/integrations' as const, icon: CircuitBoard },
+  { label: 'Pro Context', to: '/professional-context' as const, icon: Wrench },
+  { label: 'Account', to: '/account' as const, icon: UserRound },
+  { label: 'Billing', to: '/billing' as const, icon: CreditCard },
+  { label: 'Onboarding', to: '/onboarding' as const, icon: BriefcaseBusiness, matchPrefix: '/onboarding/' }
+] as const;
 
-const secondaryNavigation: Array<{ label: string; to: string; icon: typeof LayoutDashboard }> = [
-  { label: 'Help', to: '/integrations', icon: CircleHelp },
-];
+type SidebarProps = {
+  onOpenSettings?: () => void;
+};
 
-const Sidebar = () => {
-  const [isMenuEditorOpen, setIsMenuEditorOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    const savedValue = localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY);
-    return savedValue === 'true';
-  });
+const itemClassName =
+  'h-7 min-h-7 flex items-center gap-2 px-2 rounded-[16px] text-xs font-medium leading-4 text-content-secondary transition hover:bg-surface-hover';
 
-  const [visiblePrimaryItems, setVisiblePrimaryItems] = useState<string[]>(() => {
-    const savedValue = localStorage.getItem(SIDEBAR_VISIBLE_ITEMS_STORAGE_KEY);
+const Sidebar = ({ onOpenSettings }: SidebarProps) => {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const { user } = useUser();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-    if (!savedValue) {
-      return primaryNavigation.map((item) => item.label);
-    }
-
-    try {
-      const parsed = JSON.parse(savedValue);
-      if (!Array.isArray(parsed)) {
-        return primaryNavigation.map((item) => item.label);
-      }
-
-      return parsed.filter((label): label is string =>
-        primaryNavigation.some((item) => item.label === label)
-      );
-    } catch {
-      return primaryNavigation.map((item) => item.label);
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(isCollapsed));
-  }, [isCollapsed]);
-
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_VISIBLE_ITEMS_STORAGE_KEY, JSON.stringify(visiblePrimaryItems));
-  }, [visiblePrimaryItems]);
-
-  const toggleSidebar = () => {
-    setIsCollapsed((currentState) => !currentState);
+  const handleLogout = async () => {
+    await logout();
+    setIsUserMenuOpen(false);
+    navigate('/login', { replace: true });
   };
-
-  const toggleMenuItem = (label: string) => {
-    setVisiblePrimaryItems((currentItems) => {
-      if (currentItems.includes(label)) {
-        if (currentItems.length === 1) {
-          return currentItems;
-        }
-        return currentItems.filter((itemLabel) => itemLabel !== label);
-      }
-
-      return [...currentItems, label];
-    });
-  };
-
-  const visibleNavigation = primaryNavigation.filter((item) =>
-    visiblePrimaryItems.includes(item.label)
-  );
-
-  const renderItem = (label: string, to: string, Icon: typeof LayoutDashboard) => (
-    <NavLink
-      key={label}
-      to={to}
-      className={({ isActive }: { isActive: boolean }) =>
-        classNames(
-          'group relative flex h-8 w-full items-center rounded-lg border border-transparent px-2 transition hover:bg-slate-900/90 hover:text-white',
-          isCollapsed ? 'justify-center' : 'justify-start gap-2',
-          isActive
-            ? 'border-slate-300/40 bg-slate-900 text-white hover:bg-slate-900 hover:text-white'
-            : 'theme-text-muted'
-        )
-      }
-      aria-label={label}
-    >
-      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
-      <span className="sidebar-label truncate text-xs font-medium">{label}</span>
-    </NavLink>
-  );
 
   return (
-    <aside
-      className={classNames(
-        'sidebar-surface sidebar-shell fixed bottom-0 left-0 top-10 z-40 flex flex-col justify-between border-r py-2',
-        isCollapsed ? 'w-12 px-2' : 'w-44 px-2'
-      )}
-      data-collapsed={isCollapsed}
-    >
-      <nav className="flex flex-col gap-1">
-        {visibleNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
+    <aside className="flex h-screen w-[200px] min-w-[200px] flex-col bg-surface-page px-3 pb-4 pt-9">
+      <div className="px-2">
+        <AppLogo className="h-8 w-auto" />
+      </div>
+
+      <nav className="mt-8 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" aria-label="Primary navigation">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.to || (item.matchPrefix ? pathname.startsWith(item.matchPrefix) : false);
+
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={classNames(
+                itemClassName,
+                isActive && 'bg-white text-content-primary shadow-[0_1px_2px_rgba(18,29,49,0.05)]'
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="relative flex flex-col gap-2">
-        <button
-          type="button"
-          onClick={() => setIsMenuEditorOpen((currentState) => !currentState)}
-          aria-expanded={isMenuEditorOpen}
-          aria-label="Customize sidebar menu"
-          className={classNames(
-            'flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-900/90 hover:text-white',
-            isCollapsed ? 'justify-center' : 'justify-start gap-2'
-          )}
-        >
-          <Settings className="h-4 w-4 shrink-0" />
-          <span className="sidebar-label truncate text-xs font-medium">Admin Menu</span>
+      <div className="mt-4 space-y-1">
+        <button type="button" onClick={onOpenSettings} className={itemClassName}>
+          <Settings className="h-4 w-4 shrink-0" strokeWidth={1.8} />
+          <span className="truncate">Settings</span>
         </button>
 
-        {isMenuEditorOpen ? (
-          <div
-            className={classNames(
-              'sidebar-surface absolute bottom-28 z-50 rounded-lg border border-slate-700/40 p-3 shadow-xl',
-              isCollapsed ? 'left-0 w-52' : 'left-0 w-full min-w-52'
-            )}
+        <DropdownMenu
+          isOpen={isUserMenuOpen}
+          onOpenChange={setIsUserMenuOpen}
+          trigger={(
+            <button type="button" className={classNames(itemClassName, 'w-full justify-start')}>
+              <Avatar
+                src={user.avatarUrl}
+                alt={user.name}
+                fallback={getUserInitials(user.name)}
+                className="h-5 w-5 rounded-full bg-[#E6EAEE] text-[10px] font-semibold text-content-primary"
+              />
+              <span className="truncate">{user.name}</span>
+            </button>
+          )}
+          align="left"
+        >
+          <Link
+            to="/profile"
+            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary"
           >
-            <p className="mb-2 text-xs font-semibold theme-text">Choose sidebar items</p>
-            <div className="flex max-h-52 flex-col gap-1 overflow-y-auto">
-              {primaryNavigation.map((item) => {
-                const isChecked = visiblePrimaryItems.includes(item.label);
-                const isLastChecked = isChecked && visiblePrimaryItems.length === 1;
-
-                return (
-                  <label key={item.label} className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-xs theme-text-muted hover:bg-slate-900/70 hover:text-white">
-                    <input
-                      type="checkbox"
-                      checked={isChecked}
-                      disabled={isLastChecked}
-                      onChange={() => toggleMenuItem(item.label)}
-                      className="h-3.5 w-3.5 rounded border-slate-500 bg-transparent"
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-
-        <nav className="flex flex-col gap-1">
-          {secondaryNavigation.map((item) => renderItem(item.label, item.to, item.icon))}
-        </nav>
-
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={classNames(
-            'flex h-8 w-full items-center rounded-lg border border-transparent px-2 theme-text-muted transition hover:bg-slate-900/90 hover:text-white',
-            isCollapsed ? 'justify-center' : 'justify-start gap-2'
-          )}
-        >
-          {isCollapsed ? <PanelLeftOpen className="h-4 w-4 shrink-0" /> : <PanelLeftClose className="h-4 w-4 shrink-0" />}
-          <span className="sidebar-label truncate text-xs font-medium">{isCollapsed ? 'Expand' : 'Collapse'}</span>
-        </button>
+            Profile
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary"
+          >
+            Log out
+          </button>
+        </DropdownMenu>
       </div>
     </aside>
   );

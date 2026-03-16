@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AppLayout from './components/layout/AppLayout';
+import AppLayout from './layouts/AppLayout';
 import { useAuth } from './context/AuthContext';
 import EmailSetup from './pages/EmailSetup';
 import Login from './pages/Login';
