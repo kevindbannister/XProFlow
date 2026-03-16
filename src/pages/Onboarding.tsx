@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { FilterPill } from '../components/ui/FilterPill';
+import { PageHeader } from '../components/ui/PageHeader';
 import {
   onboardingAccounts,
   onboardingPreferences,
@@ -8,36 +10,37 @@ import {
 } from '../lib/settingsData';
 
 const statusStyles = {
-  complete: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40',
-  'in-progress': 'text-amber-600 bg-amber-50 dark:bg-amber-950/40',
-  todo: 'text-slate-600 bg-slate-100 dark:bg-slate-800/60'
+  complete: 'text-emerald-700 bg-emerald-50',
+  'in-progress': 'text-amber-700 bg-amber-50',
+  todo: 'text-content-secondary bg-surface-page'
 };
 
 const Onboarding = () => {
   return (
-    <section className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
-          Onboarding
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Configure X-ProFlow to mirror your workflows while keeping every decision explicit and
-          reversible.
-        </p>
-      </div>
+    <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+      <PageHeader
+        title="Onboarding"
+        subtitle="Configure XProFlow to mirror your workflows while keeping every decision explicit and reversible."
+        action={(
+          <div className="flex flex-wrap gap-2">
+            <FilterPill active>Workspace setup</FilterPill>
+            <FilterPill>Guided flow</FilterPill>
+          </div>
+        )}
+      />
 
       <Card className="space-y-3">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Help XProFlow write like your finance team</h2>
-        <p className="text-sm text-slate-600 dark:text-slate-300">Capture your role, audiences, tone and risk posture in under 3 minutes.</p>
-        <Link to="/onboarding/professional-context" className="inline-flex w-fit rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white">Open Professional Context setup</Link>
+        <h2 className="text-lg font-semibold text-content-primary">Help XProFlow write like your finance team</h2>
+        <p className="text-sm text-content-secondary">Capture your role, audiences, tone and risk posture in under 3 minutes.</p>
+        <Link to="/onboarding/professional-context" className="inline-flex w-fit rounded-full bg-content-primary px-4 py-2 text-sm font-medium text-white">Open Professional Context setup</Link>
       </Card>
 
       <Card className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+          <h2 className="text-lg font-semibold text-content-primary">
             Setup checklist
           </h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          <p className="mt-1 text-sm text-content-secondary">
             Finish each step to enable drafting, labeling, and workflows.
           </p>
         </div>
@@ -45,14 +48,14 @@ const Onboarding = () => {
           {onboardingSteps.map((step) => (
             <div
               key={step.id}
-              className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950"
+              className="rounded-[12px] bg-surface-page p-4 shadow-card"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-semibold text-content-primary">
                     {step.title}
                   </p>
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  <p className="mt-1 text-sm text-content-secondary">
                     {step.description}
                   </p>
                 </div>
@@ -75,10 +78,10 @@ const Onboarding = () => {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Card className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="text-lg font-semibold text-content-primary">
               Connected inboxes
             </h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-sm text-content-secondary">
               Confirm permissions for every inbox X-ProFlow can read or draft in.
             </p>
           </div>
@@ -86,19 +89,19 @@ const Onboarding = () => {
             {onboardingAccounts.map((account) => (
               <div
                 key={account.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-950"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] bg-surface-page px-4 py-3 text-sm shadow-card"
               >
                 <div>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="font-semibold text-content-primary">
                     {account.provider}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{account.address}</p>
+                  <p className="text-xs text-content-secondary">{account.address}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <p className="text-xs font-semibold text-content-primary">
                     {account.status.replace('-', ' ')}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-content-secondary">
                     {account.lastSync}
                   </p>
                 </div>
@@ -115,10 +118,10 @@ const Onboarding = () => {
 
         <Card className="space-y-4">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            <h2 className="text-lg font-semibold text-content-primary">
               Control preferences
             </h2>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-1 text-sm text-content-secondary">
               Decide which automations run automatically versus waiting for approval.
             </p>
           </div>
@@ -126,19 +129,19 @@ const Onboarding = () => {
             {onboardingPreferences.map((preference) => (
               <div
                 key={preference.id}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-950"
+                className="flex items-center justify-between gap-3 rounded-[12px] bg-surface-page px-4 py-3 shadow-card"
               >
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-semibold text-content-primary">
                     {preference.title}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-content-secondary">
                     {preference.description}
                   </p>
                 </div>
                 <label className="relative inline-flex cursor-pointer items-center">
                   <input type="checkbox" defaultChecked={preference.enabled} className="peer sr-only" />
-                  <span className="toggle-off relative h-6 w-11 rounded-full transition peer-checked:bg-blue-600">
+                  <span className="relative h-6 w-11 rounded-full bg-border-medium transition peer-checked:bg-content-primary">
                     <span className="toggle-knob absolute left-0.5 top-0.5 h-5 w-5 rounded-full shadow transition peer-checked:translate-x-5" />
                   </span>
                 </label>

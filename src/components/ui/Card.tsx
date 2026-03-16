@@ -9,14 +9,14 @@ type CardProps = {
 
 const Card = ({ children, className, variant = 'default' }: CardProps) => {
   const variantClasses = {
-    default: 'panel-surface',
-    glass: 'glass-card'
+    default: 'border-[rgba(18,29,49,0.06)] bg-white shadow-card',
+    glass: 'border-[rgba(18,29,49,0.06)] bg-white/95 shadow-page'
   };
 
   return (
     <div
       className={classNames(
-        'rounded-2xl border p-6 shadow-sm',
+        'rounded-[16px] border p-6',
         variantClasses[variant],
         className
       )}
