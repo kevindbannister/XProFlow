@@ -21,7 +21,7 @@ const Billing = () => {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <div className="flex w-full max-w-6xl flex-col gap-5">
       <PageHeader
         title="Billing"
         subtitle="Manage your plan, trial status, and upgrade path without leaving the dashboard."

@@ -10,7 +10,7 @@ export const FilterPill = ({ active = false, className, children, ...props }: Fi
     <button
       type="button"
       className={classNames(
-        'h-6 rounded-full border border-border-medium bg-white px-2 py-1 text-xs font-semibold text-content-secondary transition hover:bg-surface-page',
+        'h-6 rounded-[8px] border border-border-medium bg-white px-2 py-1 text-xs font-semibold text-content-secondary transition hover:bg-surface-page',
         active && 'border-transparent bg-content-primary text-white hover:bg-content-primary',
         className
       )}

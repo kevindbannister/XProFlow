@@ -79,7 +79,7 @@ const ProfessionalContextForm = ({ mode }: { mode: 'onboarding' | 'settings' }) 
   if (loading) return <div className="p-6 text-sm text-content-secondary">Loading professional context…</div>;
 
   return (
-    <section className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <section className="flex w-full max-w-6xl flex-col gap-5">
       <PageHeader
         title="Professional Context"
         subtitle="XProFlow tailors tone, risk, and language based on your role so drafts sound like you."

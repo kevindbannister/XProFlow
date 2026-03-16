@@ -51,7 +51,7 @@ type SidebarProps = {
 };
 
 const itemClassName =
-  'h-7 min-h-7 flex items-center gap-2 px-2 rounded-[16px] text-xs font-medium leading-4 text-content-secondary transition hover:bg-surface-hover';
+  'h-7 min-h-7 flex items-center gap-2 px-2 rounded-[10px] text-xs font-medium leading-4 text-content-secondary transition hover:bg-surface-hover dark:text-[#A9B7C9] dark:hover:bg-white/5';
 
 const Sidebar = ({ onOpenSettings }: SidebarProps) => {
   const { pathname } = useLocation();
@@ -67,7 +67,7 @@ const Sidebar = ({ onOpenSettings }: SidebarProps) => {
   };
 
   return (
-    <aside className="flex h-screen w-[200px] min-w-[200px] flex-col bg-surface-page px-3 pb-4 pt-9">
+    <aside className="flex h-screen w-[200px] min-w-[200px] flex-col bg-transparent px-3 pb-4 pt-9">
       <div className="px-2">
         <AppLogo className="h-8 w-auto" />
       </div>
@@ -83,7 +83,7 @@ const Sidebar = ({ onOpenSettings }: SidebarProps) => {
               to={item.to}
               className={classNames(
                 itemClassName,
-                isActive && 'bg-white text-content-primary shadow-[0_1px_2px_rgba(18,29,49,0.05)]'
+                isActive && 'bg-gradient-to-r from-[#27B0FF] to-[#3B82F6] text-white shadow-[0_8px_24px_rgba(59,130,246,0.25)]'
               )}
             >
               <Icon className="h-4 w-4 shrink-0" strokeWidth={1.8} />
@@ -108,7 +108,7 @@ const Sidebar = ({ onOpenSettings }: SidebarProps) => {
                 src={user.avatarUrl}
                 alt={user.name}
                 fallback={getUserInitials(user.name)}
-                className="h-5 w-5 rounded-full bg-[#E6EAEE] text-[10px] font-semibold text-content-primary"
+                className="h-5 w-5 rounded-full bg-[#E6EAEE] text-[10px] font-semibold text-content-primary dark:bg-[#233044] dark:text-[#F3F7FD]"
               />
               <span className="truncate">{user.name}</span>
             </button>
@@ -117,14 +117,14 @@ const Sidebar = ({ onOpenSettings }: SidebarProps) => {
         >
           <Link
             to="/profile"
-            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary"
+            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary dark:text-[#C9D6E6] dark:hover:bg-white/5 dark:hover:text-white"
           >
             Profile
           </Link>
           <button
             type="button"
             onClick={() => void handleLogout()}
-            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary"
+            className="flex w-full items-center rounded-xl px-3 py-2 text-left text-sm font-medium text-content-secondary transition hover:bg-surface-hover hover:text-content-primary dark:text-[#C9D6E6] dark:hover:bg-white/5 dark:hover:text-white"
           >
             Log out
           </button>

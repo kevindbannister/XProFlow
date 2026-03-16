@@ -6,7 +6,7 @@ import Card from '../../components/ui/Card';
 
 const DashboardPage = () => {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+    <div className="flex w-full max-w-6xl flex-col gap-5">
       <PageHeader
         title="Dashboard"
         subtitle="Monitor automation performance, coverage, and the health of every inbox workflow."

@@ -10,7 +10,7 @@ const AppLayout = () => {
   return (
     <>
       <div
-        className="flex h-screen bg-surface-page"
+        className="app-shell-surface flex h-screen overflow-hidden"
         style={{ fontFamily: 'system-ui, sans-serif' }}
       >
         <Sidebar onOpenSettings={() => setSettingsOpen(true)} />
