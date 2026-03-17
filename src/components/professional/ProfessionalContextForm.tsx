@@ -94,34 +94,34 @@ const ProfessionalContextForm = ({ mode }: { mode: 'onboarding' | 'settings' }) 
       <Card className="space-y-5">
         <div className="grid gap-4 lg:grid-cols-2">
         <label className="text-sm">Primary role
-          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.primary_role} onChange={(e) => setContext({ ...context, user: { ...context.user, primary_role: e.target.value as ProfessionalContextPayload['user']['primary_role'] } })}>
+          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.primary_role} onChange={(e) => setContext({ ...context, user: { ...context.user, primary_role: e.target.value as ProfessionalContextPayload['user']['primary_role'] } })}>
             {PRIMARY_ROLES.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
         <label className="text-sm">Seniority / authority
-          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.seniority_level} onChange={(e) => setContext({ ...context, user: { ...context.user, seniority_level: e.target.value as ProfessionalContextPayload['user']['seniority_level'] } })}>
+          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.seniority_level} onChange={(e) => setContext({ ...context, user: { ...context.user, seniority_level: e.target.value as ProfessionalContextPayload['user']['seniority_level'] } })}>
             {SENIORITY_LEVELS.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
         <label className="text-sm">Job title
-          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" list="job-titles" value={context.user.job_title_selected} onChange={(e) => setContext({ ...context, user: { ...context.user, job_title_selected: e.target.value } })} placeholder="Select or type" />
+          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" list="job-titles" value={context.user.job_title_selected} onChange={(e) => setContext({ ...context, user: { ...context.user, job_title_selected: e.target.value } })} placeholder="Select or type" />
           <datalist id="job-titles">{COMMON_JOB_TITLES.map((item) => <option key={item} value={item} />)}</datalist>
         </label>
         <label className="text-sm">Custom title (optional)
-          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.job_title_custom} onChange={(e) => setContext({ ...context, user: { ...context.user, job_title_custom: e.target.value } })} placeholder="e.g. Outsourced Finance Lead" />
+          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.job_title_custom} onChange={(e) => setContext({ ...context, user: { ...context.user, job_title_custom: e.target.value } })} placeholder="e.g. Outsourced Finance Lead" />
         </label>
         <label className="text-sm">Work setting
-          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.work_setting} onChange={(e) => setContext({ ...context, user: { ...context.user, work_setting: e.target.value as ProfessionalContextPayload['user']['work_setting'] } })}>
+          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.work_setting} onChange={(e) => setContext({ ...context, user: { ...context.user, work_setting: e.target.value as ProfessionalContextPayload['user']['work_setting'] } })}>
             {WORK_SETTINGS.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
         <label className="text-sm">Writing style
-          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.writing_style} onChange={(e) => setContext({ ...context, user: { ...context.user, writing_style: e.target.value as ProfessionalContextPayload['user']['writing_style'] } })}>
+          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.writing_style} onChange={(e) => setContext({ ...context, user: { ...context.user, writing_style: e.target.value as ProfessionalContextPayload['user']['writing_style'] } })}>
             {WRITING_STYLES.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
         <label className="text-sm lg:col-span-2">Risk / compliance posture
-          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.risk_posture} onChange={(e) => setContext({ ...context, user: { ...context.user, risk_posture: e.target.value as ProfessionalContextPayload['user']['risk_posture'] } })}>
+          <select className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.risk_posture} onChange={(e) => setContext({ ...context, user: { ...context.user, risk_posture: e.target.value as ProfessionalContextPayload['user']['risk_posture'] } })}>
             {RISK_POSTURES.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
@@ -153,16 +153,16 @@ const ProfessionalContextForm = ({ mode }: { mode: 'onboarding' | 'settings' }) 
 
         <div className="grid gap-4 lg:grid-cols-2">
         <label className="text-sm">Firm/organisation name
-          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.org.firm_name} onChange={(e) => setContext({ ...context, org: { ...context.org, firm_name: e.target.value } })} />
+          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.org.firm_name} onChange={(e) => setContext({ ...context, org: { ...context.org, firm_name: e.target.value } })} />
         </label>
         <label className="text-sm">Locale
-          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" value={context.user.locale} onChange={(e) => setContext({ ...context, user: { ...context.user, locale: e.target.value } })} />
+          <input className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" value={context.user.locale} onChange={(e) => setContext({ ...context, user: { ...context.user, locale: e.target.value } })} />
         </label>
         <label className="text-sm lg:col-span-2">Signature block
-          <textarea className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" rows={3} value={context.org.signature_block} onChange={(e) => setContext({ ...context, org: { ...context.org, signature_block: e.target.value } })} />
+          <textarea className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" rows={3} value={context.org.signature_block} onChange={(e) => setContext({ ...context, org: { ...context.org, signature_block: e.target.value } })} />
         </label>
         <label className="text-sm lg:col-span-2">Disclaimer text
-          <textarea className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card" rows={2} value={context.org.disclaimer_text} onChange={(e) => setContext({ ...context, org: { ...context.org, disclaimer_text: e.target.value } })} />
+          <textarea className="mt-2 w-full rounded-[12px] border border-border-medium bg-white p-3 text-content-primary shadow-card dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:shadow-[0_8px_24px_rgba(2,6,23,0.3)]" rows={2} value={context.org.disclaimer_text} onChange={(e) => setContext({ ...context, org: { ...context.org, disclaimer_text: e.target.value } })} />
         </label>
         </div>
 

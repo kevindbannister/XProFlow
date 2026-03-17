@@ -45,11 +45,11 @@ const FirmSettings = () => {
 
   if (!firm) {
     return (
-      <main className="rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:p-5">
-        <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+      <main className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950 lg:p-5">
+        <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-200">
           <h2 className="text-base font-semibold">Firm details are unavailable</h2>
           <p className="mt-2">We could not find your firm in the current session. Please sign in again.</p>
-          <Link to="/login" className="mt-3 inline-block font-medium text-amber-800 underline">Return to login</Link>
+          <Link to="/login" className="mt-3 inline-block font-medium text-amber-800 underline dark:text-amber-300">Return to login</Link>
         </section>
       </main>
     );
@@ -85,43 +85,43 @@ const FirmSettings = () => {
   };
 
   return (
-    <main className="rounded-2xl border border-slate-200 bg-slate-50 p-4 lg:p-5" aria-label="Firm settings page">
-      <section className="min-h-[22rem] rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:p-6">
-        <header className="mb-6 border-b border-slate-100 pb-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Settings</p>
+    <main className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950 lg:p-5" aria-label="Firm settings page">
+      <section className="min-h-[22rem] rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:p-6">
+        <header className="mb-6 border-b border-slate-100 pb-4 dark:border-slate-800">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Settings</p>
           <h2 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-slate-100">Firm Settings</h2>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Update your firm profile details and view current subscription limits.</p>
         </header>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1">
-            <label htmlFor="firm-name" className="text-xs font-semibold uppercase tracking-wide text-slate-500">Firm name</label>
+            <label htmlFor="firm-name" className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Firm name</label>
             <input
               id="firm-name"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500"
+              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:disabled:bg-slate-900 dark:disabled:text-slate-500"
               value={firmName}
               onChange={(event) => setFirmName(event.target.value)}
               disabled={!canEditFirmName || isSaving}
             />
-            {!canEditFirmName ? <p className="text-xs text-slate-500">Only the firm owner can change this.</p> : null}
+            {!canEditFirmName ? <p className="text-xs text-slate-500 dark:text-slate-400">Only the firm owner can change this.</p> : null}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Trial end date</p>
-              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{formatDate(firm.trial_ends_at ?? firm.trial_end_date)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Trial end date</p>
+              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">{formatDate(firm.trial_ends_at ?? firm.trial_end_date)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Seat limit</p>
-              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{typeof firm.seat_limit === 'number' ? firm.seat_limit : 'Not set'}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Seat limit</p>
+              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">{typeof firm.seat_limit === 'number' ? firm.seat_limit : 'Not set'}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Firm status</p>
-              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{formatBoolean(firm.is_active)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Firm status</p>
+              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">{formatBoolean(firm.is_active)}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Created date</p>
-              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">{formatDate(firm.created_at)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Created date</p>
+              <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">{formatDate(firm.created_at)}</p>
             </div>
           </div>
 
@@ -129,7 +129,7 @@ const FirmSettings = () => {
             <button
               type="submit"
               disabled={!canEditFirmName || isSaving}
-              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
             >
               {isSaving ? 'Saving...' : 'Save changes'}
             </button>

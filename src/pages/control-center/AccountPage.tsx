@@ -32,13 +32,13 @@ const AccountPage = () => (
       </Field>
 
       <Field label="Plan" htmlFor="plan">
-        <div id="plan" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <div id="plan" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-200">
           Pro Plan — Unlimited AI drafting, rule automation, and integrations.
         </div>
       </Field>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-4">
-        <p className="text-sm text-slate-600">Need invoices or payment history?</p>
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+        <p className="text-sm text-slate-600 dark:text-slate-300">Need invoices or payment history?</p>
         <div className="flex gap-2">
           <SecondaryButton type="button">Billing link</SecondaryButton>
           <PrimaryButton type="button">Save account settings</PrimaryButton>

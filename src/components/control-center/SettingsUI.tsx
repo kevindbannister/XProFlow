@@ -73,7 +73,7 @@ export const PrimaryButton = ({ children, className, ...props }: PropsWithChildr
 
 export const SecondaryButton = ({ children, className, ...props }: PropsWithChildren<ButtonHTMLAttributes<HTMLButtonElement>>) => (
   <button
-    className={classNames('rounded-full border border-border-medium bg-white px-4 py-2 text-sm font-medium text-content-primary transition hover:bg-surface-page', className)}
+    className={classNames('rounded-full border border-border-medium bg-white px-4 py-2 text-sm font-medium text-content-primary transition hover:bg-surface-page dark:border-white/10 dark:bg-[#111926] dark:text-[#F3F7FD] dark:hover:bg-[#1B2636]', className)}
     {...props}
   >
     {children}

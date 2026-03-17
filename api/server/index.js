@@ -199,3 +199,10 @@ async function startServer() {
 }
 
 module.exports = { app, startServer };
+
+if (require.main === module) {
+  startServer().catch((error) => {
+    console.error('Failed to start API server', error);
+    process.exit(1);
+  });
+}
