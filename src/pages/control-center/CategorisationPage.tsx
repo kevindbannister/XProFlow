@@ -44,31 +44,31 @@ const CategorisationPage = () => {
       subtitle="Organize incoming emails using categories and rules to keep your inbox focused on what matters."
     >
       <div className="space-y-6">
-        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div>
-            <p className="text-sm font-medium text-slate-900">Categorization engine</p>
-            <p className="text-sm text-slate-500">{categoryCount} categories currently enabled</p>
+            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">Categorization engine</p>
+            <p className="text-sm text-slate-500 dark:text-slate-300">{categoryCount} categories currently enabled</p>
           </div>
           <button
             type="button"
             aria-pressed={masterEnabled}
             onClick={() => setMasterEnabled((value) => !value)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${masterEnabled ? 'bg-slate-900' : 'bg-slate-300'}`}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${masterEnabled ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-300 dark:bg-slate-700'}`}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${masterEnabled ? 'translate-x-5' : 'translate-x-1'}`}
+              className={`inline-block h-5 w-5 transform rounded-full bg-white transition dark:bg-slate-950 ${masterEnabled ? 'translate-x-5' : 'translate-x-1'}`}
             />
           </button>
         </div>
 
         <SettingsCard className="space-y-4">
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-300">
             Turning on a category below will move emails in that category out of your main inbox and into your chosen folder/label.
           </div>
 
           <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-3 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Move to folder/label?</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Categories</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Move to folder/label?</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Categories</p>
             {categories.map((category) => {
               const checked = enabledCategories[category.name];
               const categoryId = `category-${category.name.toLowerCase().replace(/\s+/g, '-')}`;
@@ -81,12 +81,12 @@ const CategorisationPage = () => {
                       type="checkbox"
                       checked={checked}
                       onChange={() => setEnabledCategories((prev) => ({ ...prev, [category.name]: !prev[category.name] }))}
-                      className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                      className="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
                     />
                   </div>
                   <label htmlFor={categoryId} className="flex items-center gap-3">
                     <span className={`${pillClass} ${category.color}`}>{category.name}</span>
-                    <span className="text-sm text-slate-500">{category.description}</span>
+                    <span className="text-sm text-slate-500 dark:text-slate-300">{category.description}</span>
                   </label>
                 </div>
               );
@@ -96,24 +96,24 @@ const CategorisationPage = () => {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Email rules</h2>
-            <p className="text-sm text-slate-500">Add senders, domains, or email subjects to automatically route messages into a category.</p>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Email rules</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-300">Add senders, domains, or email subjects to automatically route messages into a category.</p>
           </div>
 
           <SettingsCard className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-900">Respect user-applied labels</p>
-                <p className="text-sm text-slate-500">Skip auto-categorizing emails that already have labels or are moved into another folder.</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Respect user-applied labels</p>
+                <p className="text-sm text-slate-500 dark:text-slate-300">Skip auto-categorizing emails that already have labels or are moved into another folder.</p>
               </div>
               <button
                 type="button"
                 aria-pressed={respectUserLabels}
                 onClick={() => setRespectUserLabels((value) => !value)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${respectUserLabels ? 'bg-slate-900' : 'bg-slate-300'}`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${respectUserLabels ? 'bg-slate-900 dark:bg-slate-100' : 'bg-slate-300 dark:bg-slate-700'}`}
               >
                 <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition ${respectUserLabels ? 'translate-x-5' : 'translate-x-1'}`}
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition dark:bg-slate-950 ${respectUserLabels ? 'translate-x-5' : 'translate-x-1'}`}
                 />
               </button>
             </div>
@@ -130,13 +130,13 @@ const CategorisationPage = () => {
 
         <section className="space-y-4">
           <div>
-            <h2 className="text-xl font-semibold text-slate-900">Reply & filter settings</h2>
-            <p className="text-sm text-slate-500">Adjust AI thresholds for drafting replies and deciding which emails should be treated as marketing.</p>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Reply & filter settings</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-300">Adjust AI thresholds for drafting replies and deciding which emails should be treated as marketing.</p>
           </div>
           <SettingsCard className="space-y-6">
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-900">How often do you like to reply?</p>
-              <div className="flex justify-between text-xs text-slate-500">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">How often do you like to reply?</p>
+              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>Very often</span>
                 <span>Rarely</span>
               </div>
@@ -148,12 +148,12 @@ const CategorisationPage = () => {
                 onChange={(event) => setReplyFrequency(Number(event.target.value))}
                 className="w-full accent-slate-900"
               />
-              <p className="text-sm text-slate-600">{replyFrequency > 60 ? 'I reply to almost everything, even if it is just to be polite.' : 'I usually prioritize only emails that need action.'}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{replyFrequency > 60 ? 'I reply to almost everything, even if it is just to be polite.' : 'I usually prioritize only emails that need action.'}</p>
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-slate-900">Which emails should be filtered as marketing?</p>
-              <div className="flex justify-between text-xs text-slate-500">
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Which emails should be filtered as marketing?</p>
+              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>Obvious</span>
                 <span>Irrelevant</span>
               </div>
@@ -165,7 +165,7 @@ const CategorisationPage = () => {
                 onChange={(event) => setMarketingThreshold(Number(event.target.value))}
                 className="w-full accent-emerald-500"
               />
-              <p className="text-sm text-slate-600">{marketingThreshold < 50 ? 'Cold emails and unknown senders are filtered earlier.' : 'Only clearly promotional emails are filtered.'}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">{marketingThreshold < 50 ? 'Cold emails and unknown senders are filtered earlier.' : 'Only clearly promotional emails are filtered.'}</p>
             </div>
           </SettingsCard>
         </section>

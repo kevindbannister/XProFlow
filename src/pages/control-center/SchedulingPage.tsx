@@ -41,8 +41,8 @@ const SchedulingPage = () => (
       <Field label="Availability grid (Mon–Sun)" htmlFor="availability-grid">
         <div id="availability-grid" className="grid gap-2 sm:grid-cols-2 md:grid-cols-4">
           {days.map((day) => (
-            <label key={day} className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-700">
-              <input type="checkbox" defaultChecked={day !== 'Sat' && day !== 'Sun'} className="h-4 w-4 rounded border-slate-300 text-blue-600" />
+            <label key={day} className="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-200">
+              <input type="checkbox" defaultChecked={day !== 'Sat' && day !== 'Sun'} className="h-4 w-4 rounded border-slate-300 text-blue-600 dark:border-slate-700 dark:bg-slate-950" />
               {day}
             </label>
           ))}

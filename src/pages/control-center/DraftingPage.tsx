@@ -35,9 +35,9 @@ const DraftingPage = () => (
       />
 
       <Field label="Days before follow up slider" htmlFor="follow-up-days">
-        <div className="rounded-lg border border-slate-200 px-4 py-3">
+        <div className="rounded-lg border border-slate-200 px-4 py-3 dark:border-slate-800 dark:bg-slate-950/40">
           <input id="follow-up-days" type="range" min={1} max={14} defaultValue={4} className="w-full" />
-          <div className="mt-2 flex justify-between text-xs text-slate-500">
+          <div className="mt-2 flex justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>1 day</span>
             <span>4 days</span>
             <span>14 days</span>

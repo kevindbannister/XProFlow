@@ -45,7 +45,7 @@ const SignaturePage = () => (
       </div>
 
       <Field label="Signature preview" htmlFor="signature-preview">
-        <div id="signature-preview" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+        <div id="signature-preview" className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 dark:border-slate-800 dark:bg-slate-950/40 dark:text-slate-200">
           <p>Best regards,</p>
           <p className="font-semibold">Alex Morgan</p>
           <p>Head of Customer Operations</p>
