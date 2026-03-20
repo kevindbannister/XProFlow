@@ -37,9 +37,9 @@ const DashboardPage = () => {
                 ['Inbox triage speed', '4m', 'Average time from receipt to categorisation'],
                 ['Manual review rate', '12%', 'Threads still requiring direct human review']
               ].map(([label, value, body]) => (
-                <div key={label} className="rounded-[12px] bg-surface-page p-4 shadow-card">
+                <div key={label} className="rounded-[12px] bg-surface-page p-4 shadow-card dark:bg-[#1B2636] dark:shadow-[0_18px_40px_rgba(2,6,23,0.22)]">
                   <p className="text-[12.8px] font-medium text-content-secondary">{label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-content-primary">{value}</p>
+                  <p className="mt-2 text-2xl font-semibold text-content-primary dark:text-[#F3F7FD]">{value}</p>
                   <p className="mt-2 text-sm text-content-secondary">{body}</p>
                 </div>
               ))}
@@ -58,7 +58,7 @@ const DashboardPage = () => {
               'Scheduling defaults synced with primary calendar',
               'Professional context reviewed for new tone guidance'
             ].map((item) => (
-              <div key={item} className="rounded-[12px] bg-surface-page p-4 text-sm text-content-primary shadow-card">
+              <div key={item} className="rounded-[12px] bg-surface-page p-4 text-sm text-content-primary shadow-card dark:bg-[#1B2636] dark:text-[#F3F7FD] dark:shadow-[0_18px_40px_rgba(2,6,23,0.22)]">
                 {item}
               </div>
             ))}

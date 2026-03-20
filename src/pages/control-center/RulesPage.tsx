@@ -19,18 +19,18 @@ const RulesPage = () => {
     >
       <SettingsCard className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-semibold text-slate-900">Rule list</h2>
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">Rule list</h2>
           <PrimaryButton type="button" onClick={() => setIsModalOpen(true)}>Create rule</PrimaryButton>
         </div>
 
         <div className="space-y-3">
-          <article className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">IF sender contains "@client.com"</p>
-            <p className="mt-1 text-sm text-slate-600">THEN category = <span className="font-medium">To Respond</span></p>
+          <article className="rounded-lg border border-slate-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">IF sender contains "@client.com"</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">THEN category = <span className="font-medium">To Respond</span></p>
           </article>
-          <article className="rounded-lg border border-slate-200 p-4">
-            <p className="text-sm font-semibold text-slate-900">IF subject contains "invoice"</p>
-            <p className="mt-1 text-sm text-slate-600">THEN category = <span className="font-medium">Notification</span></p>
+          <article className="rounded-lg border border-slate-200 p-4 dark:border-slate-800 dark:bg-slate-950/40">
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">IF subject contains "invoice"</p>
+            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">THEN category = <span className="font-medium">Notification</span></p>
           </article>
         </div>
       </SettingsCard>
@@ -39,7 +39,7 @@ const RulesPage = () => {
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/45 p-6">
           <SettingsCard className="z-50 w-full max-w-2xl space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-slate-900">Rule Builder</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Rule Builder</h3>
               <SecondaryButton type="button" onClick={() => setIsModalOpen(false)}>Close</SecondaryButton>
             </div>
 

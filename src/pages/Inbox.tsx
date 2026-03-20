@@ -22,12 +22,12 @@ const folders: { id: InboxFolder; label: string }[] = [
 ];
 
 const statusStyles: Record<string, string> = {
-  READ: 'bg-slate-100 text-slate-600',
-  REPLIED: 'bg-violet-100 text-violet-700',
-  DRAFT: 'bg-amber-100 text-amber-700',
-  COMPLETE: 'bg-sky-100 text-sky-700',
-  ACTIVE: 'bg-emerald-100 text-emerald-700',
-  ORGANIZED: 'bg-teal-100 text-teal-700'
+  READ: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  REPLIED: 'bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300',
+  DRAFT: 'bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+  COMPLETE: 'bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300',
+  ACTIVE: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+  ORGANIZED: 'bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300'
 };
 
 const emptyGroups: GroupedInboxResponse = { today: [], thisMonth: [], older: [] };
@@ -159,9 +159,9 @@ const Inbox = () => {
         )}
       />
 
-      <div className="rounded-[16px] border border-[rgba(18,29,49,0.06)] bg-white shadow-page">
+      <div className="rounded-[16px] border border-[rgba(18,29,49,0.06)] bg-white shadow-page dark:border-white/10 dark:bg-[#141d2c]">
         {isConnected ? (
-          <div className="border-b border-[rgba(18,29,49,0.06)] px-6 py-4">
+          <div className="border-b border-[rgba(18,29,49,0.06)] px-6 py-4 dark:border-white/10">
             <div className="flex flex-wrap gap-2">
               {folders.map((folder, index) => (
                 <FilterPill
@@ -177,13 +177,13 @@ const Inbox = () => {
         ) : null}
 
         {error ? (
-          <div className="border-b border-rose-100 bg-rose-50 px-6 py-3 text-sm text-rose-700">
+          <div className="border-b border-rose-100 bg-rose-50 px-6 py-3 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
             {error}
           </div>
         ) : null}
 
         {successMessage ? (
-          <div className="border-b border-emerald-100 bg-emerald-50 px-6 py-3 text-sm text-emerald-700">
+          <div className="border-b border-emerald-100 bg-emerald-50 px-6 py-3 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-200">
             {successMessage}
           </div>
         ) : null}
@@ -225,7 +225,7 @@ const Inbox = () => {
         ) : (
           <div>
             {sections.map((section) => (
-              <div key={section.key} className="border-b border-[rgba(18,29,49,0.06)] last:border-b-0">
+              <div key={section.key} className="border-b border-[rgba(18,29,49,0.06)] last:border-b-0 dark:border-white/10">
                 <div className="px-6 pb-3 pt-6 text-[20px] font-medium text-content-primary">
                   {section.title}
                 </div>
@@ -257,7 +257,7 @@ const Inbox = () => {
                           {message.status && message.status !== 'NONE' ? (
                             <span
                               className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
-                                statusStyles[message.status] || 'bg-slate-100 text-slate-600'
+                                statusStyles[message.status] || 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                               }`}
                             >
                               {message.status}
